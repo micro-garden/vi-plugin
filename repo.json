@@ -1,6 +1,6 @@
 [{
 	"Name": "vi",
-	"Description": "**TODO**",
+	"Description": "Provides a simple vi-style modal editing mode.",
 	"Author": "Aki Kareha",
 	"Tags": ["vi"],
 	"Website": "https://github.com/akikareha/micro-vi-plugin",

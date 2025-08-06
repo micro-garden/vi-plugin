@@ -41,6 +41,23 @@ function ViCmd()
 	command_edit = nil
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
+
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	if cursor.Loc.Y == last_line_index then
+		local line = cursor:Buf():Line(cursor.Loc.Y)
+		local length = utf8.RuneCount(line)
+		if length < 1 then
+			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+
+			micro.CurPane():Relocate()
+		end
+	end
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
+
+	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 
 	show_mode()
@@ -60,6 +77,7 @@ function move_left(number)
 
 	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
 
+	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
@@ -71,6 +89,7 @@ function move_right(number)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
 
+	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
@@ -84,6 +103,8 @@ function move_up(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+
+	micro.CurPane():Relocate()
 end
 
 function move_down(number)
@@ -105,6 +126,94 @@ function move_down(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+
+	micro.CurPane():Relocate()
+end
+
+function move_next_line_start(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	if cursor.Loc.Y == last_line_index then
+		return -- vi error
+	elseif cursor.Loc.Y == last_line_index - 1 then
+		local line = cursor:Buf():Line(last_line_index)
+		local length = utf8.RuneCount(line)
+		if length < 1 then
+			return -- vi error
+		end
+	end
+
+	move_line_start()
+	move_down(number)
+end
+
+function move_line_start()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	cursor.Loc.X = 0
+
+	micro.CurPane():Relocate()
+	virtual_cursor_x = cursor.Loc.X
+end
+
+-- XXX not work on indented lines
+function move_line_end()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.max(length - 1, 0)
+
+	micro.CurPane():Relocate()
+	virtual_cursor_x = cursor.Loc.X
+end
+
+-- XXX incompatible
+function move_next_word(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	for _ = 1, number do
+		local line = cursor:Buf():Line(cursor.Loc.Y)
+		local length = utf8.RuneCount(line)
+
+		if cursor.Loc.X == length - 1 then
+			local last_line_index = cursor:Buf():LinesNum() - 1
+			if cursor.Loc.Y == last_line_index - 1 then
+				local line = cursor:Buf():Line(last_line_index)
+				local length = utf8.RuneCount(line)
+				if length < 1 then
+					break -- vi error
+				end
+			end
+
+			cursor.Loc.X = length
+			cursor:WordRight() -- XXX micro method
+		else
+			cursor:WordRight() -- XXX micro method
+			cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length - 1, 0))
+		end
+	end
+
+	micro.CurPane():Relocate()
+	virtual_cursor_x = cursor.Loc.X
+end
+
+-- XXX incompatible
+function move_prev_word(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	for _ = 1, number do
+		cursor:WordLeft() -- XXX micro method
+	end
+
+	micro.CurPane():Relocate()
+	virtual_cursor_x = cursor.Loc.X
 end
 
 function onBeforeTextEvent(buf, ev)
@@ -138,7 +247,17 @@ function onBeforeTextEvent(buf, ev)
 
 	command_buffer = command_buffer .. text
 
-	local number_str, edit, move = command_buffer:match("^(%d*)([i]-)([hjkl]*)$")
+	local number_str, edit, move
+	if command_buffer:match("^0$") then
+		number_str, edit, move = "", "", "0"
+	else
+		number_str, edit, move = command_buffer:match("^(%d*)([iZ]*)([hjkl\n0%$wb]*)$")
+	end
+
+	if not number_str then
+		show_mode()
+		return true
+	end
 
 	local number = 1
 	if #number_str > 0 then
@@ -176,6 +295,42 @@ function onBeforeTextEvent(buf, ev)
 		show_mode()
 
 		move_right(number)
+		return true
+	elseif move == "\n" then
+		command_buffer = ""
+		show_mode()
+
+		move_next_line_start(number)
+		return true
+	elseif move == "0" then
+		command_buffer = ""
+		show_mode()
+
+		move_line_start()
+		return true
+	elseif move == "$" then
+		command_buffer = ""
+		show_mode()
+
+		move_line_end()
+		return true
+	elseif move == "w" then
+		command_buffer = ""
+		show_mode()
+
+		move_next_word(number)
+		return true
+	elseif move == "b" then
+		command_buffer = ""
+		show_mode()
+
+		move_prev_word(number)
+		return true
+	elseif edit == "ZZ" then
+		command_buffer = ""
+		show_mode()
+
+		micro.CurPane():QuitCmd({})
 		return true
 	end
 

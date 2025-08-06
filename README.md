@@ -1,8 +1,8 @@
 # vi Plugin for Micro
 
 **vi** is a plugin for the
-[micro](https://micro-editor.github.io/) text editor that
-**TODO**
+[micro](https://micro-editor.github.io/) text editor that provides a simple
+vi-style modal editing mode.
 
 See [help/vi.md](help/vi.md) for more details.
 
