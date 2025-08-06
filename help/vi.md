@@ -33,9 +33,14 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 
 ### Insert Commands
 
-| Command | Description       |
-| ------- | ----------------- |
-| `i`     | Enter insert mode |
+| Command | Description                                        |
+| ------- | -------------------------------------------------- |
+| `i`     | Enter insert mode at current cursor                |
+| `I`     | Insert at the beginning of the line (after indent) |
+| `a`     | Insert after the current character                 |
+| `A`     | Insert at the end of the line                      |
+| `o`     | Insert a new line below the current line           |
+| `O`     | Insert a new line above the current line           |
 
 ### Quit Command
 

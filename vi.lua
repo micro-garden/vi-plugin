@@ -1,4 +1,4 @@
-VERSION = "0.0.0"
+VERSION = "0.0.1"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -55,7 +55,7 @@ function ViCmd()
 
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
+	cursor.Loc.X = math.min(math.max(cursor.Loc.X - 1, 0), math.max(length - 1, 0))
 
 	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
@@ -71,7 +71,7 @@ local function bytes_to_string(array)
 	return table.concat(buf)
 end
 
-function move_left(number)
+local function move_left(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -81,7 +81,7 @@ function move_left(number)
 	virtual_cursor_x = cursor.Loc.X
 end
 
-function move_right(number)
+local function move_right(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -93,7 +93,7 @@ function move_right(number)
 	virtual_cursor_x = cursor.Loc.X
 end
 
-function move_up(number)
+local function move_up(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -107,7 +107,7 @@ function move_up(number)
 	micro.CurPane():Relocate()
 end
 
-function move_down(number)
+local function move_down(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -130,7 +130,7 @@ function move_down(number)
 	micro.CurPane():Relocate()
 end
 
-function move_next_line_start(number)
+local function move_next_line_start(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -149,7 +149,7 @@ function move_next_line_start(number)
 	move_down(number)
 end
 
-function move_line_start()
+local function move_line_start()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -160,7 +160,7 @@ function move_line_start()
 end
 
 -- XXX not work on indented lines
-function move_line_end()
+local function move_line_end()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -173,7 +173,7 @@ function move_line_end()
 end
 
 -- XXX incompatible
-function move_next_word(number)
+local function move_next_word(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -204,7 +204,7 @@ function move_next_word(number)
 end
 
 -- XXX incompatible
-function move_prev_word(number)
+local function move_prev_word(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor:ResetSelection()
 
@@ -214,6 +214,60 @@ function move_prev_word(number)
 
 	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
+end
+
+local function insert_here()
+	vi_mode = InsertMode
+end
+
+local function insert_at_line_start()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local spaces = line:match("^(%s*).*$")
+	cursor.Loc.X = #spaces
+
+	insert_here()
+end
+
+local function insert_after_here()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length, 0))
+
+	micro.CurPane():Relocate()
+	vi_mode = InsertMode
+end
+
+local function insert_after_line_end()
+	move_line_end()
+	insert_after_here()
+end
+
+-- XXX buggy
+local function open_next_line()
+	vi_mode = InsertMode
+
+	local bp = micro.CurPane()
+	bp:EndOfLine()
+	bp:InsertNewline()
+
+	virtual_cursor_x = 0
+end
+
+local function open_prev_line()
+	vi_mode = InsertMode
+
+	local bp = micro.CurPane()
+	bp:StartOfLine()
+	bp:InsertNewline()
+	bp:MoveCursorUp(1)
+
+	virtual_cursor_x = 0
 end
 
 function onBeforeTextEvent(buf, ev)
@@ -251,7 +305,7 @@ function onBeforeTextEvent(buf, ev)
 	if command_buffer:match("^0$") then
 		number_str, edit, move = "", "", "0"
 	else
-		number_str, edit, move = command_buffer:match("^(%d*)([iZ]*)([hjkl\n0%$wb]*)$")
+		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOZ]*)([hjkl\n0%$wb]*)$")
 	end
 
 	if not number_str then
@@ -265,72 +319,112 @@ function onBeforeTextEvent(buf, ev)
 	end
 
 	if edit == "i" then
-		vi_mode = InsertMode
 		command_buffer = ""
-		show_mode()
+		insert_here()
 
 		command_number = number
 		command_edit = edit
+		show_mode()
+		return true
+	elseif edit == "I" then
+		command_buffer = ""
+		insert_at_line_start()
+
+		command_number = number
+		command_edit = edit
+		show_mode()
+		return true
+	elseif edit == "a" then
+		command_buffer = ""
+		insert_after_here()
+
+		command_number = number
+		command_edit = edit
+		show_mode()
+		return true
+	elseif edit == "A" then
+		command_buffer = ""
+		insert_after_line_end()
+
+		command_number = number
+		command_edit = edit
+		show_mode()
+		return true
+	elseif edit == "o" then
+		command_buffer = ""
+		open_next_line()
+
+		command_number = number
+		command_edit = edit
+		show_mode()
+		return true
+	elseif edit == "O" then
+		command_buffer = ""
+		open_prev_line()
+
+		command_number = number
+		command_edit = edit
+		show_mode()
 		return true
 	elseif move == "h" then
 		command_buffer = ""
-		show_mode()
-
 		move_left(number)
+
+		show_mode()
 		return true
 	elseif move == "j" then
 		command_buffer = ""
-		show_mode()
-
 		move_down(number)
+
+		show_mode()
 		return true
 	elseif move == "k" then
 		command_buffer = ""
-		show_mode()
-
 		move_up(number)
+
+		show_mode()
 		return true
 	elseif move == "l" then
 		command_buffer = ""
-		show_mode()
-
 		move_right(number)
+
+		show_mode()
 		return true
 	elseif move == "\n" then
 		command_buffer = ""
-		show_mode()
-
 		move_next_line_start(number)
+
+		show_mode()
 		return true
 	elseif move == "0" then
 		command_buffer = ""
-		show_mode()
-
 		move_line_start()
+
+		show_mode()
 		return true
 	elseif move == "$" then
 		command_buffer = ""
-		show_mode()
-
 		move_line_end()
+
+		show_mode()
 		return true
 	elseif move == "w" then
 		command_buffer = ""
-		show_mode()
-
 		move_next_word(number)
+
+		show_mode()
 		return true
 	elseif move == "b" then
 		command_buffer = ""
-		show_mode()
-
 		move_prev_word(number)
+
+		show_mode()
 		return true
 	elseif edit == "ZZ" then
 		command_buffer = ""
-		show_mode()
-
 		micro.CurPane():QuitCmd({})
+
+		show_mode()
 		return true
 	end
 
