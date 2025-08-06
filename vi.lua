@@ -16,6 +16,8 @@ local InsertMode = 1
 -- states
 local vi_mode = InsertMode
 local command_buffer = ""
+local command_number = 1
+local command_edit = nil
 
 local virtual_cursor_x = 0
 
@@ -35,6 +37,8 @@ end
 function ViCmd()
 	vi_mode = CommandMode
 	command_buffer = ""
+	command_number = 1
+	command_edit = nil
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	virtual_cursor_x = cursor.Loc.X
@@ -48,6 +52,59 @@ local function bytes_to_string(array)
 		table.insert(buf, string.char(array[i]))
 	end
 	return table.concat(buf)
+end
+
+function move_left(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
+
+	virtual_cursor_x = cursor.Loc.X
+end
+
+function move_right(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
+
+	virtual_cursor_x = cursor.Loc.X
+end
+
+function move_up(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	cursor.Loc.Y = math.max(cursor.Loc.Y - number, 0)
+
+	micro.CurPane():Relocate()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+end
+
+function move_down(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor:ResetSelection()
+
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	local y = math.min(cursor.Loc.Y + number, last_line_index)
+	if y == last_line_index then
+		local line = cursor:Buf():Line(y)
+		local length = utf8.RuneCount(line)
+		if length < 1 then
+			y = math.max(y - 1, 0)
+		end
+	end
+	cursor.Loc.Y = y
+
+	micro.CurPane():Relocate()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
 function onBeforeTextEvent(buf, ev)
@@ -77,83 +134,52 @@ function onBeforeTextEvent(buf, ev)
 		return true
 	end
 
-	if text == "i" then
+	ev.Deltas[1].Text = ""
+
+	command_buffer = command_buffer .. text
+
+	local number_str, edit, move = command_buffer:match("^(%d*)([i]-)([hjkl]*)$")
+
+	local number = 1
+	if #number_str > 0 then
+		number = tonumber(number_str)
+	end
+
+	if edit == "i" then
 		vi_mode = InsertMode
 		command_buffer = ""
 		show_mode()
 
-		ev.Deltas[1].Text = ""
+		command_number = number
+		command_edit = edit
 		return true
-	elseif text == "h" then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		cursor:ResetSelection()
+	elseif move == "h" then
+		command_buffer = ""
+		show_mode()
 
-		if cursor.Loc.X > 0 then
-			cursor.Loc.X = cursor.Loc.X - 1
-		end
-
-		virtual_cursor_x = cursor.Loc.X
-
-		ev.Deltas[1].Text = ""
+		move_left(number)
 		return true
-	elseif text == "j" then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		cursor:ResetSelection()
+	elseif move == "j" then
+		command_buffer = ""
+		show_mode()
 
-		local last_line_index = cursor:Buf():LinesNum() - 1
-		if cursor.Loc.Y == last_line_index - 1 then
-			local line = cursor:Buf():Line(last_line_index)
-			local length = utf8.RuneCount(line)
-			if length > 0 then
-				cursor.Loc.Y = cursor.Loc.Y + 1
-			end
-		elseif cursor.Loc.Y < last_line_index then
-			cursor.Loc.Y = cursor.Loc.Y + 1
-		end
-
-		micro.CurPane():Relocate()
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local length = utf8.RuneCount(line)
-		cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
-
-		ev.Deltas[1].Text = ""
+		move_down(number)
 		return true
-	elseif text == "k" then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		cursor:ResetSelection()
+	elseif move == "k" then
+		command_buffer = ""
+		show_mode()
 
-		if cursor.Loc.Y > 0 then
-			cursor.Loc.Y = cursor.Loc.Y - 1
-		end
-
-		micro.CurPane():Relocate()
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local length = utf8.RuneCount(line)
-		cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
-
-		ev.Deltas[1].Text = ""
+		move_up(number)
 		return true
-	elseif text == "l" then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		cursor:ResetSelection()
+	elseif move == "l" then
+		command_buffer = ""
+		show_mode()
 
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local length = utf8.RuneCount(line)
-		if cursor.Loc.X < length - 1 then
-			cursor.Loc.X = cursor.Loc.X + 1
-		end
-
-		virtual_cursor_x = cursor.Loc.X
-
-		ev.Deltas[1].Text = ""
+		move_right(number)
 		return true
 	end
 
-	command_buffer = command_buffer .. text
-
 	show_mode()
-
-	ev.Deltas[1].Text = ""
 	return true
 end
 
