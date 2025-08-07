@@ -1,4 +1,4 @@
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -35,31 +35,39 @@ local function show_mode()
 end
 
 function ViCmd()
-	vi_mode = CommandMode
+	-- reset states
 	command_buffer = ""
 	command_number = 1
 	command_edit = nil
 
+	-- ensure command mode
+	if vi_mode == CommandMode then -- vi error
+		return
+	end
+	vi_mode = CommandMode
+
+	--
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 
+	-- ensure cursor y in text
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	if cursor.Loc.Y == last_line_index then
 		local line = cursor:Buf():Line(cursor.Loc.Y)
 		local length = utf8.RuneCount(line)
 		if length < 1 then
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-
 			micro.CurPane():Relocate()
 		end
 	end
 
+	-- ensure cursor x in text
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(math.max(cursor.Loc.X - 1, 0), math.max(length - 1, 0))
-
 	micro.CurPane():Relocate()
-	virtual_cursor_x = cursor.Loc.X
 
+	--
+	virtual_cursor_x = cursor.Loc.X
 	show_mode()
 end
 
@@ -73,44 +81,31 @@ end
 
 local function move_left(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
 local function move_right(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
 local function move_up(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	cursor.Loc.Y = math.max(cursor.Loc.Y - number, 0)
 
-	micro.CurPane():Relocate()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
-
-	micro.CurPane():Relocate()
 end
 
 local function move_down(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	local y = math.min(cursor.Loc.Y + number, last_line_index)
 	if y == last_line_index then
@@ -122,61 +117,40 @@ local function move_down(number)
 	end
 	cursor.Loc.Y = y
 
-	micro.CurPane():Relocate()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
-
-	micro.CurPane():Relocate()
-end
-
-local function move_next_line_start(number)
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	if cursor.Loc.Y == last_line_index then
-		return -- vi error
-	elseif cursor.Loc.Y == last_line_index - 1 then
-		local line = cursor:Buf():Line(last_line_index)
-		local length = utf8.RuneCount(line)
-		if length < 1 then
-			return -- vi error
-		end
-	end
-
-	move_line_start()
-	move_down(number)
 end
 
 local function move_line_start()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	cursor.Loc.X = 0
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
--- XXX not work on indented lines
 local function move_line_end()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.max(length - 1, 0)
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
--- XXX incompatible
+-- XXX not work on indented lines
+local function move_next_line_start(number)
+	move_line_start()
+	move_down(number)
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	virtual_cursor_x = cursor.Loc.X
+end
+
+-- XXX incompatible with proper vi
+-- using micro's Cursor.WordRight
 local function move_next_word(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	for _ = 1, number do
 		local line = cursor:Buf():Line(cursor.Loc.Y)
 		local length = utf8.RuneCount(line)
@@ -199,20 +173,17 @@ local function move_next_word(number)
 		end
 	end
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
--- XXX incompatible
+-- XXX incompatible with proper vi
+-- using micro's Cursor.WordLeft
 local function move_prev_word(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	for _ = 1, number do
 		cursor:WordLeft() -- XXX micro method
 	end
 
-	micro.CurPane():Relocate()
 	virtual_cursor_x = cursor.Loc.X
 end
 
@@ -222,8 +193,6 @@ end
 
 local function insert_at_line_start()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local spaces = line:match("^(%s*).*$")
 	cursor.Loc.X = #spaces
@@ -233,14 +202,11 @@ end
 
 local function insert_after_here()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor:ResetSelection()
-
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length, 0))
 
-	micro.CurPane():Relocate()
-	vi_mode = InsertMode
+	insert_here()
 end
 
 local function insert_after_line_end()
@@ -248,13 +214,20 @@ local function insert_after_line_end()
 	insert_after_here()
 end
 
--- XXX buggy
 local function open_next_line()
 	vi_mode = InsertMode
 
-	local bp = micro.CurPane()
-	bp:EndOfLine()
-	bp:InsertNewline()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	cursor.Loc.X = utf8.RuneCount(line)
+	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
+
+	-- micro.After requires micro v2.0.14-rc1
+	if type(micro.After) == "function" then
+		micro.After(0, function()
+			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+		end)
+	end
 
 	virtual_cursor_x = 0
 end
@@ -262,12 +235,22 @@ end
 local function open_prev_line()
 	vi_mode = InsertMode
 
-	local bp = micro.CurPane()
-	bp:StartOfLine()
-	bp:InsertNewline()
-	bp:MoveCursorUp(1)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.Loc.X = 0
+	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
+
+	-- micro.After requires micro v2.0.14-rc1
+	if type(micro.After) == "function" then
+		micro.After(0, function()
+			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
+		end)
+	end
 
 	virtual_cursor_x = 0
+end
+
+local function quit()
+	micro.CurPane():QuitCmd({})
 end
 
 function onBeforeTextEvent(buf, ev)
@@ -289,15 +272,20 @@ function onBeforeTextEvent(buf, ev)
 		return true
 	end
 
-	-- Text is byte array
-	local text = bytes_to_string(ev.Deltas[1].Text)
-
 	-- pass through pasted long text
-	if #text ~= 1 then
+	if #ev.Deltas[1].Text ~= 1 then
 		return true
 	end
 
-	ev.Deltas[1].Text = ""
+	-- Text is byte array
+	local text = bytes_to_string(ev.Deltas[1].Text)
+
+	local delta = ev.Deltas[1]
+	delta.Text = ""
+	delta.Start.X = 0
+	delta.Start.Y = 0
+	delta.End.X = 0
+	delta.End.Y = 0
 
 	command_buffer = command_buffer .. text
 
@@ -422,7 +410,7 @@ function onBeforeTextEvent(buf, ev)
 		return true
 	elseif edit == "ZZ" then
 		command_buffer = ""
-		micro.CurPane():QuitCmd({})
+		quit()
 
 		show_mode()
 		return true
