@@ -34,7 +34,7 @@ local function show_mode()
 	micro.InfoBar():Message(mode_line .. " [" .. command_buffer .. "]")
 end
 
-function ViCmd()
+function Vi(bp)
 	-- reset states
 	command_buffer = ""
 	command_number = 1
@@ -42,7 +42,7 @@ function ViCmd()
 
 	-- ensure command mode
 	if vi_mode == CommandMode then -- vi error
-		return
+		return true
 	end
 	vi_mode = CommandMode
 
@@ -69,6 +69,20 @@ function ViCmd()
 	--
 	virtual_cursor_x = cursor.Loc.X
 	show_mode()
+	return true
+end
+
+function ViEnter(bp)
+	if vi_mode == CommandMode then
+		local cursor = micro.CurPane().Buf:GetActiveCursor()
+		cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
+		return true
+	elseif vi_mode == InsertMode then
+		return false
+	else -- program error
+		micro.InfoBar():Error("ViEnter: invalid mode = " .. vi_mode)
+		return false
+	end
 end
 
 local function bytes_to_string(array)
@@ -138,13 +152,14 @@ local function move_line_end()
 	virtual_cursor_x = cursor.Loc.X
 end
 
--- XXX not work on indented lines
 local function move_next_line_start(number)
 	move_line_start()
 	move_down(number)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	virtual_cursor_x = cursor.Loc.X
+
+	micro.CurPane():Relocate()
 end
 
 -- XXX incompatible with proper vi
@@ -421,7 +436,9 @@ function onBeforeTextEvent(buf, ev)
 end
 
 function init()
-	config.MakeCommand("vi", ViCmd, config.NoComplete)
-	config.TryBindKey("Escape", "Escape,Deselect,ClearInfo,RemoveAllMultiCursors,UnhighlightSearch,lua:vi.ViCmd", false)
+	config.MakeCommand("vi", Vi, config.NoComplete)
+	config.MakeCommand("vienter", ViEnter, config.NoComplete)
+	config.TryBindKey("Escape", "Escape,Deselect,ClearInfo,RemoveAllMultiCursors,UnhighlightSearch,lua:vi.Vi", false)
+	config.TryBindKey("Enter", "lua:vi.ViEnter|InsertNewline", false)
 	config.AddRuntimeFile("vi", config.RTHelp, "help/vi.md")
 end
