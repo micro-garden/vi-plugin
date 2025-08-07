@@ -3,6 +3,7 @@ VERSION = "0.0.2"
 local micro = import("micro")
 local config = import("micro/config")
 local utf8 = import("unicode/utf8")
+local time = import("time")
 
 -- internal constants
 local TextEventInsert = 1
@@ -242,6 +243,13 @@ local function open_next_line()
 		micro.After(0, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 		end)
+	elseif
+		-- time.AfterFunc requires micro before v2.0.14-rc1
+		type(time.AfterFunc) == "function"
+	then
+		time.AfterFunc(0, function()
+			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+		end)
 	end
 
 	virtual_cursor_x = 0
@@ -257,6 +265,12 @@ local function open_prev_line()
 	-- micro.After requires micro v2.0.14-rc1
 	if type(micro.After) == "function" then
 		micro.After(0, function()
+			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
+		end)
+	elseif -- time.AfterFunc requires micro before v2.0.14-rc1
+		type(time.AfterFunc) == "function"
+	then
+		time.AfterFunc(0, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
 		end)
 	end
