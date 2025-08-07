@@ -28,6 +28,8 @@ You can return to insert mode with the `i` command.
 | `w`              | Move to beginning of next word (experimental)     |
 | `b`              | Move to beginning of previous word (experimental) |
 | `<Enter>` / `\n` | Move to beginning of next line                    |
+| `G`              | Move to the bottom of the file                    |
+| `10G`            | Move to line 10                                   |
 
 All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 
@@ -41,6 +43,17 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `A`     | Insert at the end of the line                      |
 | `o`     | Insert a new line below the current line           |
 | `O`     | Insert a new line above the current line           |
+
+### Line Operations
+
+| Command | Description                              |
+| ------- | ---------------------------------------- |
+| `dd`    | Delete current line                      |
+| `2dd`   | Delete 2 lines                           |
+| `yy`    | Yank (copy) current line                 |
+| `2yy`   | Yank 2 lines                             |
+| `p`     | Paste after (insert below current line)  |
+| `P`     | Paste before (insert above current line) |
 
 ### Quit Command
 
