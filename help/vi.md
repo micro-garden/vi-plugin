@@ -61,6 +61,24 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | ------- | ----------- |
 | `ZZ`    | Quit micro  |
 
+### vi.default Option
+
+You can make micro start in vi command mode by default using:
+
+```
+videfault true
+```
+
+To disable it again:
+
+```
+videfault false
+```
+
+Without arguments, the `videfault` command toggles the setting.
+
+This setting is saved globally and applies to all newly opened buffers.
+
 ## Notes
 
 - Word movement (`w`, `b`) uses micro’s `WordRight` and `WordLeft` logic and

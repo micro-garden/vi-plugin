@@ -1,4 +1,4 @@
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -88,6 +88,30 @@ function ViEnter(bp)
 	else -- program error
 		micro.InfoBar():Error("ViEnter: invalid mode = " .. vi_mode)
 		return false
+	end
+end
+
+function ViDefault(bp, args)
+	local default
+	if #args < 1 then
+		default = not config.GetGlobalOption("vi.default")
+	elseif #args < 2 then
+		if args[1] ~= "true" and args[1] ~= "false" then
+			micro.InfoBuf():Message("usage: videfault [true|false]")
+			return
+		end
+		default = args[1]
+	else
+		micro.InfoBuf():Message("usage: videfault [true|false]")
+		return
+	end
+	config.SetGlobalOption("vi.default", tostring(default))
+	micro.InfoBar():Message("set vi.default " .. tostring(default))
+end
+
+function onBufPaneOpen(bp)
+	if config.GetGlobalOption("vi.default") then
+		Vi()
 	end
 end
 
@@ -655,9 +679,14 @@ function onBeforeTextEvent(buf, ev)
 	return true
 end
 
+function preinit()
+	config.RegisterCommonOption("vi", "default", false)
+end
+
 function init()
 	config.MakeCommand("vi", Vi, config.NoComplete)
 	config.MakeCommand("vienter", ViEnter, config.NoComplete)
+	config.MakeCommand("videfault", ViDefault, config.NoComplete)
 	config.TryBindKey("Escape", "Escape,Deselect,ClearInfo,RemoveAllMultiCursors,UnhighlightSearch,lua:vi.Vi", false)
 	config.TryBindKey("Enter", "lua:vi.ViEnter|InsertNewline", false)
 	config.AddRuntimeFile("vi", config.RTHelp, "help/vi.md")
