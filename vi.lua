@@ -6,32 +6,45 @@ local utf8 = import("unicode/utf8")
 local time = import("time")
 
 -- internal constants
-local TextEventInsert = 1
-local TextEventReplace = 0
-local TextEventRemove = -1
+local TEXT_EVENT_INSERT = 1
+local TEXT_EVENT_REPLACE = 0
+local TEXT_EVENT_REMOVE = -1
 
 -- settings
-local tick_delay = time.ParseDuration("100ms")
+local TICK_DELAY = time.ParseDuration("100ms")
 
 -- vi modes
-local CommandMode = 0
-local InsertMode = 1
+local VI_MODE_COMMAND = 0
+local VI_MODE_INSERT = 1
 
 -- states
-local vi_mode = InsertMode
+local vi_mode = VI_MODE_INSERT
 local command_buffer = ""
-local command_number = 1
-local command_edit = nil
+local command_cached = false
+local command_cache = {
+	["no_number"] = false,
+	["number"] = 1,
+	["edit"] = "",
+	["move"] = "",
+}
 
 local virtual_cursor_x = 0
 
-local killed_lines = {}
+local deleted_lines = {}
+
+local function command_mode()
+	vi_mode = VI_MODE_COMMAND
+end
+
+local function insert_mode()
+	vi_mode = VI_MODE_INSERT
+end
 
 local function show_mode()
 	local mode_line
-	if vi_mode == CommandMode then
+	if vi_mode == VI_MODE_COMMAND then
 		mode_line = "vi command mode"
-	elseif vi_mode == InsertMode then
+	elseif vi_mode == VI_MODE_INSERT then
 		mode_line = "vi insert mode"
 	else -- program error
 		micro.InfoBar():Error("show_mode: invalid mode = " .. vi_mode)
@@ -40,17 +53,37 @@ local function show_mode()
 	micro.InfoBar():Message(mode_line .. " [" .. command_buffer .. "]")
 end
 
+local function add_input_to_command_buffer(input)
+	command_buffer = command_buffer .. input
+	return command_buffer
+end
+
+local function clear_command_buffer()
+	command_buffer = ""
+end
+
+local function cache_command(no_number, number, edit, move)
+	command_cache["no_number"] = no_number
+	command_cache["number"] = number
+	command_cache["edit"] = edit
+	command_cache["move"] = move
+
+	command_cached = true
+end
+
+local function get_command_cache()
+	return command_cache["no_number"], command_cache["number"], command_cache["edit"], command_cache["move"]
+end
+
 function Vi(bp)
 	-- reset states
-	command_buffer = ""
-	command_number = 1
-	command_edit = nil
+	clear_command_buffer()
 
 	-- ensure command mode
-	if vi_mode == CommandMode then -- vi error
+	if vi_mode == VI_MODE_COMMAND then -- vi error
 		return true
 	end
-	vi_mode = CommandMode
+	command_mode()
 
 	--
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -79,11 +112,11 @@ function Vi(bp)
 end
 
 function ViEnter(bp)
-	if vi_mode == CommandMode then
+	if vi_mode == VI_MODE_COMMAND then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
 		return true
-	elseif vi_mode == InsertMode then
+	elseif vi_mode == VI_MODE_INSERT then
 		return false
 	else -- program error
 		micro.InfoBar():Error("ViEnter: invalid mode = " .. vi_mode)
@@ -109,12 +142,6 @@ function ViDefault(bp, args)
 	micro.InfoBar():Message("set vi.default " .. tostring(default))
 end
 
-function onBufPaneOpen(bp)
-	if config.GetGlobalOption("vi.default") then
-		Vi()
-	end
-end
-
 local function bytes_to_string(array)
 	local buf = {}
 	for i = 1, #array do
@@ -124,6 +151,8 @@ local function bytes_to_string(array)
 end
 
 local function move_left(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
 
@@ -131,6 +160,8 @@ local function move_left(number)
 end
 
 local function move_right(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
@@ -140,6 +171,8 @@ local function move_right(number)
 end
 
 local function move_up(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.Y = math.max(cursor.Loc.Y - number, 0)
 
@@ -149,6 +182,8 @@ local function move_up(number)
 end
 
 local function move_down(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	local y = math.min(cursor.Loc.Y + number, last_line_index)
@@ -167,6 +202,8 @@ local function move_down(number)
 end
 
 local function move_line_start()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.X = 0
 
@@ -174,6 +211,8 @@ local function move_line_start()
 end
 
 local function move_line_end()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
@@ -183,6 +222,8 @@ local function move_line_end()
 end
 
 local function move_next_line_start(number)
+	show_mode()
+
 	move_line_start()
 	move_down(number)
 
@@ -195,6 +236,8 @@ end
 -- XXX incompatible with proper vi
 -- using micro's Cursor.WordRight
 local function move_next_word(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	for _ = 1, number do
 		local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -224,6 +267,8 @@ end
 -- XXX incompatible with proper vi
 -- using micro's Cursor.WordLeft
 local function move_prev_word(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	for _ = 1, number do
 		cursor:WordLeft() -- XXX micro method
@@ -232,7 +277,9 @@ local function move_prev_word(number)
 	virtual_cursor_x = cursor.Loc.X
 end
 
-local function move_bottom_line()
+local function goto_bottom()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	local line = cursor:Buf():Line(last_line_index)
@@ -245,7 +292,9 @@ local function move_bottom_line()
 	virtual_cursor_x = cursor.Loc.X
 end
 
-local function move_line(number)
+local function goto_line(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	local line = cursor:Buf():Line(last_line_index)
@@ -263,10 +312,14 @@ local function move_line(number)
 end
 
 local function insert_here()
-	-- nothing to do
+	insert_mode()
+	show_mode()
 end
 
-local function insert_at_line_start()
+local function insert_line_start()
+	insert_mode()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local spaces = line:match("^(%s*).*$")
@@ -276,6 +329,9 @@ local function insert_at_line_start()
 end
 
 local function insert_after_here()
+	insert_mode()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
@@ -285,11 +341,17 @@ local function insert_after_here()
 end
 
 local function insert_after_line_end()
+	insert_mode()
+	show_mode()
+
 	move_line_end()
 	insert_after_here()
 end
 
-local function open_next_line()
+local function open_below()
+	insert_mode()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	cursor.Loc.X = utf8.RuneCount(line)
@@ -297,14 +359,14 @@ local function open_next_line()
 
 	-- micro.After requires micro v2.0.14-rc1
 	if type(micro.After) == "function" then
-		micro.After(tick_delay, function()
+		micro.After(TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 		end)
 	elseif
 		-- time.AfterFunc requires micro before v2.0.14-rc1
 		type(time.AfterFunc) == "function"
 	then
-		time.AfterFunc(tick_delay, function()
+		time.AfterFunc(TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 		end)
 	end
@@ -312,20 +374,23 @@ local function open_next_line()
 	virtual_cursor_x = 0
 end
 
-local function open_prev_line()
+local function open_above()
+	insert_mode()
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.X = 0
 	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
 
 	-- micro.After requires micro v2.0.14-rc1
 	if type(micro.After) == "function" then
-		micro.After(tick_delay, function()
+		micro.After(TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
 		end)
 	elseif -- time.AfterFunc requires micro before v2.0.14-rc1
 		type(time.AfterFunc) == "function"
 	then
-		time.AfterFunc(tick_delay, function()
+		time.AfterFunc(TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
 		end)
 	end
@@ -333,12 +398,14 @@ local function open_prev_line()
 	virtual_cursor_x = 0
 end
 
-local function delete_line(number)
-	killed_lines = {}
+local function delete_lines(number)
+	show_mode()
+
+	deleted_lines = {}
 	for i = 1, number do
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local line = cursor:Buf():Line(cursor.Loc.Y)
-		table.insert(killed_lines, line)
+		table.insert(deleted_lines, line)
 		micro.CurPane():DeleteLine()
 
 		local last_line_index = cursor:Buf():LinesNum() - 1
@@ -356,7 +423,9 @@ local function delete_line(number)
 	end
 end
 
-local function yank_line(number)
+local function copy_lines(number)
+	show_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local last_line_index = cursor:Buf():LinesNum() - 1
 	local line = cursor:Buf():Line(last_line_index)
@@ -369,21 +438,26 @@ local function yank_line(number)
 		return
 	end
 
-	killed_lines = {}
+	deleted_lines = {}
 	for i = 1, number do
 		local line = cursor:Buf():Line(cursor.Loc.Y + i - 1)
-		table.insert(killed_lines, line)
+		table.insert(deleted_lines, line)
 	end
 end
 
-local function paste_next_line(number)
-	if #killed_lines < 1 then
+local function paste_below(number)
+	show_mode()
+
+	if #deleted_lines < 1 then
+		micro.InfoBar():Error("no copied lines yet")
 		return
 	end
 
+	insert_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local saved_y
-	local text = "\n" .. table.concat(killed_lines, "\n")
+	local text = "\n" .. table.concat(deleted_lines, "\n")
 	for _ = 1, number do
 		saved_y = cursor.Loc.Y
 		local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -394,7 +468,7 @@ local function paste_next_line(number)
 
 	-- micro.After requires micro v2.0.14-rc1
 	if type(micro.After) == "function" then
-		micro.After(tick_delay, function()
+		micro.After(TICK_DELAY, function()
 			cursor.Loc.Y = saved_y + 1
 
 			local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -402,13 +476,13 @@ local function paste_next_line(number)
 			cursor.Loc.X = #spaces
 			virtual_cursor_x = cursor.Loc.X
 
-			vi_mode = CommandMode
+			command_mode()
 		end)
 	elseif
 		-- time.AfterFunc requires micro before v2.0.14-rc1
 		type(time.AfterFunc) == "function"
 	then
-		time.AfterFunc(tick_delay, function()
+		time.AfterFunc(TICK_DELAY, function()
 			cursor.Loc.Y = saved_y + 1
 
 			local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -416,19 +490,24 @@ local function paste_next_line(number)
 			cursor.Loc.X = #spaces
 			virtual_cursor_x = cursor.Loc.X
 
-			vi_mode = CommandMode
+			command_mode()
 		end)
 	end
 end
 
-local function paste_prev_line(number)
-	if #killed_lines < 1 then
+local function paste_above(number)
+	show_mode()
+
+	if #deleted_lines < 1 then
+		micro.InfoBar():Error("no copied lines yet")
 		return
 	end
 
+	insert_mode()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local saved_y
-	local text = table.concat(killed_lines, "\n") .. "\n"
+	local text = table.concat(deleted_lines, "\n") .. "\n"
 	for _ = 1, number do
 		saved_y = cursor.Loc.Y
 		cursor.Loc.X = 0
@@ -438,7 +517,7 @@ local function paste_prev_line(number)
 
 	-- micro.After requires micro v2.0.14-rc1
 	if type(micro.After) == "function" then
-		micro.After(tick_delay, function()
+		micro.After(TICK_DELAY, function()
 			cursor.Loc.Y = saved_y
 
 			local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -446,13 +525,13 @@ local function paste_prev_line(number)
 			cursor.Loc.X = #spaces
 			virtual_cursor_x = cursor.Loc.X
 
-			vi_mode = CommandMode
+			command_mode()
 		end)
 	elseif
 		-- time.AfterFunc requires micro before v2.0.14-rc1
 		type(time.AfterFunc) == "function"
 	then
-		time.AfterFunc(tick_delay, function()
+		time.AfterFunc(TICK_DELAY, function()
 			cursor.Loc.Y = saved_y
 
 			local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -460,26 +539,143 @@ local function paste_prev_line(number)
 			cursor.Loc.X = #spaces
 			virtual_cursor_x = cursor.Loc.X
 
-			vi_mode = CommandMode
+			command_mode()
+		end)
+	end
+end
+
+local run_command
+
+local function repeat_command(number)
+	show_mode()
+
+	if not command_cached then
+		micro.InfoBar():Error("no command cached yet")
+		return
+	end
+
+	-- micro.After requires micro v2.0.14-rc1
+	if type(micro.After) == "function" then
+		micro.After(TICK_DELAY, function()
+			for _ = 1, number do
+				run_command(get_command_cache())
+			end
+		end)
+	elseif
+		-- time.AfterFunc requires micro before v2.0.14-rc1
+		type(time.AfterFunc) == "function"
+	then
+		time.AfterFunc(TICK_DELAY, function()
+			for _ = 1, number do
+				run_command(get_command_cache())
+			end
 		end)
 	end
 end
 
 local function quit()
+	show_mode()
+
 	micro.CurPane():QuitCmd({})
 end
 
+run_command = function(no_number, number, edit, move)
+	if edit == "i" then
+		insert_here()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "I" then
+		insert_line_start()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "a" then
+		insert_after_here()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "A" then
+		insert_after_line_end()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "o" then
+		open_below()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "O" then
+		open_above()
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "dd" then
+		delete_lines(number)
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "yy" then
+		copy_lines(number)
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "p" then
+		paste_below(number)
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "P" then
+		paste_above(number)
+		cache_command(false, number, edit, "")
+		return true
+	elseif edit == "." then
+		repeat_command(number)
+		return true
+	elseif move == "h" then
+		move_left(number)
+		return true
+	elseif move == "j" then
+		move_down(number)
+		return true
+	elseif move == "k" then
+		move_up(number)
+		return true
+	elseif move == "l" then
+		move_right(number)
+		return true
+	elseif move == "\n" then
+		move_next_line_start(number)
+		return true
+	elseif move == "0" then
+		move_line_start()
+		return true
+	elseif move == "$" then
+		move_line_end()
+		return true
+	elseif move == "w" then
+		move_next_word(number)
+		return true
+	elseif move == "b" then
+		move_prev_word(number)
+		return true
+	elseif move == "G" then
+		if no_number then
+			goto_bottom()
+		else
+			goto_line(number)
+		end
+		return true
+	elseif edit == "ZZ" then
+		quit()
+		return true
+	else
+		return false
+	end
+end
+
 function onBeforeTextEvent(buf, ev)
-	if vi_mode == InsertMode then
+	if vi_mode == VI_MODE_INSERT then
 		return true
 	end
 
-	if ev.EventType == TextEventRemove or ev.EventType == TextEventReplace then
+	if ev.EventType == TEXT_EVENT_REMOVE or ev.EventType == TEXT_EVENT_REPLACE then
 		return true
 	end
 
 	-- assert
-	if ev.EventType ~= TextEventInsert then -- program error
+	if ev.EventType ~= TEXT_EVENT_INSERT then -- program error
 		micro.InfoBar():Error("Invalid text event type = ev.EventType")
 		return true
 	end
@@ -487,34 +683,34 @@ function onBeforeTextEvent(buf, ev)
 	if #ev.Deltas ~= 1 then
 		return true
 	end
+	local delta = ev.Deltas[1]
 
 	-- pass through pasted long text
-	if #ev.Deltas[1].Text ~= 1 then
+	if #delta.Text ~= 1 then
 		return true
 	end
 
 	-- Text is byte array
-	local text = bytes_to_string(ev.Deltas[1].Text)
+	local input = bytes_to_string(delta.Text)
 
-	local delta = ev.Deltas[1]
 	delta.Text = ""
 	delta.Start.X = 0
 	delta.Start.Y = 0
 	delta.End.X = 0
 	delta.End.Y = 0
 
-	command_buffer = command_buffer .. text
+	local command_buffer = add_input_to_command_buffer(input)
 
 	local number_str, edit, move
 	if command_buffer:match("^0$") then
 		number_str, edit, move = "", "", "0"
 	else
-		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdypPZ]*)([hjkl\n0%$wbG]*)$")
+		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdypP%.Z]*)([hjkl\n0%$wbG]*)$")
 	end
 
 	if not number_str then
 		micro.InfoBar():Error("not (yet) a vi command [" .. command_buffer .. "]")
-		command_buffer = ""
+		clear_command_buffer()
 		return true
 	end
 
@@ -526,157 +722,19 @@ function onBeforeTextEvent(buf, ev)
 		number = tonumber(number_str)
 	end
 
-	if edit == "i" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		insert_here()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "I" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		insert_at_line_start()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "a" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		insert_after_here()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "A" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		insert_after_line_end()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "o" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		open_next_line()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "O" then
-		vi_mode = InsertMode
-		show_mode()
-		command_buffer = ""
-		open_prev_line()
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "dd" then
-		show_mode()
-		command_buffer = ""
-		delete_line(number)
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "yy" then
-		show_mode()
-		command_buffer = ""
-		yank_line(number)
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "p" then
-		show_mode()
-		command_buffer = ""
-		vi_mode = InsertMode
-		paste_next_line(number)
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif edit == "P" then
-		show_mode()
-		command_buffer = ""
-		vi_mode = InsertMode
-		paste_prev_line(number)
-
-		command_number = number
-		command_edit = edit
-		return true
-	elseif move == "h" then
-		show_mode()
-		command_buffer = ""
-		move_left(number)
-		return true
-	elseif move == "j" then
-		show_mode()
-		command_buffer = ""
-		move_down(number)
-		return true
-	elseif move == "k" then
-		show_mode()
-		command_buffer = ""
-		move_up(number)
-		return true
-	elseif move == "l" then
-		show_mode()
-		command_buffer = ""
-		move_right(number)
-		return true
-	elseif move == "\n" then
-		show_mode()
-		command_buffer = ""
-		move_next_line_start(number)
-		return true
-	elseif move == "0" then
-		show_mode()
-		command_buffer = ""
-		move_line_start()
-		return true
-	elseif move == "$" then
-		show_mode()
-		command_buffer = ""
-		move_line_end()
-		return true
-	elseif move == "w" then
-		show_mode()
-		command_buffer = ""
-		move_next_word(number)
-		return true
-	elseif move == "b" then
-		show_mode()
-		command_buffer = ""
-		move_prev_word(number)
-		return true
-	elseif move == "G" then
-		show_mode()
-		command_buffer = ""
-		if no_number then
-			move_bottom_line()
-		else
-			move_line(number)
-		end
-		return true
-	elseif edit == "ZZ" then
-		show_mode()
-		command_buffer = ""
-		quit()
+	if run_command(no_number, number, edit, move) then
+		clear_command_buffer()
 		return true
 	end
 
 	show_mode()
 	return true
+end
+
+function onBufPaneOpen(bp)
+	if config.GetGlobalOption("vi.default") then
+		Vi()
+	end
 end
 
 function preinit()
