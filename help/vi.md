@@ -55,11 +55,12 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `p`     | Paste after (insert below current line)  |
 | `P`     | Paste before (insert above current line) |
 
-### Quit Command
+### Other Commands
 
-| Command | Description |
-| ------- | ----------- |
-| `ZZ`    | Quit micro  |
+| Command | Description         |
+| ------- | ------------------- |
+| `.`     | Repeat last command |
+| `ZZ`    | Quit micro          |
 
 ### vi.default Option
 
