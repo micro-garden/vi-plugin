@@ -203,6 +203,36 @@ local function move_prev_word(number)
 	virtual_cursor_x = cursor.Loc.X
 end
 
+local function move_bottom_line()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	local line = cursor:Buf():Line(last_line_index)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		last_line_index = last_line_index - 1
+	end
+	cursor.Loc.Y = last_line_index
+	cursor.Loc.X = 0
+	virtual_cursor_x = cursor.Loc.X
+end
+
+local function move_line(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	local line = cursor:Buf():Line(last_line_index)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		last_line_index = last_line_index - 1
+	end
+	if number - 1 > last_line_index then
+		micro.InfoBar():Message("line number out of range: " .. number .. " > " .. last_line_index + 1)
+		return
+	end
+	cursor.Loc.Y = number - 1
+	cursor.Loc.X = 0
+	virtual_cursor_x = cursor.Loc.X
+end
+
 local function insert_here()
 	vi_mode = InsertMode
 end
@@ -322,126 +352,135 @@ function onBeforeTextEvent(buf, ev)
 	if command_buffer:match("^0$") then
 		number_str, edit, move = "", "", "0"
 	else
-		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOZ]*)([hjkl\n0%$wb]*)$")
+		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOZ]*)([hjkl\n0%$wbG]*)$")
 	end
 
 	if not number_str then
-		show_mode()
+		micro.InfoBar():Message("not (yet) a vi command [" .. command_buffer .. "]")
+		command_buffer = ""
 		return true
 	end
 
+	local no_number = false
 	local number = 1
-	if #number_str > 0 then
+	if #number_str < 1 then
+		no_number = true
+	else
 		number = tonumber(number_str)
 	end
 
 	if edit == "i" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		insert_here()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif edit == "I" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		insert_at_line_start()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif edit == "a" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		insert_after_here()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif edit == "A" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		insert_after_line_end()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif edit == "o" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		open_next_line()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif edit == "O" then
+		vi_mode = InsertMode
+		show_mode()
 		command_buffer = ""
 		open_prev_line()
 
 		command_number = number
 		command_edit = edit
-		show_mode()
 		return true
 	elseif move == "h" then
+		show_mode()
 		command_buffer = ""
 		move_left(number)
-
-		show_mode()
 		return true
 	elseif move == "j" then
+		show_mode()
 		command_buffer = ""
 		move_down(number)
-
-		show_mode()
 		return true
 	elseif move == "k" then
+		show_mode()
 		command_buffer = ""
 		move_up(number)
-
-		show_mode()
 		return true
 	elseif move == "l" then
+		show_mode()
 		command_buffer = ""
 		move_right(number)
-
-		show_mode()
 		return true
 	elseif move == "\n" then
+		show_mode()
 		command_buffer = ""
 		move_next_line_start(number)
-
-		show_mode()
 		return true
 	elseif move == "0" then
+		show_mode()
 		command_buffer = ""
 		move_line_start()
-
-		show_mode()
 		return true
 	elseif move == "$" then
+		show_mode()
 		command_buffer = ""
 		move_line_end()
-
-		show_mode()
 		return true
 	elseif move == "w" then
+		show_mode()
 		command_buffer = ""
 		move_next_word(number)
-
-		show_mode()
 		return true
 	elseif move == "b" then
+		show_mode()
 		command_buffer = ""
 		move_prev_word(number)
-
+		return true
+	elseif move == "G" then
 		show_mode()
+		command_buffer = ""
+		if no_number then
+			move_bottom_line()
+		else
+			move_line(number)
+		end
 		return true
 	elseif edit == "ZZ" then
+		show_mode()
 		command_buffer = ""
 		quit()
-
-		show_mode()
 		return true
 	end
 
