@@ -69,6 +69,18 @@ local function repeat_command(number)
 	end
 end
 
+local function undo(number)
+	for _ = 1, number do
+		micro.CurPane():Undo()
+	end
+end
+
+local function redo(number)
+	for _ = 1, number do
+		micro.CurPane():Redo()
+	end
+end
+
 local function run(no_number, number, edit_part, move)
 	if edit_part == "i" then
 		insert.insert_here()
@@ -124,6 +136,12 @@ local function run(no_number, number, edit_part, move)
 		return true
 	elseif edit_part == "." then
 		repeat_command(number)
+		return true
+	elseif edit_part == "u" then
+		undo(number)
+		return true
+	elseif edit_part == "U" then
+		redo(number)
 		return true
 	elseif move == "h" then
 		motion.move_left(number)

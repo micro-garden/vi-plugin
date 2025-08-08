@@ -1,6 +1,7 @@
 M = {}
 
 local micro = import("micro")
+local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
 local time = import("time")
 
@@ -31,6 +32,11 @@ local function delete_lines(number)
 		local line = cursor:Buf():Line(cursor.Loc.Y)
 		table.insert(deleted_lines, line)
 		micro.CurPane():DeleteLine()
+		--[[
+		local start_loc = buffer.Loc(0, cursor.Loc.Y)
+		local end_loc = buffer.Loc(0, cursor.Loc.Y + 1)
+		cursor:Buf():Remove(start_loc, end_loc)
+		]]
 
 		local last_line_index = cursor:Buf():LinesNum() - 1
 		if cursor.Loc.Y == last_line_index then
@@ -240,7 +246,7 @@ local function paste_below(number)
 			local length = utf8.RuneCount(line)
 			cursor.Loc.X = math.min(saved_x + 1, math.max(length - 1, 0))
 		end
-		cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), text)
+		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), text)
 		if deleted_mode == DELETED_LINES then
 			cursor.Loc.Y = saved_y + 1
 		end
@@ -307,7 +313,7 @@ local function paste_above(number)
 
 	local text
 	if deleted_mode == DELETED_LINES then
-		text = "\n" .. table.concat(deleted_lines, "\n")
+		text = table.concat(deleted_lines, "\n") .. "\n"
 	elseif deleted_mode == DELETED_WORDS then
 		text = table.concat(deleted_words)
 	else -- program errorlines
@@ -325,7 +331,7 @@ local function paste_above(number)
 		if deleted_mode == DELETED_LINES then
 			cursor.Loc.X = 0
 		end
-		cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), text)
+		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), text)
 		if deleted_mode == DELETED_LINES then
 			cursor.Loc.Y = saved_y
 		end
