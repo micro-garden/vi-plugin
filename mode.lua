@@ -13,16 +13,31 @@ local editor = require("editor")
 -- vi modes
 local MODE_COMMAND = 0
 local MODE_INSERT = 1
+local MODE_FIND = 2
 
 -- states
 local mode = MODE_INSERT
 
 local function command()
+	if mode == MODE_FIND then
+		local cursor = micro.CurPane().Buf:GetActiveCursor()
+		if cursor:HasSelection() then
+			local start = cursor.CurSelection[1]
+			cursor.Loc.X = start.X
+			cursor.Loc.Y = start.Y
+			cursor:ResetSelection()
+		end
+	end
+
 	mode = MODE_COMMAND
 end
 
 local function insert()
 	mode = MODE_INSERT
+end
+
+local function find()
+	mode = MODE_FIND
 end
 
 local function code()
@@ -35,6 +50,10 @@ end
 
 local function is_insert()
 	return mode == MODE_INSERT
+end
+
+local function is_find()
+	return mode == MODE_FIND
 end
 
 local function show()
@@ -52,9 +71,11 @@ end
 
 M.command = command
 M.insert = insert
+M.find = find
 M.code = code
 M.is_command = is_command
 M.is_insert = is_insert
+M.is_find = is_find
 M.show = show
 
 return M

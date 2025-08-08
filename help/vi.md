@@ -57,6 +57,15 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `p`           | Paste after (insert below current line)  |
 | `P`           | Paste before (insert above current line) |
 
+### Search Commands
+
+| Command | Description                                     |
+| ------- | ----------------------------------------------- |
+| `/`     | Start search forward using micro's find method  |
+| `?`     | Start search backward using micro's find method |
+| `n`     | Find next                                       |
+| `N`     | Find previous                                   |
+
 ### Other Commands
 
 | Command | Description         |

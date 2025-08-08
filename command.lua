@@ -14,6 +14,7 @@ local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
 local edit = require("edit")
+local find = require("find")
 
 local command_cached = false
 local command_cache = {
@@ -143,6 +144,9 @@ local function run(no_number, number, edit_part, move)
 	elseif edit_part == "U" then
 		redo(number)
 		return true
+	elseif edit_part == "ZZ" then
+		quit()
+		return true
 	elseif move == "h" then
 		motion.move_left(number)
 		return true
@@ -177,8 +181,17 @@ local function run(no_number, number, edit_part, move)
 			motion.goto_line(number)
 		end
 		return true
-	elseif edit_part == "ZZ" then
-		quit()
+	elseif move == "/" then
+		find.find()
+		return true
+	elseif move == "?" then
+		find.reverse_find()
+		return true
+	elseif move == "n" then
+		find.find_next(number)
+		return true
+	elseif move == "N" then
+		find.find_prev(number)
 		return true
 	else
 		return false

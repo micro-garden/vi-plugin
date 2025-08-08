@@ -26,7 +26,7 @@ local function bytes_to_string(array)
 end
 
 function onBeforeTextEvent(buf, ev)
-	if mode.is_insert() then
+	if mode.is_insert() or mode.is_find() then
 		return true
 	end
 
@@ -65,7 +65,7 @@ function onBeforeTextEvent(buf, ev)
 	if command_buffer:match("^0$") then
 		number_str, edit, move = "", "", "0"
 	else
-		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdyYxXpP%.uUZ]*)([hjkl\n0%$wbG]*)$")
+		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdyYxXpP%.uUZ]*)([hjkl\n0%$wbG/?nN]*)$")
 	end
 
 	if not number_str then

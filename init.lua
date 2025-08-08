@@ -1,4 +1,4 @@
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -23,6 +23,9 @@ function Vi(bp)
 
 	-- ensure command mode
 	if mode.is_command() then -- vi error
+		return true
+	elseif mode.is_find() then
+		mode.command()
 		return true
 	end
 	mode.command()
@@ -60,6 +63,9 @@ function ViEnter(bp)
 		return true
 	elseif mode.is_insert() then
 		return false
+	elseif mode.is_find() then
+		mode.command()
+		return true
 	else -- program error
 		micro.InfoBar():Error("ViEnter: invalid mode = " .. mode.code())
 		return false
