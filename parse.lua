@@ -65,7 +65,7 @@ function onBeforeTextEvent(buf, ev)
 	if command_buffer:match("^0$") then
 		number_str, edit, move = "", "", "0"
 	else
-		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdypP%.Z]*)([hjkl\n0%$wbG]*)$")
+		number_str, edit, move = command_buffer:match("^(%d*)([iIaAoOdyYxXpP%.Z]*)([hjkl\n0%$wbG]*)$")
 	end
 
 	if not number_str then

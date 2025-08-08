@@ -16,6 +16,8 @@ local virtual_cursor_x = 0
 local function update_virtual_cursor()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	virtual_cursor_x = cursor.Loc.X
+
+	cursor:StoreVisualX()
 end
 
 local function move_left(number)
@@ -24,7 +26,7 @@ local function move_left(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function move_right(number)
@@ -35,7 +37,7 @@ local function move_right(number)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function move_up(number)
@@ -75,7 +77,7 @@ local function move_line_start()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	cursor.Loc.X = 0
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function move_line_end()
@@ -86,7 +88,7 @@ local function move_line_end()
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.max(length - 1, 0)
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function move_next_line_start(number)
@@ -95,8 +97,7 @@ local function move_next_line_start(number)
 	move_line_start()
 	move_down(number)
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 
 	micro.CurPane():Relocate()
 end
@@ -129,7 +130,7 @@ local function move_next_word(number)
 		end
 	end
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 -- XXX incompatible with proper vi
@@ -142,7 +143,7 @@ local function move_prev_word(number)
 		cursor:WordLeft() -- XXX micro method
 	end
 
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function goto_bottom()
@@ -157,7 +158,7 @@ local function goto_bottom()
 	end
 	cursor.Loc.Y = last_line_index
 	cursor.Loc.X = 0
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 local function goto_line(number)
@@ -176,7 +177,7 @@ local function goto_line(number)
 	end
 	cursor.Loc.Y = number - 1
 	cursor.Loc.X = 0
-	virtual_cursor_x = cursor.Loc.X
+	update_virtual_cursor()
 end
 
 M.update_virtual_cursor = update_virtual_cursor

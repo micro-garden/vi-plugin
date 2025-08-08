@@ -44,16 +44,18 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `o`     | Insert a new line below the current line           |
 | `O`     | Insert a new line above the current line           |
 
-### Line Operations
+### Edit Commands
 
-| Command | Description                              |
-| ------- | ---------------------------------------- |
-| `dd`    | Delete current line                      |
-| `2dd`   | Delete 2 lines                           |
-| `yy`    | Yank (copy) current line                 |
-| `2yy`   | Yank 2 lines                             |
-| `p`     | Paste after (insert below current line)  |
-| `P`     | Paste before (insert above current line) |
+| Command       | Description                              |
+| ------------- | ---------------------------------------- |
+| `dd`          | Delete current line                      |
+| `2dd`         | Delete 2 lines                           |
+| `yy` or `Y`   | Yank (copy) current line                 |
+| `2yy` or `2Y` | Yank 2 lines                             |
+| `x`           | Delete current character                 |
+| `X`           | Delete previous character (Backspace)    |
+| `p`           | Paste after (insert below current line)  |
+| `P`           | Paste before (insert above current line) |
 
 ### Other Commands
 

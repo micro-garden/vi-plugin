@@ -102,6 +102,18 @@ local function run(no_number, number, edit_part, move)
 		edit.copy_lines(number)
 		cache_command(false, number, edit_part, "")
 		return true
+	elseif edit_part == "Y" then
+		edit.copy_lines(number)
+		cache_command(false, number, edit_part, "")
+		return true
+	elseif edit_part == "x" then
+		edit.delete_chars(number)
+		cache_command(false, number, edit_part, "")
+		return true
+	elseif edit_part == "X" then
+		edit.delete_chars_backward(number)
+		cache_command(false, number, edit_part, "")
+		return true
 	elseif edit_part == "p" then
 		edit.paste_below(number)
 		cache_command(false, number, edit_part, "")

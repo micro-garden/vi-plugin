@@ -64,6 +64,8 @@ local function open_below()
 	if type(micro.After) == "function" then
 		micro.After(editor.TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+			cursor.Loc.X = 0
+			motion.update__cursor()
 		end)
 	elseif
 		-- time.AfterFunc requires micro before v2.0.14-rc1
@@ -71,10 +73,10 @@ local function open_below()
 	then
 		time.AfterFunc(editor.TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+			cursor.Loc.X = 0
+			motion.update_virtual_cursor()
 		end)
 	end
-
-	virtual_cursor_x = 0
 end
 
 local function open_above()
@@ -89,16 +91,18 @@ local function open_above()
 	if type(micro.After) == "function" then
 		micro.After(editor.TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
+			cursor.Loc.X = 0
+			motion.update_virtual_cursor();
 		end)
 	elseif -- time.AfterFunc requires micro before v2.0.14-rc1
 		type(time.AfterFunc) == "function"
 	then
 		time.AfterFunc(editor.TICK_DELAY, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
+			cursor.Loc.X = 0
+			motion.update_virtual_cursor();
 		end)
 	end
-
-	virtual_cursor_x = 0
 end
 
 M.insert_here = insert_here
