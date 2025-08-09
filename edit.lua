@@ -302,6 +302,8 @@ local function paste_above(number)
 end
 
 local function delete_lines_region(start_y, end_y)
+	mode.show()
+
 	if end_y < start_y then
 		start_y, end_y = end_y, start_y
 	end
@@ -313,6 +315,8 @@ local function delete_lines_region(start_y, end_y)
 end
 
 local function copy_lines_region(start_y, end_y)
+	mode.show()
+
 	if end_y < start_y then
 		start_y, end_y = end_y, start_y
 	end
@@ -340,6 +344,8 @@ local function is_ordered(start_loc, end_loc)
 end
 
 local function delete_words_region(start_loc, end_loc)
+	mode.show()
+
 	if not is_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc
 	end
@@ -360,6 +366,8 @@ local function delete_words_region(start_loc, end_loc)
 end
 
 local function copy_words_region(start_loc, end_loc)
+	mode.show()
+
 	if not is_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc
 	end
@@ -372,6 +380,8 @@ local function copy_words_region(start_loc, end_loc)
 end
 
 local function delete_to_line_end()
+	mode.show()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
@@ -402,6 +412,8 @@ local function delete_to_line_end()
 end
 
 local function copy_to_line_end()
+	mode.show()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
@@ -421,6 +433,67 @@ local function copy_to_line_end()
 	deleted_mode = DELETED_WORDS
 end
 
+local function replace_chars(number)
+	mode.show()
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		micro.InfoBar():Error("no character in the line")
+		return
+	end
+
+	local saved_x = cursor.Loc.X
+	local insert_after = cursor.Loc.X + number >= length
+
+	deleted_words = {}
+
+	local n = math.min(number, length - cursor.Loc.X)
+
+	local str = line
+	local start_offset = 0
+	local cursor_x = cursor.Loc.X
+	for _ = 1, cursor_x do
+		local r, size = utf8.DecodeRuneInString(str)
+		str = str:sub(1 + size)
+		start_offset = start_offset + size
+	end
+
+	local end_offset = start_offset
+	for _ = 1, n do
+		local r, size = utf8.DecodeRuneInString(str)
+		str = str:sub(1 + size)
+		end_offset = end_offset + size
+	end
+
+	table.insert(deleted_words, line:sub(1 + start_offset, end_offset))
+
+	for _ = 1, n do
+		micro.CurPane():Delete()
+	end
+
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
+
+	utils.after(editor.TICK_DELAY, function()
+		line = cursor:Buf():Line(cursor.Loc.Y)
+		length = utf8.RuneCount(line)
+		if insert_after then
+			cursor.Loc.X = math.min(saved_x, math.max(length, 0))
+		else
+			cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
+		end
+		motion.update_virtual_cursor()
+
+		deleted_mode = DELETED_WORDS
+
+		mode.insert()
+		mode.show()
+	end)
+end
+
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines
 M.delete_chars = delete_chars
@@ -434,5 +507,7 @@ M.delete_words_region = delete_words_region
 M.copy_words_region = copy_words_region
 M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
+
+M.replace_chars = replace_chars
 
 return M
