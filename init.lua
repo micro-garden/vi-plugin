@@ -90,11 +90,6 @@ function ViDefault(bp, args)
 	micro.InfoBar():Message("set vi.default " .. tostring(default))
 end
 
-function onBufPaneOpen(bp)
-	if config.GetGlobalOption("vi.default") then
-		Vi()
-	end
-end
 
 function preinit()
 	config.RegisterCommonOption("vi", "default", false)
@@ -107,4 +102,10 @@ function init()
 	config.TryBindKey("Escape", "Escape,Deselect,ClearInfo,RemoveAllMultiCursors,UnhighlightSearch,lua:vi.Vi", false)
 	config.TryBindKey("Enter", "lua:vi.ViEnter|InsertNewline", false)
 	config.AddRuntimeFile("vi", config.RTHelp, "help/vi.md")
+end
+
+function postinit()
+	if config.GetGlobalOption("vi.default") then
+		Vi()
+	end
 end
