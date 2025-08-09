@@ -24,6 +24,24 @@ local deleted_mode = DELETED_NONE
 local deleted_lines = {}
 local deleted_words = {}
 
+local function clear_deleted_lines()
+	deleted_lines = {}
+end
+
+local function clear_deleted_words()
+	deleted_words = {}
+end
+
+local function insert_deleted_line(line)
+	table.insert(deleted_lines, line)
+	deleted_mode = DELETED_LINES
+end
+
+local function insert_deleted_word(word)
+	table.insert(deleted_words, words)
+	deleted_mode = DELETED_WORDS
+end
+
 local function delete_lines(number)
 	mode.show()
 
@@ -433,66 +451,10 @@ local function copy_to_line_end()
 	deleted_mode = DELETED_WORDS
 end
 
-local function replace_chars(number)
-	mode.show()
-
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		micro.InfoBar():Error("no character in the line")
-		return
-	end
-
-	local saved_x = cursor.Loc.X
-	local insert_after = cursor.Loc.X + number >= length
-
-	deleted_words = {}
-
-	local n = math.min(number, length - cursor.Loc.X)
-
-	local str = line
-	local start_offset = 0
-	local cursor_x = cursor.Loc.X
-	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		start_offset = start_offset + size
-	end
-
-	local end_offset = start_offset
-	for _ = 1, n do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		end_offset = end_offset + size
-	end
-
-	table.insert(deleted_words, line:sub(1 + start_offset, end_offset))
-
-	for _ = 1, n do
-		micro.CurPane():Delete()
-	end
-
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
-
-	utils.after(editor.TICK_DELAY, function()
-		line = cursor:Buf():Line(cursor.Loc.Y)
-		length = utf8.RuneCount(line)
-		if insert_after then
-			cursor.Loc.X = math.min(saved_x, math.max(length, 0))
-		else
-			cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
-		end
-		motion.update_virtual_cursor()
-
-		deleted_mode = DELETED_WORDS
-
-		mode.insert()
-		mode.show()
-	end)
-end
+M.clear_deleted_lines = clear_deleted_lines
+M.clear_deleted_words = clear_deleted_words
+M.insert_deleted_line = insert_deleted_line
+M.insert_deleted_word = insert_deleted_word
 
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines
@@ -507,7 +469,5 @@ M.delete_words_region = delete_words_region
 M.copy_words_region = copy_words_region
 M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
-
-M.replace_chars = replace_chars
 
 return M

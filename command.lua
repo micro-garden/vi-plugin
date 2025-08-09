@@ -15,6 +15,7 @@ local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
 local edit = require("edit")
+local replace = require("replace")
 local find = require("find")
 local utils = require("utils")
 
@@ -154,13 +155,17 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move)
 		edit.delete_chars_backward(number)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
-	elseif edit_part == "s" then
-		edit.replace_chars(number)
-		cache_command(false, number, edit_part, true, 1, "")
-		return true
 	elseif edit_part == "D" then
 		edit.delete_to_line_end()
 		cache_command(false, 1, edit_part, true, 1, "")
+		return true
+	elseif edit_part == "s" then
+		replace.replace_chars(number)
+		cache_command(false, number, edit_part, true, 1, "")
+		return true
+	elseif edit_part == "S" or edit_part == "cc" then
+		replace.replace_lines(number)
+		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "p" then
 		edit.paste_below(number)

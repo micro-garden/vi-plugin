@@ -83,11 +83,27 @@ local function open_above()
 	end)
 end
 
+local function open_here()
+	mode.insert()
+	mode.show()
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.Loc.X = 0
+	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
+
+	utils.after(editor.TICK_DELAY, function()
+		cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+		cursor.Loc.X = 0
+		motion.update_virtual_cursor()
+	end)
+end
+
 M.insert_here = insert_here
 M.insert_line_start = insert_line_start
 M.insert_after_here = insert_after_here
 M.insert_after_line_end = insert_after_line_end
 M.open_below = open_below
 M.open_above = open_above
+M.open_here = open_here
 
 return M

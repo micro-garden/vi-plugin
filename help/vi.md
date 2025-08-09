@@ -58,6 +58,15 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `p`           | Paste after (insert below current line)  |
 | `P`           | Paste before (insert above current line) |
 
+### Replace commands
+
+| Command       | Description          |
+| ------------- | -------------------- |
+| `s`           | Replace a character  |
+| `2s`          | Replace 2 characters |
+| `S` or `cc`   | Replace a line       |
+| `2S` or `2cc` | Replace 2 lines      |
+
 ### Search Commands
 
 | Command | Description                                     |
