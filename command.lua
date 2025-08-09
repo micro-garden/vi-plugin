@@ -40,13 +40,14 @@ local function cache_command(no_number, number, edit, no_subnum, subnum, move)
 	command_cached = true
 end
 
-local function get_command_cache()
+local function get_command_cache(replay)
 	return command_cache["no_number"],
 		command_cache["number"],
 		command_cache["edit"],
 		command_cache["no_subnum"],
 		command_cache["subnum"],
-		command_cache["move"]
+		command_cache["move"],
+		replay
 end
 
 local function quit()
@@ -65,7 +66,7 @@ local function repeat_command(number)
 
 	utils.after(editor.TICK_DELAY, function()
 		for _ = 1, number do
-			M.run(get_command_cache())
+			M.run(get_command_cache(true))
 		end
 	end)
 end
@@ -82,7 +83,7 @@ local function redo(number)
 	end
 end
 
-local function run(no_number, number, edit_part, no_subnum, subnum, move)
+local function run(no_number, number, edit_part, no_subnum, subnum, move, replay)
 	if edit_part == "d" and move == "$" then
 		edit.delete_to_line_end()
 		cache_command(false, number, edit_part, no_subnum, subnum, move)
@@ -112,27 +113,27 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move)
 		cache_command(false, number, edit_part, no_subnum, subnum, move)
 		return true
 	elseif edit_part == "i" then
-		insert.insert_here()
+		insert.insert_here(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "I" then
-		insert.insert_line_start()
+		insert.insert_line_start(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "a" then
-		insert.insert_after_here()
+		insert.insert_after_here(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "A" then
-		insert.insert_after_line_end()
+		insert.insert_after_line_end(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "o" then
-		insert.open_below()
+		insert.open_below(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "O" then
-		insert.open_above()
+		insert.open_above(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "dd" then
@@ -160,11 +161,11 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move)
 		cache_command(false, 1, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "s" then
-		replace.replace_chars(number)
+		replace.replace_chars(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "S" or edit_part == "cc" then
-		replace.replace_lines(number)
+		replace.replace_lines(number, replay)
 		cache_command(false, number, edit_part, true, 1, "")
 		return true
 	elseif edit_part == "p" then

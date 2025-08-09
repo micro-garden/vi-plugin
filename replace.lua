@@ -1,6 +1,7 @@
 M = {}
 
 local micro = import("micro")
+local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
@@ -16,8 +17,8 @@ local edit = require("edit")
 local insert = require("insert")
 local utils = require("utils")
 
-local function replace_chars(number)
-	mode.show()
+local function replace_chars(number, replay)
+	insert.replace_mode()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -52,28 +53,35 @@ local function replace_chars(number)
 		micro.CurPane():Delete()
 	end
 
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
+	if replay then
+		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		insert.extend(loc, replace_chars, 1, replay)
+	else
+		mode.show()
 
-	utils.after(editor.TICK_DELAY, function()
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local line = cursor:Buf():Line(cursor.Loc.Y)
 		local length = utf8.RuneCount(line)
-		if insert_after then
-			cursor.Loc.X = math.min(saved_x, math.max(length, 0))
-		else
-			cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
-		end
-		motion.update_virtual_cursor()
+		cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
-		insert.insert_here()
-	end)
+		utils.after(editor.TICK_DELAY, function()
+			local cursor = micro.CurPane().Buf:GetActiveCursor()
+			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local length = utf8.RuneCount(line)
+			if insert_after then
+				cursor.Loc.X = math.min(saved_x, math.max(length, 0))
+			else
+				cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
+			end
+			motion.update_virtual_cursor()
+
+			insert.insert_here_replace(1, replay)
+		end)
+	end
 end
 
-local function replace_lines(number)
+local function replace_lines(number, replay)
 	edit.delete_lines(number)
-	insert.open_here(1)
+	insert.open_here(1, replay)
 end
 
 M.replace_chars = replace_chars

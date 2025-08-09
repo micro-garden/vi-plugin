@@ -2,6 +2,7 @@ VERSION = "0.0.6"
 
 local micro = import("micro")
 local config = import("micro/config")
+local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
 
 local plug_path = config.ConfigDir .. "/plug/vi/?.lua"
@@ -11,10 +12,8 @@ end
 
 local editor = require("editor")
 local mode = require("mode")
---local command = require("command")
 local motion = require("motion")
---local insert = require("insert")
---local edit = require("edit")
+local insert = require("insert")
 local parse = require("parse")
 
 function Vi(bp)
@@ -32,6 +31,7 @@ function Vi(bp)
 
 	--
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local orig_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
 
 	-- ensure cursor y in text
 	local last_line_index = cursor:Buf():LinesNum() - 1
@@ -53,6 +53,8 @@ function Vi(bp)
 	--
 	motion.update_virtual_cursor()
 	mode.show()
+
+	insert.resume(orig_loc)
 	return true
 end
 
@@ -89,7 +91,6 @@ function ViDefault(bp, args)
 	config.SetGlobalOption("vi.default", tostring(default))
 	micro.InfoBar():Message("set vi.default " .. tostring(default))
 end
-
 
 function preinit()
 	config.RegisterCommonOption("vi", "default", false)

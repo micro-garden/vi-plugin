@@ -90,7 +90,7 @@ function onBeforeTextEvent(buf, ev)
 		subnum = tonumber(subnum_str)
 	end
 
-	if command.run(no_number, number, edit, no_subnum, subnum, move) then
+	if command.run(no_number, number, edit, no_subnum, subnum, move, false) then
 		editor.clear_command_buffer()
 		return true
 	end
