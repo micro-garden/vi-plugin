@@ -14,6 +14,7 @@ end
 local editor = require("editor")
 local mode = require("mode")
 local motion = require("motion")
+local utils = require("utils")
 
 local DELETED_NONE = 0
 local DELETED_LINES = 1
@@ -122,29 +123,14 @@ local function delete_chars(number)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			line = cursor:Buf():Line(cursor.Loc.Y)
-			length = utf8.RuneCount(line)
-			cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
-			motion.update_virtual_cursor()
+	utils.after(editor.TICK_DELAY, function()
+		line = cursor:Buf():Line(cursor.Loc.Y)
+		length = utf8.RuneCount(line)
+		cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
+		motion.update_virtual_cursor()
 
-			deleted_mode = DELETED_WORDS
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			line = cursor:Buf():Line(cursor.Loc.Y)
-			length = utf8.RuneCount(line)
-			cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
-			motion.update_virtual_cursor()
-
-			deleted_mode = DELETED_WORDS
-		end)
-	end
+		deleted_mode = DELETED_WORDS
+	end)
 end
 
 local function delete_chars_backward(number)
@@ -190,25 +176,12 @@ local function delete_chars_backward(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			cursor.Loc.X = math.max(saved_x - n, 0)
-			motion.update_virtual_cursor()
+	utils.after(editor.TICK_DELAY, function()
+		cursor.Loc.X = math.max(saved_x - n, 0)
+		motion.update_virtual_cursor()
 
-			deleted_mode = DELETED_WORDS
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			cursor.Loc.X = math.max(saved_x - n, 0)
-			motion.update_virtual_cursor()
-
-			deleted_mode = DELETED_WORDS
-		end)
-	end
+		deleted_mode = DELETED_WORDS
+	end)
 end
 
 local function paste_below(number)
@@ -252,55 +225,27 @@ local function paste_below(number)
 		end
 	end
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			if deleted_mode == DELETED_LINES then
-				cursor.Loc.Y = saved_y + 1
+	utils.after(editor.TICK_DELAY, function()
+		if deleted_mode == DELETED_LINES then
+			cursor.Loc.Y = saved_y + 1
 
-				local line = cursor:Buf():Line(cursor.Loc.Y)
-				local spaces = line:match("^(%s*).*$")
-				cursor.Loc.X = #spaces
-				motion.update_virtual_cursor()
-			elseif deleted_mode == DELETED_WORDS then
-				if saved_length < 1 then
-					cursor.Loc.X = saved_x
-				else
-					cursor.Loc.X = saved_x + 1
-				end
-				motion.update_virtual_cursor()
+			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local spaces = line:match("^(%s*).*$")
+			cursor.Loc.X = #spaces
+			motion.update_virtual_cursor()
+		elseif deleted_mode == DELETED_WORDS then
+			if saved_length < 1 then
+				cursor.Loc.X = saved_x
 			else
-				micro.InfoBar:Error("paste_below After: invalid deleted mode = " .. deleted_mode)
+				cursor.Loc.X = saved_x + 1
 			end
+			motion.update_virtual_cursor()
+		else
+			micro.InfoBar:Error("paste_below After: invalid deleted mode = " .. deleted_mode)
+		end
 
-			mode.command()
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			if deleted_mode == DELETED_LINES then
-				cursor.Loc.Y = saved_y + 1
-
-				local line = cursor:Buf():Line(cursor.Loc.Y)
-				local spaces = line:match("^(%s*).*$")
-				cursor.Loc.X = #spaces
-				motion.update_virtual_cursor()
-			elseif deleted_mode == DELETED_WORDS then
-				if saved_length < 1 then
-					cursor.Loc.X = saved_x
-				else
-					cursor.Loc.X = saved_x + 1
-				end
-				motion.update_virtual_cursor()
-			else
-				micro.InfoBar:Error("paste_below After: invalid deleted mode = " .. deleted_mode)
-			end
-
-			mode.command()
-		end)
-	end
+		mode.command()
+	end)
 end
 
 local function paste_above(number)
@@ -337,47 +282,23 @@ local function paste_above(number)
 		end
 	end
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			if deleted_mode == DELETED_LINES then
-				cursor.Loc.Y = saved_y
+	utils.after(editor.TICK_DELAY, function()
+		if deleted_mode == DELETED_LINES then
+			cursor.Loc.Y = saved_y
 
-				local line = cursor:Buf():Line(cursor.Loc.Y)
-				local spaces = line:match("^(%s*).*$")
-				cursor.Loc.X = #spaces
-				motion.update_virtual_cursor()
-			elseif deleted_mode == DELETED_WORDS then
-				cursor.Loc.X = saved_x
-				motion.update_virtual_cursor()
-			else -- program error
-				micro.InfoBar:Error("paste_above After: invalid deleted mode = " .. deleted_mode)
-			end
+			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local spaces = line:match("^(%s*).*$")
+			cursor.Loc.X = #spaces
+			motion.update_virtual_cursor()
+		elseif deleted_mode == DELETED_WORDS then
+			cursor.Loc.X = saved_x
+			motion.update_virtual_cursor()
+		else -- program error
+			micro.InfoBar:Error("paste_above After: invalid deleted mode = " .. deleted_mode)
+		end
 
-			mode.command()
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			if deleted_mode == DELETED_LINES then
-				cursor.Loc.Y = saved_y
-
-				local line = cursor:Buf():Line(cursor.Loc.Y)
-				local spaces = line:match("^(%s*).*$")
-				cursor.Loc.X = #spaces
-				motion.update_virtual_cursor()
-			elseif deleted_mode == DELETED_WORDS then
-				cursor.Loc.X = saved_x
-				motion.update_virtual_cursor()
-			else
-				micro.InfoBar:Error("paste_above AfterFunc: invalid deleted mode = " .. deleted_mode)
-			end
-
-			mode.command()
-		end)
-	end
+		mode.command()
+	end)
 end
 
 local function delete_lines_region(start_y, end_y)

@@ -16,6 +16,7 @@ local motion = require("motion")
 local insert = require("insert")
 local edit = require("edit")
 local find = require("find")
+local utils = require("utils")
 
 local command_cached = false
 local command_cache = {
@@ -61,23 +62,11 @@ local function repeat_command(number)
 		return
 	end
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			for _ = 1, number do
-				M.run(get_command_cache())
-			end
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			for _ = 1, number do
-				M.run(get_command_cache())
-			end
-		end)
-	end
+	utils.after(editor.TICK_DELAY, function()
+		for _ = 1, number do
+			M.run(get_command_cache())
+		end
+	end)
 end
 
 local function undo(number)

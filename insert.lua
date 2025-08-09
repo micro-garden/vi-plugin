@@ -13,6 +13,7 @@ end
 local editor = require("editor")
 local mode = require("mode")
 local motion = require("motion")
+local utils = require("utils")
 
 local function insert_here()
 	mode.insert()
@@ -60,23 +61,11 @@ local function open_below()
 	cursor.Loc.X = utf8.RuneCount(line)
 	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			cursor.Loc.X = 0
-			motion.update__cursor()
-		end)
-	elseif
-		-- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			cursor.Loc.X = 0
-			motion.update_virtual_cursor()
-		end)
-	end
+	utils.after(editor.TICK_DELAY, function()
+		cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
+		cursor.Loc.X = 0
+		motion.update_virtual_cursor()
+	end)
 end
 
 local function open_above()
@@ -87,22 +76,11 @@ local function open_above()
 	cursor.Loc.X = 0
 	cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
 
-	-- micro.After requires micro v2.0.14-rc1
-	if type(micro.After) == "function" then
-		micro.After(editor.TICK_DELAY, function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
-			cursor.Loc.X = 0
-			motion.update_virtual_cursor();
-		end)
-	elseif -- time.AfterFunc requires micro before v2.0.14-rc1
-		type(time.AfterFunc) == "function"
-	then
-		time.AfterFunc(editor.TICK_DELAY, function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
-			cursor.Loc.X = 0
-			motion.update_virtual_cursor();
-		end)
-	end
+	utils.after(editor.TICK_DELAY, function()
+		cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
+		cursor.Loc.X = 0
+		motion.update_virtual_cursor()
+	end)
 end
 
 M.insert_here = insert_here
