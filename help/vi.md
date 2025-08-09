@@ -54,6 +54,7 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `2yy` or `2Y` | Yank 2 lines                             |
 | `x`           | Delete current character                 |
 | `X`           | Delete previous character (Backspace)    |
+| `D`           | Delete to line end                       |
 | `p`           | Paste after (insert below current line)  |
 | `P`           | Paste before (insert above current line) |
 
@@ -65,6 +66,17 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `?`     | Start search backward using micro's find method |
 | `n`     | Find next                                       |
 | `N`     | Find previous                                   |
+
+### Move + Edit
+
+Some motion and edit commands are able to be combined.  
+For example:
+
+| Command | Description                           |
+| ------- | ------------------------------------- |
+| `dw`    | Delete a word                         |
+| `d2w`   | Delete 2 word                         |
+| `yG`    | Copy from current line to bottom line |
 
 ### Other Commands
 

@@ -244,7 +244,7 @@ local function paste_below(number)
 		elseif deleted_mode == DELETED_WORDS then
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			local length = utf8.RuneCount(line)
-			cursor.Loc.X = math.min(saved_x + 1, math.max(length - 1, 0))
+			cursor.Loc.X = math.min(saved_x + 1, math.max(length, 0))
 		end
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), text)
 		if deleted_mode == DELETED_LINES then
@@ -380,11 +380,138 @@ local function paste_above(number)
 	end
 end
 
+local function delete_lines_region(start_y, end_y)
+	if end_y < start_y then
+		start_y, end_y = end_y, start_y
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.Loc.X = 0
+	cursor.Loc.Y = start_y
+	delete_lines(end_y - start_y + 1)
+end
+
+local function copy_lines_region(start_y, end_y)
+	if end_y < start_y then
+		start_y, end_y = end_y, start_y
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.Loc.X = 0
+	cursor.Loc.Y = start_y
+	copy_lines(end_y - start_y + 1)
+end
+
+local function is_ordered(start_loc, end_loc)
+	if start_loc.Y < end_loc.Y then
+		return true
+	elseif start_loc.Y > end_loc.Y then
+		return false
+	else
+		if start_loc.X < end_loc.X then
+			return true
+		elseif start_loc.X > end_loc.X then
+			return false
+		else
+			return true
+		end
+	end
+end
+
+local function delete_words_region(start_loc, end_loc)
+	if not is_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local substr = cursor:Buf():Substr(start_loc, end_loc)
+	deleted_words = {}
+	table.insert(deleted_words, substr)
+	deleted_mode = DELETED_WORDS
+
+	cursor:Buf():Remove(start_loc, end_loc)
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
+	motion.update_virtual_cursor()
+end
+
+local function copy_words_region(start_loc, end_loc)
+	if not is_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local substr = cursor:Buf():Substr(start_loc, end_loc)
+	deleted_words = {}
+	table.insert(deleted_words, substr)
+	deleted_mode = DELETED_WORDS
+end
+
+local function delete_to_line_end()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+
+	deleted_words = {}
+
+	local str = line
+	local start_offset = 0
+	local cursor_x = cursor.Loc.X
+	for _ = 1, cursor_x do
+		local r, size = utf8.DecodeRuneInString(str)
+		str = str:sub(1 + size)
+		start_offset = start_offset + size
+	end
+
+	table.insert(deleted_words, line:sub(1 + start_offset))
+	deleted_mode = DELETED_WORDS
+
+	local start_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+	local end_loc = buffer.Loc(length, cursor.Loc.Y)
+	cursor:Buf():Remove(start_loc, end_loc)
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
+	motion.update_virtual_cursor()
+end
+
+local function copy_to_line_end()
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local length = utf8.RuneCount(line)
+
+	deleted_words = {}
+
+	local str = line
+	local start_offset = 0
+	local cursor_x = cursor.Loc.X
+	for _ = 1, cursor_x do
+		local r, size = utf8.DecodeRuneInString(str)
+		str = str:sub(1 + size)
+		start_offset = start_offset + size
+	end
+
+	table.insert(deleted_words, line:sub(1 + start_offset))
+	deleted_mode = DELETED_WORDS
+end
+
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines
 M.delete_chars = delete_chars
 M.delete_chars_backward = delete_chars_backward
 M.paste_below = paste_below
 M.paste_above = paste_above
+
+M.delete_lines_region = delete_lines_region
+M.copy_lines_region = copy_lines_region
+M.delete_words_region = delete_words_region
+M.copy_words_region = copy_words_region
+M.delete_to_line_end = delete_to_line_end
+M.copy_to_line_end = copy_to_line_end
 
 return M
