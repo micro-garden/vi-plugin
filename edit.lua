@@ -451,6 +451,72 @@ local function copy_to_line_end()
 	deleted_mode = DELETED_WORDS
 end
 
+local function join_lines(number)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local at_last = false
+	local last_line_index = cursor:Buf():LinesNum() - 1
+	if cursor.Loc.Y == last_line_index then
+		at_last = true
+	elseif cursor.Loc.Y == last_line_index - 1 then
+		local line = cursor:Buf():Line(last_line_index)
+		local length = utf8.RuneCount(line)
+		if length < 1 then
+			at_last = true
+		end
+	end
+	if at_last then
+		micro.InfoBar():Error("no lines to join below")
+		return
+	end
+
+	local n = number
+	if n > 1 then
+		n = n - 1
+	end
+
+	for _ = 1, n do
+		local at_last = false
+		if cursor.Loc.Y == last_line_index then
+			at_last = true
+		elseif cursor.Loc.Y == last_line_index - 1 then
+			local line = cursor:Buf():Line(last_line_index)
+			local length = utf8.RuneCount(line)
+			if length < 1 then
+				at_last = true
+			end
+		end
+		if at_last then
+			break
+		end
+
+		local line = cursor:Buf():Line(cursor.Loc.Y)
+		local length = utf8.RuneCount(line)
+		cursor.Loc.X = length
+		local next_line = cursor:Buf():Line(cursor.Loc.Y + 1)
+		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local spaces, body = next_line:match("^(%s*)(.*)$")
+		if #body > 0 then
+		cursor:Buf():Insert(loc, " " .. body)
+		end
+		cursor.Loc.Y = cursor.Loc.Y + 1
+		micro.CurPane():DeleteLine()
+
+		utils.after(editor.TICK_DELAY, function()
+			cursor.Loc.Y = loc.Y
+			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local current_length = utf8.RuneCount(line)
+			if length < 1 or #next_line < 1 then
+				cursor.Loc.X = math.max(current_length - 1, 0)
+			else
+				cursor.Loc.X = loc.X
+			end
+			motion.update_virtual_cursor()
+
+			deleted_mode = DELETED_LINES
+		end)
+	end
+end
+
 M.clear_deleted_lines = clear_deleted_lines
 M.clear_deleted_words = clear_deleted_words
 M.insert_deleted_line = insert_deleted_line
@@ -469,5 +535,7 @@ M.delete_words_region = delete_words_region
 M.copy_words_region = copy_words_region
 M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
+
+M.join_lines = join_lines
 
 return M

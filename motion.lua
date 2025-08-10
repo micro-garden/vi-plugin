@@ -151,7 +151,7 @@ local function move_next_word(number)
 
 			cursor.Loc.X = cursor.Loc.X + forward
 			local last_line_index = cursor:Buf():LinesNum() - 1
-			while cursor.Loc.X >= length - 1 do
+			while cursor.Loc.X > length - 1 do
 				if cursor.Loc.Y == last_line_index - 1 then
 					local line = cursor:Buf():Line(last_line_index)
 					local length = utf8.RuneCount(line)

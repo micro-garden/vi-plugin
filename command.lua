@@ -217,6 +217,10 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, letter
 		edit.paste_above(number)
 		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
+	elseif edit_part == "J" then
+		edit.join_lines(number)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
+		return true
 	elseif edit_part == "m" and letter then
 		mark.set(letter)
 		return true

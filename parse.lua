@@ -62,9 +62,9 @@ function onBeforeTextEvent(buf, ev)
 	local command_buffer = editor.add_input_to_command_buffer(input)
 
 	local number_str, edit, subnum_str, move, dummy_letter =
-		command_buffer:match("^(%d*)([iIaAoOdyYxXDsScCpPm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
+		command_buffer:match("^(%d*)([iIaAoOdyYxXDsScCpPJm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
 
-	local mark_command, letter = command_buffer:match("([m'`])(.)$")
+	local mark_command, letter = command_buffer:match("([m'`])([^'`])$")
 	if mark_command == "m" then
 		edit = mark_command
 	elseif mark_command == "'" or mark_command == "`" then

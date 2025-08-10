@@ -60,6 +60,7 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `D`           | Delete to line end                       |
 | `p`           | Paste after (insert below current line)  |
 | `P`           | Paste before (insert above current line) |
+| `J`           | Join 2 lines                             |
 
 ### Replace commands
 
