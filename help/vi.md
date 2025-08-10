@@ -30,6 +30,9 @@ You can return to insert mode with the `i` command.
 | `<Enter>` / `\n` | Move to beginning of next line                    |
 | `G`              | Move to the bottom of the file                    |
 | `10G`            | Move to line 10                                   |
+| `m` + letter     | Mark current position as letter (symplified)      |
+| `'` + letter     | Move to marked line                               |
+| ````` + letter   | Move to markd character                           |
 
 All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 

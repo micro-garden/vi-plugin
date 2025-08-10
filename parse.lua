@@ -61,8 +61,15 @@ function onBeforeTextEvent(buf, ev)
 
 	local command_buffer = editor.add_input_to_command_buffer(input)
 
-	local number_str, edit, subnum_str, move =
-		command_buffer:match("^(%d*)([iIaAoOdyYxXDsScCpP%.uZ]*)(%d*)([hjkl\n0%$wbG/?nN]*)$")
+	local number_str, edit, subnum_str, move, dummy_letter =
+		command_buffer:match("^(%d*)([iIaAoOdyYxXDsScCpPm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
+
+	local mark_command, letter = command_buffer:match("([m'`])(.)$")
+	if mark_command == "m" then
+		edit = mark_command
+	elseif mark_command == "'" or mark_command == "`" then
+		move = mark_command
+	end
 
 	if not number_str then
 		micro.InfoBar():Error("not (yet) a vi command [" .. command_buffer .. "]")
@@ -90,7 +97,7 @@ function onBeforeTextEvent(buf, ev)
 		subnum = tonumber(subnum_str)
 	end
 
-	if command.run(no_number, number, edit, no_subnum, subnum, move, nil, false) then
+	if command.run(no_number, number, edit, no_subnum, subnum, move, letter, nil, false) then
 		editor.clear_command_buffer()
 		return true
 	end

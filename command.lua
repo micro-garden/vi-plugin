@@ -16,6 +16,7 @@ local motion = require("motion")
 local insert = require("insert")
 local edit = require("edit")
 local replace = require("replace")
+local mark = require("mark")
 local find = require("find")
 local utils = require("utils")
 
@@ -33,7 +34,7 @@ local UNDO_MODE = 1
 local REDO_MODE = 2
 local undo_mode = UNDO_MODE
 
-local function cache_command(no_number, number, edit, no_subnum, subnum, move, force_undo_mode)
+local function cache_command(no_number, number, edit, no_subnum, subnum, move, letter, force_undo_mode)
 	command_cache["no_number"] = no_number
 	command_cache["number"] = number
 	command_cache["edit"] = edit
@@ -41,6 +42,7 @@ local function cache_command(no_number, number, edit, no_subnum, subnum, move, f
 	command_cache["subnum"] = subnum
 	command_cache["move"] = move
 	command_cache["undo_mode"] = force_undo_mode
+	command_cache["letter"] = letter
 
 	command_cached = true
 
@@ -55,6 +57,7 @@ local function get_command_cache(replay)
 		command_cache["subnum"],
 		command_cache["move"],
 		command_cache["undo_mode"],
+		command_cache["letter"],
 		replay
 end
 
@@ -103,116 +106,119 @@ local function undo(number, force_mode)
 	end
 end
 
-local function run(no_number, number, edit_part, no_subnum, subnum, move, force_undo_mode, replay)
+local function run(no_number, number, edit_part, no_subnum, subnum, move, letter, force_undo_mode, replay)
 	if edit_part == "d" and move == "$" then
 		edit.delete_to_line_end()
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
 	elseif edit_part == "y" and move == "$" then
 		edit.copy_to_line_end()
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
 	elseif edit_part == "c" and move == "$" then
 		replace.replace_to_line_end(replay)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "d" and move:match("[jk\nG]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "d" and (move:match("[jk\nG]+") or move == "'" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		edit.delete_lines_region(start_loc.Y, end_loc.Y)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "y" and move:match("[jk\nG]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "y" and (move:match("[jk\nG]+") or move == "'" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		edit.copy_lines_region(start_loc.Y, end_loc.Y)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "c" and move:match("[jk\nG]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "c" and (move:match("[jk\nG]+") or move == "'" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		replace.replace_lines_region(start_loc.Y, end_loc.Y, replay)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "d" and move:match("[hl0wbnN]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "d" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		edit.delete_words_region(start_loc, end_loc)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "y" and move:match("[hl0wbnN]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "y" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		edit.copy_words_region(start_loc, end_loc)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
-	elseif edit_part == "c" and move:match("[hl0wbnN]+") then
-		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+	elseif edit_part == "c" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move, letter)
 		replace.replace_words_region(start_loc, end_loc)
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, letter, nil)
 		return true
 	elseif edit_part == "i" then
 		insert.insert_here(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "I" then
 		insert.insert_line_start(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "a" then
 		insert.insert_after_here(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "A" then
 		insert.insert_after_line_end(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "o" then
 		insert.open_below(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "O" then
 		insert.open_above(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "dd" then
 		edit.delete_lines(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "yy" then
 		edit.copy_lines(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "Y" then
 		edit.copy_lines(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "x" then
 		edit.delete_chars(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "X" then
 		edit.delete_chars_backward(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "D" then
 		edit.delete_to_line_end()
-		cache_command(false, 1, edit_part, true, 1, "", nil)
+		cache_command(false, 1, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "s" then
 		replace.replace_chars(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "S" or edit_part == "cc" then
 		replace.replace_lines(number, replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "C" then
 		replace.replace_to_line_end(replay)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "p" then
 		edit.paste_below(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		return true
 	elseif edit_part == "P" then
 		edit.paste_above(number)
-		cache_command(false, number, edit_part, true, 1, "", nil)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
+		return true
+	elseif edit_part == "m" and letter then
+		mark.set(letter)
 		return true
 	elseif edit_part == "." then
 		repeat_command(number)
@@ -221,7 +227,7 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 		if replay then
 			undo(number, force_undo_mode)
 		else
-			cache_command(false, number, edit_part, true, 1, "", undo_mode)
+			cache_command(false, number, edit_part, true, 1, "", nil, undo_mode)
 			undo(number, nil)
 		end
 		return true
@@ -262,6 +268,12 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 			motion.goto_line(number)
 		end
 		return true
+	elseif move == "'" and letter then
+		mark.goto_line(letter)
+		return true
+	elseif move == "`" and letter then
+		mark.goto_char(letter)
+		return true
 	elseif move == "/" then
 		find.find()
 		return true
@@ -279,12 +291,12 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 	end
 end
 
-local function get_region(number, no_subnum, subnum, move)
+local function get_region(number, no_subnum, subnum, move, letter)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	for _ = 1, number do
-		run(no_subnum, subnum, "", true, 1, move)
+		run(no_subnum, subnum, "", true, 1, move, letter, nil, false)
 	end
 
 	local end_loc = buffer.Loc(cursor.X, cursor.Y)
