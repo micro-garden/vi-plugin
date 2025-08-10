@@ -66,6 +66,7 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `2s`          | Replace 2 characters |
 | `S` or `cc`   | Replace a line       |
 | `2S` or `2cc` | Replace 2 lines      |
+| `C`           | Replace to line end  |
 
 ### Search Commands
 

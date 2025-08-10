@@ -188,6 +188,10 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 		replace.replace_lines(number, replay)
 		cache_command(false, number, edit_part, true, 1, "", nil)
 		return true
+	elseif edit_part == "C" then
+		replace.replace_to_line_end(replay)
+		cache_command(false, number, edit_part, true, 1, "", nil)
+		return true
 	elseif edit_part == "p" then
 		edit.paste_below(number)
 		cache_command(false, number, edit_part, true, 1, "", nil)

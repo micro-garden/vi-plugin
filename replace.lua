@@ -84,7 +84,13 @@ local function replace_lines(number, replay)
 	insert.open_here(1, replay)
 end
 
+local function replace_to_line_end(replay)
+	edit.delete_to_line_end(number)
+	insert.insert_after_here(1, replay)
+end
+
 M.replace_chars = replace_chars
 M.replace_lines = replace_lines
+M.replace_to_line_end = replace_to_line_end
 
 return M
