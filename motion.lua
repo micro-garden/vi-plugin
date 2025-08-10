@@ -102,8 +102,6 @@ local function move_next_line_start(number)
 	micro.CurPane():Relocate()
 end
 
--- XXX incompatible with proper vi
--- using micro's Cursor.WordRight
 local function move_next_word(number)
 	mode.show()
 
@@ -122,25 +120,143 @@ local function move_next_word(number)
 				end
 			end
 
-			cursor.Loc.X = length
-			cursor:WordRight() -- XXX micro method
+			cursor.Loc.X = 0
+			cursor.Loc.Y = cursor.Loc.Y + 1
+
+			line = cursor:Buf():Line(cursor.Loc.Y)
+			local spaces = line:match("^(%s*)")
+			cursor.Loc.X = cursor.Loc.X + utf8.RuneCount(spaces)
 		else
-			cursor:WordRight() -- XXX micro method
-			cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length - 1, 0))
+			local str = line
+			local cursor_x = cursor.Loc.X
+			for _ = 1, cursor_x do
+				local r, size = utf8.DecodeRuneInString(str)
+				str = str:sub(1 + size)
+			end
+
+			local prefix, prespaces, word, postspaces, postfix =
+				str:match("^([^%w_\128-\255%s]*)(%s*)([%w_\128-\255]*)(%s*)([^%w\128-\255]*)")
+			local forward = 0
+			if #prefix > 0 then
+				forward = utf8.RuneCount(prefix .. prespaces)
+			elseif #word > 0 and #postfix > 0 then
+				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces)
+			elseif #word > 0 and #postspaces > 0 then
+				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces)
+			elseif #word > 0 then
+				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces) + 1
+			elseif #prespaces > 0 then
+				forward = utf8.RuneCount(prespaces)
+			end
+
+			cursor.Loc.X = cursor.Loc.X + forward
+			local last_line_index = cursor:Buf():LinesNum() - 1
+			while cursor.Loc.X >= length - 1 do
+				if cursor.Loc.Y == last_line_index - 1 then
+					local line = cursor:Buf():Line(last_line_index)
+					local length = utf8.RuneCount(line)
+					if length < 1 then
+						break
+					end
+				end
+
+				cursor.Loc.X = 0
+				cursor.Loc.Y = cursor.Loc.Y + 1
+
+				line = cursor:Buf():Line(cursor.Loc.Y)
+				length = utf8.RuneCount(line)
+
+				local spaces = line:match("^(%s*)")
+				cursor.Loc.X = cursor.Loc.X + utf8.RuneCount(spaces)
+
+				if cursor.Loc.Y == last_line_index - 1 then
+					local line = cursor:Buf():Line(last_line_index)
+					local length = utf8.RuneCount(line)
+					if length < 1 then
+						break
+					end
+				elseif cursor.Loc.Y >= last_line_index then
+					break
+				end
+			end
 		end
 	end
 
 	update_virtual_cursor()
 end
 
--- XXX incompatible with proper vi
--- using micro's Cursor.WordLeft
 local function move_prev_word(number)
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	for _ = 1, number do
-		cursor:WordLeft() -- XXX micro method
+		if cursor.Loc.X < 1 and cursor.Loc.Y < 1 then
+			break -- vi error
+		else
+			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local length = utf8.RuneCount(line)
+
+			local str = line
+			local cursor_x = cursor.Loc.X
+			local start_offset = 0
+			for _ = 1, cursor_x do
+				local r, size = utf8.DecodeRuneInString(str)
+				str = str:sub(1 + size)
+				start_offset = start_offset + size
+			end
+
+			str = line:sub(1, start_offset):reverse()
+
+			local prefix, prespaces, word, postspaces, postfix =
+				str:match("^([^%w_\128-\255%s]*)(%s*)([%w_\128-\255]*)(%s*)([^%w\128-\255%s]*)")
+			local backward = 0
+			if cursor.Loc.X < 1 then
+				backward = cursor.Loc.X + 1
+			elseif #prefix > 0 then
+				backward = utf8.RuneCount(prefix .. prespaces)
+			elseif #word > 0 and #postfix > 0 then
+				backward = utf8.RuneCount(prefix .. prespaces .. word)
+			elseif #word > 0 and #postspaces > 0 then
+				backward = utf8.RuneCount(prefix .. prespaces .. word)
+			elseif #word > 0 then
+				backward = utf8.RuneCount(prefix .. prespaces .. word)
+			elseif #prespaces > 0 and #postfix > 0 then
+				backward = utf8.RuneCount(prespaces .. postfix)
+			elseif #prespaces > 0 then
+				backward = utf8.RuneCount(prespaces) + 1
+			end
+
+			local carry = backward > 0 and cursor.Loc.X - backward < 0
+
+			cursor.Loc.X = math.max(cursor.Loc.X - backward, 0)
+			while carry do
+				if cursor.Loc.Y < 1 and cursor.Loc.X < 1 then
+					break
+				end
+
+				cursor.Loc.Y = cursor.Loc.Y - 1
+
+				line = cursor:Buf():Line(cursor.Loc.Y):reverse()
+				length = utf8.RuneCount(line)
+				cursor.Loc.X = math.max(length - 1, 0)
+
+				if length > 0 then
+					local spaces, word, symbols = line:match("^(%s*)([%w_\128-\255]*)([^%w_\128-\255%s]*)")
+					backward = 0
+					if #word > 0 then
+						backward = utf8.RuneCount(word .. spaces) - 1
+					elseif #symbols > 0 then
+						backward = utf8.RuneCount(symbols .. spaces) - 1
+					elseif #spaces > 0 then
+						backward = utf8.RuneCount(spaces) + 1
+					end
+
+					carry = backward > 0 and cursor.Loc.X - backward < 0
+
+					cursor.Loc.X = math.max(cursor.Loc.X - backward, 0)
+				end
+			end
+		end
 	end
 
 	update_virtual_cursor()
