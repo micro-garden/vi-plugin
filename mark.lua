@@ -5,7 +5,8 @@ local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
-local plug_path = config.ConfigDir .. "/plug/vi/?.lua"
+local plug_name = "vi"
+local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end

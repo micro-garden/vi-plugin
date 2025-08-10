@@ -4,9 +4,14 @@ local micro = import("micro")
 local time = import("time")
 
 local config = import("micro/config")
-local plug_path = config.ConfigDir .. "/plug/vi/?.lua"
+local plug_name = "vi"
+local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
+end
+
+local function xor(a, b)
+	return (a or b) and not (a and b)
 end
 
 local function after(duration, fn)
@@ -23,6 +28,7 @@ local function after(duration, fn)
 	end
 end
 
+M.xor = xor
 M.after = after
 
 return M
