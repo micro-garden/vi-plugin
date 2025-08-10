@@ -119,9 +119,9 @@ local function resume(orig_loc)
 					x = size - run
 					if y == saved_loc.Y then
 						if insert_mode == REPLACE_MODE then
-						table.insert(inserted_lines, line:sub(saved_loc.X, saved_loc.X + x - 1))
+							table.insert(inserted_lines, line:sub(saved_loc.X, saved_loc.X + x - 1))
 						else
-						table.insert(inserted_lines, line:sub(saved_loc.X, saved_loc.X + x))
+							table.insert(inserted_lines, line:sub(saved_loc.X + 1, saved_loc.X + x))
 						end
 					else
 						table.insert(inserted_lines, line:sub(1, x))
