@@ -108,18 +108,27 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 		edit.delete_to_line_end()
 		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
 		return true
+	elseif edit_part == "y" and move == "$" then
+		edit.copy_to_line_end()
+		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		return true
+	elseif edit_part == "c" and move == "$" then
+		replace.replace_to_line_end(replay)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		return true
 	elseif edit_part == "d" and move:match("[jk\nG]+") then
 		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
 		edit.delete_lines_region(start_loc.Y, end_loc.Y)
 		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
 		return true
-	elseif edit_part == "y" and move == "$" then
-		edit.copy_to_line_end()
-		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
-		return true
 	elseif edit_part == "y" and move:match("[jk\nG]+") then
 		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
 		edit.copy_lines_region(start_loc.Y, end_loc.Y)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		return true
+	elseif edit_part == "c" and move:match("[jk\nG]+") then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+		replace.replace_lines_region(start_loc.Y, end_loc.Y, replay)
 		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
 		return true
 	elseif edit_part == "d" and move:match("[hl0wbnN]+") then
@@ -130,6 +139,11 @@ local function run(no_number, number, edit_part, no_subnum, subnum, move, force_
 	elseif edit_part == "y" and move:match("[hl0wbnN]+") then
 		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
 		edit.copy_words_region(start_loc, end_loc)
+		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
+		return true
+	elseif edit_part == "c" and move:match("[hl0wbnN]+") then
+		local start_loc, end_loc = M.get_region(number, no_subnum, subnum, move)
+		replace.replace_words_region(start_loc, end_loc)
 		cache_command(false, number, edit_part, no_subnum, subnum, move, nil)
 		return true
 	elseif edit_part == "i" then
