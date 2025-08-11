@@ -95,9 +95,27 @@ local function replace_lines_region(start_y, end_y, replay)
 	insert.open_here(1, replay)
 end
 
-local function replace_chars_region(start_loc, end_loc)
+local function replace_chars_region(start_loc, end_loc, replay)
+	local insert_after = false
+
+	if end_loc.Y > start_loc.Y and end_loc.X == 0 then
+		local cursor = micro.CurPane().Buf:GetActiveCursor()
+		local line = cursor:Buf():Line(end_loc.Y - 1)
+		local length = utf8.RuneCount(line)
+		end_loc = buffer.Loc(length, end_loc.Y - 1)
+		cursor.Loc.X = length
+		cursor.Loc.Y = end_loc.Y
+
+		insert_after = true
+	end
+
 	edit.delete_chars_region(start_loc, end_loc)
-	insert.insert_here(1, replay)
+
+	if insert_after then
+		insert.insert_after_here(1, replay)
+	else
+		insert.insert_here(1, replay)
+	end
 end
 
 M.replace_chars = replace_chars

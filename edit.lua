@@ -520,7 +520,7 @@ end
 M.clear_deleted_lines = clear_deleted_lines
 M.clear_deleted_chars = clear_deleted_chars
 M.insert_deleted_line = insert_deleted_line
-M.insert_deleted_chars= insert_deleted_chars
+M.insert_deleted_chars = insert_deleted_chars
 
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines
