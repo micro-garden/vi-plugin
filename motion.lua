@@ -18,93 +18,98 @@ local virtual_cursor_x = 0
 
 local function update_virtual_cursor()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	virtual_cursor_x = cursor.Loc.X
+	virtual_cursor_x = cursor.X
 
 	cursor:StoreVisualX()
 end
 
+-- command: h
 local function move_left(number)
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	if cursor.Loc.X <= 0 then
+	if cursor.X <= 0 then
 		bell.ring("already at the beginning of the line")
 		return
 	end
-	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
+	cursor.X = math.max(cursor.X - number, 0)
 
 	update_virtual_cursor()
 end
 
+-- command: l
 local function move_right(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	if cursor.Loc.X >= length - 1 then
+	if cursor.X >= length - 1 then
 		bell.ring("already at the end of the line")
 	end
-	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
+	cursor.X = math.min(cursor.X + number, math.max(length - 1, 0))
 
 	update_virtual_cursor()
 end
 
+-- command: k
 local function move_up(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local dest_y = cursor.Loc.Y - number
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local dest_y = cursor.Y - number
 	if dest_y < 0 then
 		bell.ring("cannot move up to line " .. dest_y + 1)
 		return
 	end
-	cursor.Loc.Y = dest_y
+	cursor.Y = dest_y
 
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
+-- command: j
 local function move_down(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = math.max(last_line_index - 1, 0)
-	end
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
 
-	local dest_y = cursor.Loc.Y + number
+	local dest_y = cursor.Y + number
 	if dest_y > last_line_index then
 		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
 		return
 	end
-	cursor.Loc.Y = dest_y
+	cursor.Y = dest_y
 
-	line = cursor:Buf():Line(cursor.Loc.Y)
-	length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
+-- command: 0
 local function move_line_start()
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor.Loc.X = 0
+	cursor.X = 0
 
 	update_virtual_cursor()
 end
 
+-- command: $
 local function move_line_end()
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.max(length - 1, 0)
+	cursor.X = math.max(length - 1, 0)
 
 	update_virtual_cursor()
 end
@@ -132,34 +137,30 @@ local function move_next_line_start(number)
 	micro.CurPane():Relocate()
 end
 
+-- command: w
 local function move_next_word(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
 	for _ = 1, number do
-		local line = cursor:Buf():Line(cursor.Loc.Y)
+		local line = buf:Line(cursor.Y)
 		local length = utf8.RuneCount(line)
 
-		if cursor.Loc.X == length - 1 then
-			local last_line_index = cursor:Buf():LinesNum() - 1
-			if cursor.Loc.Y == last_line_index - 1 then
-				line = cursor:Buf():Line(last_line_index)
-				length = utf8.RuneCount(line)
-				if length < 1 then
-					bell.ring("no next words")
-					break
-				end
+		if cursor.X >= length - 1 then
+			local last_line_index = utils.last_line_index(buf)
+			if cursor.Y >= last_line_index then
+				bell.ring("no next words")
+				break
 			end
+			cursor.Y = cursor.Y + 1
 
-			cursor.Loc.X = 0
-			cursor.Loc.Y = cursor.Loc.Y + 1
-
-			line = cursor:Buf():Line(cursor.Loc.Y)
+			line = buf:Line(cursor.Y)
 			local spaces = line:match("^(%s*)")
-			cursor.Loc.X = cursor.Loc.X + utf8.RuneCount(spaces)
+			cursor.X = utf8.RuneCount(spaces)
 		else
 			local str = line
-			local cursor_x = cursor.Loc.X
+			local cursor_x = cursor.X
 			for _ = 1, cursor_x do
 				local _, size = utf8.DecodeRuneInString(str)
 				str = str:sub(1 + size)
@@ -180,33 +181,30 @@ local function move_next_word(number)
 				forward = utf8.RuneCount(prespaces)
 			end
 
-			cursor.Loc.X = cursor.Loc.X + forward
-			local last_line_index = cursor:Buf():LinesNum() - 1
-			while cursor.Loc.X > length - 1 do
-				if cursor.Loc.Y == last_line_index - 1 then
-					local last_line = cursor:Buf():Line(last_line_index)
+			cursor.X = cursor.X + forward
+			local last_line_index = buf:LinesNum() - 1
+			while cursor.X > length - 1 do
+				if cursor.Y >= last_line_index - 1 then
+					local last_line = buf:Line(last_line_index)
 					local last_line_length = utf8.RuneCount(last_line)
 					if last_line_length < 1 then
 						break
 					end
 				end
+				cursor.Y = cursor.Y + 1
 
-				cursor.Loc.X = 0
-				cursor.Loc.Y = cursor.Loc.Y + 1
-
-				line = cursor:Buf():Line(cursor.Loc.Y)
+				line = buf:Line(cursor.Y)
 				length = utf8.RuneCount(line)
-
 				local spaces = line:match("^(%s*)")
-				cursor.Loc.X = cursor.Loc.X + utf8.RuneCount(spaces)
+				cursor.X = cursor.X + utf8.RuneCount(spaces)
 
-				if cursor.Loc.Y == last_line_index - 1 then
-					local last_line = cursor:Buf():Line(last_line_index)
+				if cursor.Y == last_line_index - 1 then
+					local last_line = buf:Line(last_line_index)
 					local last_line_length = utf8.RuneCount(last_line)
 					if last_line_length < 1 then
 						break
 					end
-				elseif cursor.Loc.Y >= last_line_index then
+				elseif cursor.Y >= last_line_index then
 					break
 				end
 			end
@@ -219,16 +217,17 @@ end
 local function move_prev_word(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
 	for _ = 1, number do
-		if cursor.Loc.X < 1 and cursor.Loc.Y < 1 then
+		if cursor.X < 1 and cursor.Y < 1 then
 			bell.ring("no previous words")
 			break
 		else
-			local line = cursor:Buf():Line(cursor.Loc.Y)
+			local line = buf:Line(cursor.Y)
 
 			local str = line
-			local cursor_x = cursor.Loc.X
+			local cursor_x = cursor.X
 			local start_offset = 0
 			for _ = 1, cursor_x do
 				local _, size = utf8.DecodeRuneInString(str)
@@ -241,8 +240,8 @@ local function move_prev_word(number)
 			local prefix, prespaces, word, postspaces, postfix =
 				str:match("^([^%w_\128-\255%s]*)(%s*)([%w_\128-\255]*)(%s*)([^%w\128-\255%s]*)")
 			local backward = 0
-			if cursor.Loc.X < 1 then
-				backward = cursor.Loc.X + 1
+			if cursor.X < 1 then
+				backward = cursor.X + 1
 			elseif #prefix > 0 then
 				backward = utf8.RuneCount(prefix .. prespaces)
 			elseif #word > 0 and #postfix > 0 then
@@ -257,22 +256,21 @@ local function move_prev_word(number)
 				backward = utf8.RuneCount(prespaces) + 1
 			end
 
-			local carry = backward > 0 and cursor.Loc.X - backward < 0
-
-			cursor.Loc.X = math.max(cursor.Loc.X - backward, 0)
+			local carry = backward > 0 and cursor.X - backward < 0
+			cursor.X = math.max(cursor.X - backward, 0)
 			while carry do
-				if cursor.Loc.Y < 1 and cursor.Loc.X < 1 then
+				if cursor.Y < 1 and cursor.X < 1 then
 					break
 				end
 
-				cursor.Loc.Y = cursor.Loc.Y - 1
+				cursor.Y = cursor.Y - 1
 
-				line = cursor:Buf():Line(cursor.Loc.Y):reverse()
+				line = buf:Line(cursor.Y):reverse()
 				local length = utf8.RuneCount(line)
-				cursor.Loc.X = math.max(length - 1, 0)
+				cursor.X = math.max(length - 1, 0)
 
 				if length > 0 then
-					local spaces, word, symbols = line:match("^(%s*)([%w_\128-\255]*)([^%w_\128-\255%s]*)")
+					local spaces, word, symbols = line:match("^(%s*)([%w_\128-\255]*)([^%w_\128-\255%s]*)") -- luacheck: ignore
 					backward = 0
 					if #word > 0 then
 						backward = utf8.RuneCount(word .. spaces) - 1
@@ -282,9 +280,9 @@ local function move_prev_word(number)
 						backward = utf8.RuneCount(spaces) + 1
 					end
 
-					carry = backward > 0 and cursor.Loc.X - backward < 0
+					carry = backward > 0 and cursor.X - backward < 0
 
-					cursor.Loc.X = math.max(cursor.Loc.X - backward, 0)
+					cursor.X = math.max(cursor.X - backward, 0)
 				end
 			end
 		end
@@ -296,34 +294,25 @@ end
 local function goto_bottom()
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = last_line_index - 1
-	end
-	cursor.Loc.Y = last_line_index
-	cursor.Loc.X = 0
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	cursor.Y = utils.last_line_index(buf)
+	cursor.X = 0
 	update_virtual_cursor()
 end
 
 local function goto_line(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = last_line_index - 1
-	end
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
 	if number - 1 > last_line_index then
 		bell.ring("line number out of range: " .. number .. " > " .. last_line_index + 1)
 		return
 	end
-	cursor.Loc.Y = number - 1
-	cursor.Loc.X = 0
+	cursor.Y = number - 1
+	cursor.X = 0
 	update_virtual_cursor()
 end
 

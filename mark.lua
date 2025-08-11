@@ -22,7 +22,7 @@ local function set(letter)
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+	local loc = buffer.Loc(cursor.X, cursor.Y)
 
 	marks[letter] = loc
 end

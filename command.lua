@@ -2,7 +2,6 @@ local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
-local time = import("time")
 
 local config = import("micro/config")
 local plug_name = "vi"
