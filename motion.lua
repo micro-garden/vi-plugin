@@ -12,6 +12,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
+local utils = require("utils")
 
 local virtual_cursor_x = 0
 
@@ -108,12 +109,24 @@ local function move_line_end()
 	update_virtual_cursor()
 end
 
+-- command: \n
 local function move_next_line_start(number)
 	mode.show()
 
-	move_line_start()
-	move_down(number)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
 
+	local dest_y = cursor.Y + number
+	if dest_y > last_line_index then
+		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
+		return
+	end
+	cursor.Y = dest_y
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 	update_virtual_cursor()
 
 	micro.CurPane():Relocate()

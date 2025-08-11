@@ -6,6 +6,16 @@ local time = import("time")
 
 TICK_DURATION = time.ParseDuration("0ms")
 
+local function toboolean(str)
+	if str == "true" then
+		return true
+	elseif str == "false" then
+		return false
+	else
+		return nil
+	end
+end
+
 local function xor(a, b)
 	return (a or b) and not (a and b)
 end
@@ -66,6 +76,7 @@ local function utf8_sub(line, from, to)
 	return line:sub(1 + start_offset, end_offset)
 end
 
+M.toboolean = toboolean
 M.xor = xor
 M.after = after
 M.next_tick = next_tick

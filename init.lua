@@ -1,4 +1,4 @@
-VERSION = "0.0.7"
+VERSION = "0.0.8"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -17,6 +17,7 @@ local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
 local parse = require("parse")
+local utils = require("utils")
 
 function Vi(bp)
 	-- reset states
@@ -33,38 +34,36 @@ function Vi(bp)
 	mode.command()
 
 	--
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local orig_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local orig_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	-- ensure cursor y in text
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	if cursor.Loc.Y == last_line_index then
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local length = utf8.RuneCount(line)
-		if length < 1 then
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			micro.CurPane():Relocate()
-		end
-	end
+	local last_line_index = utils.last_line_index(buf)
+	cursor.Y = math.min(cursor.Y, last_line_index)
 
 	-- ensure cursor x in text
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(math.max(cursor.Loc.X - 1, 0), math.max(length - 1, 0))
-	micro.CurPane():Relocate()
+	cursor.X = math.min(math.max(cursor.X - 1, 0), math.max(length - 1, 0))
+	pane:Relocate()
 
 	--
 	motion.update_virtual_cursor()
 	mode.show()
 
+	--
 	insert.resume(orig_loc)
 	return true
 end
 
 function ViEnter(bp)
 	if mode.is_command() then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		cursor:Buf():Insert(cursor.Loc:Move(0, cursor:Buf()), "\n")
+		local buf = micro.CurPane().Buf
+		local cursor = buf:GetActiveCursor()
+		local loc = buffer.Loc(cursor.X, cursor.Y)
+		buf:Insert(loc, "\n")
 		return true
 	elseif mode.is_insert() then
 		return false
@@ -78,17 +77,18 @@ function ViEnter(bp)
 end
 
 function ViDefault(bp, args)
+	local USAGE = "usage: videfault [true|false]"
 	local default
 	if #args < 1 then
 		default = not config.GetGlobalOption("vi.default")
 	elseif #args < 2 then
-		if args[1] ~= "true" and args[1] ~= "false" then
-			micro.InfoBuf():Message("usage: videfault [true|false]")
+		if utils.toboolean(args[1]) == nil then
+			micro.InfoBar():Message(USAGE)
 			return
 		end
 		default = args[1]
 	else
-		micro.InfoBuf():Message("usage: videfault [true|false]")
+		micro.InfoBar():Message(USAGE)
 		return
 	end
 	config.SetGlobalOption("vi.default", tostring(default))

@@ -1,6 +1,7 @@
 M = {}
 
 local micro = import("micro")
+local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
 local plug_name = "vi"
@@ -26,26 +27,34 @@ local function reverse_find()
 end
 
 local function find_next_internal(number)
-	micro.CurPane():FindNext()
-	for _ = 1, number do
-		micro.CurPane():FindNext()
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if cursor.X < length then
+		cursor.X = cursor.X + 1
 	end
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	for _ = 1, number do
+		pane:FindNext()
+	end
+
 	if cursor:HasSelection() then
 		local start = cursor.CurSelection[1]
-		cursor.Loc.X = start.X
-		cursor.Loc.Y = start.Y
+		cursor.X = start.X
+		cursor.Y = start.Y
 		cursor:ResetSelection()
 	end
 end
 
 local function find_prev_internal(number)
+	local pane = micro.CurPane()
 	for _ = 1, number do
-		micro.CurPane():FindPrevious()
+		pane:FindPrevious()
 	end
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local cursor = pane.Buf:GetActiveCursor()
 	if cursor:HasSelection() then
 		local start = cursor.CurSelection[1]
 		cursor.Loc.X = start.X
