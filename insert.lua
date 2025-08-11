@@ -85,6 +85,10 @@ local function extend(loc, number, replay)
 		y = y - 1
 	end
 
+	if replay then
+		mode.insert()
+	end
+
 	local buf = micro.CurPane().Buf
 	if insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE then
 		buf:Insert(loc, table.concat(lines, "\n"))
@@ -93,6 +97,10 @@ local function extend(loc, number, replay)
 	else
 		bell.program_error("insert.extend: invalid insert mode = " .. insert_mode)
 		return
+	end
+
+	if replay then
+		mode.command()
 	end
 
 	cursor.Loc.X = x
