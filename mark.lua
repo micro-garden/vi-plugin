@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -29,7 +29,7 @@ end
 local function goto_line(letter)
 	mode.show()
 
-	loc = marks[letter]
+	local loc = marks[letter]
 	if not loc then
 		bell.ring("no mark set for " .. letter)
 		return
@@ -54,7 +54,7 @@ end
 local function goto_char(letter)
 	mode.show()
 
-	loc = marks[letter]
+	local loc = marks[letter]
 	if not loc then
 		bell.ring("no mark set for " .. letter)
 		return
@@ -70,8 +70,8 @@ local function goto_char(letter)
 
 	cursor.Loc.Y = math.min(loc.Y, last_line_index)
 
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
+	line = cursor:Buf():Line(cursor.Loc.Y)
+	length = utf8.RuneCount(line)
 
 	cursor.Loc.X = math.min(loc.X, length - 1)
 

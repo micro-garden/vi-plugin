@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -49,7 +49,7 @@ local function delete_lines(number)
 
 	clear_kill_buffer()
 	cursor.X = 0
-	for i = 1, number do
+	for _ = 1, number do
 		local line = buf:Line(cursor.Y)
 		insert_killed_lines(line)
 		pane:DeleteLine()
@@ -352,8 +352,8 @@ local function delete_to_line_end()
 	local end_loc = buffer.Loc(length, cursor.Y)
 	buf:Remove(start_loc, end_loc)
 
-	local line = buf:Line(cursor.Y)
-	local length = utf8.RuneCount(line)
+	line = buf:Line(cursor.Y)
+	length = utf8.RuneCount(line)
 	cursor.X = math.min(cursor.X, math.max(length - 1, 0))
 	motion.update_virtual_cursor()
 end
@@ -403,7 +403,7 @@ local function join_lines(number)
 		cursor.X = length
 		local next_line = buf:Line(cursor.Y + 1)
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		local spaces, body = next_line:match("^(%s*)(.*)$")
+		local _, body = next_line:match("^(%s*)(.*)$")
 		if #body > 0 then
 			buf:Insert(loc, " " .. body)
 		end

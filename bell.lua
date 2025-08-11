@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local time = import("time")
@@ -24,7 +24,7 @@ local function program_error(message)
 	micro.TermMessage(PROGRAM_ERROR_HEAD .. message)
 end
 
-local function message(message)
+local function show_message(message)
 	micro.InfoBar():Message(message)
 end
 
@@ -40,7 +40,8 @@ local function ring(reason)
 	end)
 end
 
+M.program_error = program_error
 M.error = general_error
-M.message = message
+M.message = show_message
 M.ring = ring
 return M

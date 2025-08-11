@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local utf8 = import("unicode/utf8")
@@ -84,8 +84,8 @@ local function move_down(number)
 	end
 	cursor.Loc.Y = dest_y
 
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
+	line = cursor:Buf():Line(cursor.Loc.Y)
+	length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
@@ -143,8 +143,8 @@ local function move_next_word(number)
 		if cursor.Loc.X == length - 1 then
 			local last_line_index = cursor:Buf():LinesNum() - 1
 			if cursor.Loc.Y == last_line_index - 1 then
-				local line = cursor:Buf():Line(last_line_index)
-				local length = utf8.RuneCount(line)
+				line = cursor:Buf():Line(last_line_index)
+				length = utf8.RuneCount(line)
 				if length < 1 then
 					bell.ring("no next words")
 					break
@@ -161,7 +161,7 @@ local function move_next_word(number)
 			local str = line
 			local cursor_x = cursor.Loc.X
 			for _ = 1, cursor_x do
-				local r, size = utf8.DecodeRuneInString(str)
+				local _, size = utf8.DecodeRuneInString(str)
 				str = str:sub(1 + size)
 			end
 
@@ -184,9 +184,9 @@ local function move_next_word(number)
 			local last_line_index = cursor:Buf():LinesNum() - 1
 			while cursor.Loc.X > length - 1 do
 				if cursor.Loc.Y == last_line_index - 1 then
-					local line = cursor:Buf():Line(last_line_index)
-					local length = utf8.RuneCount(line)
-					if length < 1 then
+					local last_line = cursor:Buf():Line(last_line_index)
+					local last_line_length = utf8.RuneCount(last_line)
+					if last_line_length < 1 then
 						break
 					end
 				end
@@ -201,9 +201,9 @@ local function move_next_word(number)
 				cursor.Loc.X = cursor.Loc.X + utf8.RuneCount(spaces)
 
 				if cursor.Loc.Y == last_line_index - 1 then
-					local line = cursor:Buf():Line(last_line_index)
-					local length = utf8.RuneCount(line)
-					if length < 1 then
+					local last_line = cursor:Buf():Line(last_line_index)
+					local last_line_length = utf8.RuneCount(last_line)
+					if last_line_length < 1 then
 						break
 					end
 				elseif cursor.Loc.Y >= last_line_index then
@@ -226,13 +226,12 @@ local function move_prev_word(number)
 			break
 		else
 			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local length = utf8.RuneCount(line)
 
 			local str = line
 			local cursor_x = cursor.Loc.X
 			local start_offset = 0
 			for _ = 1, cursor_x do
-				local r, size = utf8.DecodeRuneInString(str)
+				local _, size = utf8.DecodeRuneInString(str)
 				str = str:sub(1 + size)
 				start_offset = start_offset + size
 			end
@@ -269,7 +268,7 @@ local function move_prev_word(number)
 				cursor.Loc.Y = cursor.Loc.Y - 1
 
 				line = cursor:Buf():Line(cursor.Loc.Y):reverse()
-				length = utf8.RuneCount(line)
+				local length = utf8.RuneCount(line)
 				cursor.Loc.X = math.max(length - 1, 0)
 
 				if length > 0 then

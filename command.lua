@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -26,12 +26,12 @@ local command_cache = nil
 
 local undo_mode = true -- true: undo, false: redo
 
-local function cache_command(no_number, number, edit, no_subnum, subnum, move, letter)
+local function cache_command(no_number, number, edit_part, no_subnum, subnum, move, letter)
 	command_cache = {}
 
 	command_cache.no_number = no_number
 	command_cache.number = number
-	command_cache.edit = edit
+	command_cache.edit = edit_part
 	command_cache.no_subnum = no_subnum
 	command_cache.subnum = subnum
 	command_cache.move = move
@@ -245,7 +245,7 @@ local function get_region(number, no_subnum, subnum, move, letter)
 	return start_loc, end_loc
 end
 
-local function run_compound(number, edit_part, subnum, move, letter, replay)
+local function run_compound(number, edit_part, no_subnum, subnum, move, letter, replay)
 	local matched = false
 
 	if edit_part == "d" and move == "$" then
@@ -292,7 +292,7 @@ local function run_compound(number, edit_part, subnum, move, letter, replay)
 	end
 end
 
-local function run_misc(number, edit_part, letter)
+local function run_misc(number, edit_part, letter, replay)
 	if edit_part == "m" and letter then
 		mark.set(letter)
 		return true
@@ -312,13 +312,13 @@ local function run_misc(number, edit_part, letter)
 end
 
 local function run(no_number, number, edit_part, no_subnum, subnum, move, letter, replay)
-	if run_compound(number, edit_part, subnum, move, letter, replay) then
+	if run_compound(number, edit_part, no_subnum, subnum, move, letter, replay) then
 		return true
 	elseif run_edit(number, edit_part, replay) then
 		return true
 	elseif run_motion(no_number, number, move, letter) then
 		return true
-	elseif run_misc(number, edit_part, letter) then
+	elseif run_misc(number, edit_part, letter, replay) then
 		return true
 	else
 		return false

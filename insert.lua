@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -17,7 +17,7 @@ local mode = require("mode")
 local motion = require("motion")
 local utils = require("utils")
 
-local saved_func = nil
+local saved = false
 local saved_number = 1
 local saved_replay = false
 
@@ -41,8 +41,8 @@ local function size_with_linefeeds()
 	return size
 end
 
-local function save_state(func, number, replay)
-	saved_func = func
+local function save_state(number, replay)
+	saved = true
 	saved_number = number
 	saved_replay = replay
 
@@ -55,7 +55,7 @@ local function save_state(func, number, replay)
 	saved_size = size_with_linefeeds()
 end
 
-local function extend(loc, func, number, replay)
+local function extend(loc, number, replay)
 	local n
 	if replay then
 		n = number
@@ -102,7 +102,7 @@ end
 
 local function resume(orig_loc)
 	if saved_loc then
-		size = size_with_linefeeds()
+		local size = size_with_linefeeds()
 		if size > saved_size then
 			inserted_lines = {}
 			local buf = micro.CurPane().Buf
@@ -127,7 +127,6 @@ local function resume(orig_loc)
 					else
 						table.insert(inserted_lines, line:sub(1, x))
 					end
-					run = run + (size - run)
 					break
 				end
 				local subline = line:sub(x + 1)
@@ -136,16 +135,15 @@ local function resume(orig_loc)
 				x = 0
 				y = y + 1
 			end
-			local end_loc = buffer.Loc(x, y)
 		end
 		saved_loc = nil
 		saved_size = nil
 	end
 
-	if saved_func then
-		extend(orig_loc, saved_func, saved_number, saved_replay)
+	if saved then
+		extend(orig_loc, saved_number, saved_replay)
 
-		save_func = nil
+		saved = false
 		saved_number = 1
 		saved_replay = false
 	end
@@ -168,12 +166,12 @@ local function insert_here(number, replay)
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		extend(loc, insert_here, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(insert_here, number, replay)
+		save_state(number, replay)
 	end
 end
 
@@ -187,12 +185,12 @@ local function insert_line_start(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		extend(loc, insert_line_start, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(insert_line_start, number, replay)
+		save_state(number, replay)
 	end
 end
 
@@ -206,12 +204,12 @@ local function insert_after_here(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		extend(loc, insert_after_here, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(insert_after_here, number, replay)
+		save_state(number, replay)
 	end
 end
 
@@ -227,12 +225,12 @@ local function insert_after_line_end(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		extend(loc, insert_after_line_end, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(insert_after_line_end, number, replay)
+		save_state(number, replay)
 	end
 end
 
@@ -242,7 +240,7 @@ local function open_below(number, replay)
 	if replay then
 		local linesnum = cursor:Buf():LinesNum()
 		local loc = buffer.Loc(0, math.min(cursor.Loc.Y + 1, linesnum - 1))
-		extend(loc, open_below, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -256,7 +254,7 @@ local function open_below(number, replay)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
 
-			save_state(open_below, number, replay)
+			save_state(number, replay)
 		end)
 	end
 end
@@ -266,7 +264,7 @@ local function open_above(number, replay)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	if replay then
 		local loc = buffer.Loc(0, cursor.Loc.Y)
-		extend(loc, open_above, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -279,7 +277,7 @@ local function open_above(number, replay)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
 
-			save_state(open_above, number, replay)
+			save_state(number, replay)
 		end)
 	end
 end
@@ -289,7 +287,7 @@ local function open_here(number, replay)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	if replay then
 		local loc = buffer.Loc(0, cursor.Loc.Y)
-		extend(loc, open_here, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -302,7 +300,7 @@ local function open_here(number, replay)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
 
-			save_state(open_here, number, replay)
+			save_state(number, replay)
 		end)
 	end
 end
@@ -312,17 +310,16 @@ local function insert_here_replace(number, replay)
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		extend(loc, insert_here_replace, number, replay)
+		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(insert_here_replace, number, replay)
+		save_state(number, replay)
 	end
 end
 
 M.resume = resume
-M.save_state = save_state
 M.extend = extend
 M.chars_mode = chars_mode
 M.lines_mode = lines_mode

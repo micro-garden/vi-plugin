@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 
@@ -64,7 +64,7 @@ function onBeforeTextEvent(buf, ev)
 	combuf.insert_chars(input)
 	local comb = combuf.get()
 
-	local number_str, edit, subnum_str, move, dummy_letter =
+	local number_str, edit, subnum_str, move, _ =
 		comb:match("^(%d*)([iIaAoOdyYxXDsScCpPJm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
 
 	local mark_command, letter = comb:match("([m'`])([^'`])$")

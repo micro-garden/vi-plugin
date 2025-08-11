@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -35,14 +35,14 @@ local function replace_chars(number, replay)
 	local start_offset = 0
 	local cursor_x = cursor.Loc.X
 	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
+		local _, size = utf8.DecodeRuneInString(str)
 		str = str:sub(1 + size)
 		start_offset = start_offset + size
 	end
 
 	local end_offset = start_offset
 	for _ = 1, n do
-		local r, size = utf8.DecodeRuneInString(str)
+		local _, size = utf8.DecodeRuneInString(str)
 		str = str:sub(1 + size)
 		end_offset = end_offset + size
 	end
@@ -55,18 +55,18 @@ local function replace_chars(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-		insert.extend(loc, replace_chars, 1, replay)
+		insert.extend(loc, 1, replay)
 	else
 		mode.show()
 
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local length = utf8.RuneCount(line)
+		line = cursor:Buf():Line(cursor.Loc.Y)
+		length = utf8.RuneCount(line)
 		cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
 		utils.next_tick(function()
-			local cursor = micro.CurPane().Buf:GetActiveCursor()
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local length = utf8.RuneCount(line)
+			cursor = micro.CurPane().Buf:GetActiveCursor()
+			line = cursor:Buf():Line(cursor.Loc.Y)
+			length = utf8.RuneCount(line)
 			if insert_after then
 				cursor.Loc.X = math.min(saved_x, math.max(length, 0))
 			else
@@ -85,7 +85,7 @@ local function replace_lines(number, replay)
 end
 
 local function replace_to_line_end(replay)
-	edit.delete_to_line_end(number)
+	edit.delete_to_line_end()
 	insert.insert_after_here(1, replay)
 end
 

@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 

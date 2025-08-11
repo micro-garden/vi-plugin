@@ -1,10 +1,10 @@
-M = {}
+local M = {}
 
 local micro = import("micro")
 local utf8 = import("unicode/utf8")
 local time = import("time")
 
-TICK_DURATION = time.ParseDuration("0ms")
+local TICK_DURATION = time.ParseDuration("0ms")
 
 local function toboolean(str)
 	if str == "true" then
@@ -61,14 +61,14 @@ local function utf8_sub(line, from, to)
 	local str = line
 	local start_offset = 0
 	for _ = 1, from - 1 do
-		local r, size = utf8.DecodeRuneInString(str)
+		local _, size = utf8.DecodeRuneInString(str)
 		str = str:sub(1 + size)
 		start_offset = start_offset + size
 	end
 
 	local end_offset = start_offset
 	for _ = 1, to - from + 1 do
-		local r, size = utf8.DecodeRuneInString(str)
+		local _, size = utf8.DecodeRuneInString(str)
 		str = str:sub(1 + size)
 		end_offset = end_offset + size
 	end

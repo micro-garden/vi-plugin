@@ -16,10 +16,9 @@ local combuf = require("combuf")
 local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
-local parse = require("parse")
 local utils = require("utils")
 
-function Vi(bp)
+function Vi(_)
 	-- reset states
 	combuf.clear()
 
@@ -58,7 +57,7 @@ function Vi(bp)
 	return true
 end
 
-function ViEnter(bp)
+function ViEnter(_)
 	if mode.is_command() then
 		local buf = micro.CurPane().Buf
 		local cursor = buf:GetActiveCursor()
@@ -76,7 +75,7 @@ function ViEnter(bp)
 	end
 end
 
-function ViDefault(bp, args)
+function ViDefault(_, args)
 	local USAGE = "usage: videfault [true|false]"
 	local default
 	if #args < 1 then
