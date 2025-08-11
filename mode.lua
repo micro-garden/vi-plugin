@@ -25,8 +25,8 @@ local function command()
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		if cursor:HasSelection() then
 			local start = cursor.CurSelection[1]
-			cursor.Loc.X = start.X
-			cursor.Loc.Y = start.Y
+			cursor.X = start.X
+			cursor.Y = start.Y
 			cursor:ResetSelection()
 		end
 	end

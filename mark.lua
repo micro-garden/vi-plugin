@@ -14,6 +14,7 @@ end
 local bell = require("bell")
 local mode = require("mode")
 local motion = require("motion")
+local utils = require("utils")
 
 local marks = {}
 
@@ -36,17 +37,10 @@ local function goto_line(letter)
 	end
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index()
+	cursor.Y = math.min(loc.Y, last_line_index)
 
-	cursor.Loc.X = 0
-
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = math.max(last_line_index - 1, 0)
-	end
-
-	cursor.Loc.Y = math.min(loc.Y, last_line_index)
+	cursor.X = 0
 
 	motion.update_virtual_cursor()
 end
@@ -60,20 +54,14 @@ local function goto_char(letter)
 		return
 	end
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index()
+	cursor.Y = math.min(loc.Y, last_line_index)
+
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = math.max(last_line_index - 1, 0)
-	end
-
-	cursor.Loc.Y = math.min(loc.Y, last_line_index)
-
-	line = cursor:Buf():Line(cursor.Loc.Y)
-	length = utf8.RuneCount(line)
-
-	cursor.Loc.X = math.min(loc.X, length - 1)
+	cursor.X = math.min(loc.X, length - 1)
 
 	motion.update_virtual_cursor()
 end
