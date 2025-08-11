@@ -64,7 +64,7 @@ local function replace_chars(number, replay)
 		local length = utf8.RuneCount(line)
 		cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
-		utils.after(editor.TICK_DELAY, function()
+		utils.after(editor.TICK_DURATION, function()
 			local cursor = micro.CurPane().Buf:GetActiveCursor()
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			local length = utf8.RuneCount(line)

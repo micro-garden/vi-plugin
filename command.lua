@@ -53,7 +53,7 @@ local function repeat_command(number)
 	mode.show()
 
 	if not command_cache then
-		micro.InfoBar():Error("no command cached yet")
+		editor.vi_error("no command cached yet")
 		return
 	end
 

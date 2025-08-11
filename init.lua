@@ -22,7 +22,8 @@ function Vi(bp)
 	editor.clear_command_buffer()
 
 	-- ensure command mode
-	if mode.is_command() then -- vi error
+	if mode.is_command() then
+		editor.bell("already vi command mode")
 		return true
 	elseif mode.is_find() then
 		mode.command()
@@ -69,8 +70,8 @@ function ViEnter(bp)
 	elseif mode.is_find() then
 		mode.command()
 		return true
-	else -- program error
-		micro.InfoBar():Error("ViEnter: invalid mode = " .. mode.code())
+	else
+		editor.program_error("ViEnter: invalid mode = " .. mode.code())
 		return false
 	end
 end

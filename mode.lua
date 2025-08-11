@@ -63,8 +63,8 @@ local function show()
 		mode_line = "vi command mode"
 	elseif mode == MODE_INSERT then
 		mode_line = "vi insert mode"
-	else -- program error
-		micro.InfoBar():Error("mode.show: invalid mode = " .. mode)
+	else
+		editor.program_error("mode.show: invalid mode = " .. mode)
 		return
 	end
 	micro.InfoBar():Message(mode_line .. " [" .. editor.command_buffer() .. "]")

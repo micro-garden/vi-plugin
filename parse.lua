@@ -36,8 +36,8 @@ function onBeforeTextEvent(buf, ev)
 	end
 
 	-- assert
-	if ev.EventType ~= TEXT_EVENT_INSERT then -- program error
-		micro.InfoBar():Error("Invalid text event type = ev.EventType")
+	if ev.EventType ~= TEXT_EVENT_INSERT then
+		editor.program_error("Invalid text event type = ev.EventType")
 		return true
 	end
 
@@ -73,7 +73,7 @@ function onBeforeTextEvent(buf, ev)
 	end
 
 	if not number_str then
-		micro.InfoBar():Error("not (yet) a vi command [" .. command_buffer .. "]")
+		editor.error("not (yet) a vi command [" .. command_buffer .. "]")
 		editor.clear_command_buffer()
 		return true
 	end

@@ -90,8 +90,8 @@ local function extend(loc, func, number, replay)
 		buf:Insert(loc, table.concat(lines, "\n"))
 	elseif insert_mode == LINES_MODE then
 		buf:Insert(loc, table.concat(lines, "\n") .. "\n")
-	else -- program error
-		micro.InfoBar():Error("insert.extend: invalid insert mode = " .. insert_mode)
+	else
+		editor.program_error("insert.extend: invalid insert mode = " .. insert_mode)
 		return
 	end
 
@@ -251,7 +251,7 @@ local function open_below(number, replay)
 		cursor.Loc.X = utf8.RuneCount(line)
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DELAY, function()
+		utils.after(editor.TICK_DURATION, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
@@ -274,7 +274,7 @@ local function open_above(number, replay)
 		cursor.Loc.X = 0
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DELAY, function()
+		utils.after(editor.TICK_DURATION, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
@@ -297,7 +297,7 @@ local function open_here(number, replay)
 		cursor.Loc.X = 0
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DELAY, function()
+		utils.after(editor.TICK_DURATION, function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()

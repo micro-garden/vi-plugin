@@ -86,7 +86,7 @@ local function copy_lines(number)
 		last_line_index = math.max(last_line_index - 1, 0)
 	end
 	if cursor.Loc.Y + number - 1 > last_line_index then
-		micro.InfoBar():Error("line number out of range: " .. cursor.Loc.Y + number .. " > " .. last_line_index + 1)
+		editor.bell("line number out of range: " .. cursor.Loc.Y + number + 1 .. " > " .. last_line_index + 1)
 		return
 	end
 
@@ -106,7 +106,7 @@ local function delete_chars(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		micro.InfoBar():Error("no character in the line")
+		editor.bell("no character in the line")
 		return
 	end
 
@@ -142,7 +142,7 @@ local function delete_chars(number)
 	local length = utf8.RuneCount(line)
 	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
-	utils.after(editor.TICK_DELAY, function()
+	utils.after(editor.TICK_DURATION, function()
 		line = cursor:Buf():Line(cursor.Loc.Y)
 		length = utf8.RuneCount(line)
 		cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
@@ -159,7 +159,7 @@ local function delete_chars_backward(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		micro.InfoBar():Error("no character in the line")
+		editor.bell("no character in the line")
 		return
 	end
 
@@ -195,7 +195,7 @@ local function delete_chars_backward(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 
-	utils.after(editor.TICK_DELAY, function()
+	utils.after(editor.TICK_DURATION, function()
 		cursor.Loc.X = math.max(saved_x - n, 0)
 		motion.update_virtual_cursor()
 
@@ -207,7 +207,7 @@ local function paste_below(number)
 	mode.show()
 
 	if deleted_mode == DELETED_NONE then
-		micro.InfoBar():Error("no copied lines/characters yet")
+		editor.vi_error("no copied lines/characters yet")
 		return
 	end
 
@@ -216,8 +216,8 @@ local function paste_below(number)
 		text = "\n" .. table.concat(deleted_lines, "\n")
 	elseif deleted_mode == DELETED_CHARS then
 		text = table.concat(deleted_chars)
-	else -- program error
-		micro.InfoBar:Error("paste_below: invalid deleted mode = " .. deleted_mode)
+	else
+		editor.program_error("paste_below: invalid deleted mode = " .. deleted_mode)
 		return
 	end
 
@@ -244,7 +244,7 @@ local function paste_below(number)
 		end
 	end
 
-	utils.after(editor.TICK_DELAY, function()
+	utils.after(editor.TICK_DURATION, function()
 		if deleted_mode == DELETED_LINES then
 			cursor.Loc.Y = saved_y + 1
 
@@ -260,7 +260,7 @@ local function paste_below(number)
 			end
 			motion.update_virtual_cursor()
 		else
-			micro.InfoBar:Error("paste_below After: invalid deleted mode = " .. deleted_mode)
+			editor.program_error("paste_below After: invalid deleted mode = " .. deleted_mode)
 		end
 
 		mode.command()
@@ -271,7 +271,7 @@ local function paste_above(number)
 	mode.show()
 
 	if deleted_mode == DELETED_NONE then
-		micro.InfoBar():Error("no copied lines/characters yet")
+		editor.vi_error("no copied lines/characters yet")
 		return
 	end
 
@@ -280,8 +280,8 @@ local function paste_above(number)
 		text = table.concat(deleted_lines, "\n") .. "\n"
 	elseif deleted_mode == DELETED_CHARS then
 		text = table.concat(deleted_chars)
-	else -- program errorlines
-		micro.InfoBar:Error("paste_above: invalid deleted mode = " .. deleted_mode)
+	else
+		editor.program_error("paste_above: invalid deleted mode = " .. deleted_mode)
 		return
 	end
 
@@ -301,7 +301,7 @@ local function paste_above(number)
 		end
 	end
 
-	utils.after(editor.TICK_DELAY, function()
+	utils.after(editor.TICK_DURATION, function()
 		if deleted_mode == DELETED_LINES then
 			cursor.Loc.Y = saved_y
 
@@ -312,8 +312,8 @@ local function paste_above(number)
 		elseif deleted_mode == DELETED_CHARS then
 			cursor.Loc.X = saved_x
 			motion.update_virtual_cursor()
-		else -- program error
-			micro.InfoBar:Error("paste_above After: invalid deleted mode = " .. deleted_mode)
+		else
+			editor.program_error("paste_above After: invalid deleted mode = " .. deleted_mode)
 		end
 
 		mode.command()
@@ -403,6 +403,10 @@ local function delete_to_line_end()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
+	if length < 1 then
+		editor.bell("no characters in this line")
+		return
+	end
 
 	deleted_chars = {}
 
@@ -465,7 +469,7 @@ local function join_lines(number)
 		end
 	end
 	if at_last then
-		micro.InfoBar():Error("no lines to join below")
+		editor.vi_error("no lines to join below")
 		return
 	end
 
@@ -501,7 +505,7 @@ local function join_lines(number)
 		cursor.Loc.Y = cursor.Loc.Y + 1
 		micro.CurPane():DeleteLine()
 
-		utils.after(editor.TICK_DELAY, function()
+		utils.after(editor.TICK_DURATION, function()
 			cursor.Loc.Y = loc.Y
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			local current_length = utf8.RuneCount(line)
