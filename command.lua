@@ -2,6 +2,7 @@ M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
+local utf8 = import("unicode/utf8")
 local time = import("time")
 
 local config = import("micro/config")
@@ -232,7 +233,7 @@ local function run_motion(no_number, number, move, letter)
 	end
 end
 
-local function get_region(number, no_subnum, subnum, move, letter)
+local function get_lines_region(number, no_subnum, subnum, move, letter)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
@@ -241,6 +242,27 @@ local function get_region(number, no_subnum, subnum, move, letter)
 	end
 
 	local end_loc = buffer.Loc(cursor.X, cursor.Y)
+
+	return start_loc, end_loc
+end
+
+local function get_chars_region(number, no_subnum, subnum, move, letter)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+
+	for _ = 1, number do
+		run_motion(no_subnum, subnum, move, letter)
+	end
+
+	local end_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+
+	if end_loc.Y > start_loc.Y and end_loc.X == 0 then
+		local line = cursor:Buf():Line(end_loc.Y - 1)
+		local length = utf8.RuneCount(line)
+		end_loc = buffer.Loc(length, end_loc.Y - 1)
+		cursor.Loc.X = end_loc.X
+		cursor.Loc.Y = end_loc.Y
+	end
 
 	return start_loc, end_loc
 end
@@ -258,27 +280,27 @@ local function run_compound(number, edit_part, subnum, move, letter, replay)
 		replace.replace_to_line_end(replay)
 		matched = true
 	elseif edit_part == "d" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_lines_region(number, no_subnum, subnum, move, letter)
 		edit.delete_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
 	elseif edit_part == "y" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_lines_region(number, no_subnum, subnum, move, letter)
 		edit.copy_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
 	elseif edit_part == "c" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_lines_region(number, no_subnum, subnum, move, letter)
 		replace.replace_lines_region(start_loc.Y, end_loc.Y, replay)
 		matched = true
 	elseif edit_part == "d" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
 		edit.delete_words_region(start_loc, end_loc)
 		matched = true
 	elseif edit_part == "y" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
 		edit.copy_words_region(start_loc, end_loc)
 		matched = true
 	elseif edit_part == "c" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
 		replace.replace_words_region(start_loc, end_loc)
 		matched = true
 	end
