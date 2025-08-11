@@ -70,7 +70,7 @@ function ViEnter(_)
 		mode.command()
 		return true
 	else
-		bell.program_error("ViEnter: invalid mode = " .. mode.code())
+		bell.fatal("ViEnter: invalid mode = " .. mode.code())
 		return false
 	end
 end
@@ -82,16 +82,16 @@ function ViDefault(_, args)
 		default = not config.GetGlobalOption("vi.default")
 	elseif #args < 2 then
 		if utils.toboolean(args[1]) == nil then
-			micro.InfoBar():Message(USAGE)
+			bell.info(USAGE)
 			return
 		end
 		default = args[1]
 	else
-		micro.InfoBar():Message(USAGE)
+		bell.info(USAGE)
 		return
 	end
 	config.SetGlobalOption("vi.default", tostring(default))
-	micro.InfoBar():Message("set vi.default " .. tostring(default))
+	bell.info("set vi.default " .. tostring(default))
 end
 
 function preinit()

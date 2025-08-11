@@ -156,7 +156,7 @@ local function paste_below(number)
 	mode.show()
 
 	if not kill_buffer then
-		bell.message("kill buffer is empty yet")
+		bell.vi_info("kill buffer is empty yet")
 		return
 	end
 
@@ -217,7 +217,7 @@ local function paste_above(number)
 	mode.show()
 
 	if not kill_buffer then
-		bell.message("kill buffer is empty yet")
+		bell.vi_info("kill buffer is empty yet")
 		return
 	end
 
@@ -384,7 +384,7 @@ local function join_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y >= last_line_index then
-		bell.message("no lines to join below")
+		bell.vi_info("no lines to join below")
 		return
 	end
 

@@ -48,9 +48,9 @@ local function save_state(number, replay)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	if insert_mode == REPLACE_MODE then
-		saved_loc = buffer.Loc(cursor.Loc.X + 1, cursor.Loc.Y)
+		saved_loc = buffer.Loc(cursor.X + 1, cursor.Y)
 	else
-		saved_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		saved_loc = buffer.Loc(cursor.X, cursor.Y)
 	end
 	saved_size = size_with_linefeeds()
 end
@@ -64,9 +64,10 @@ local function extend(loc, number, replay)
 	end
 	local lines = {}
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local x = cursor.Loc.X
-	local y = cursor.Loc.Y
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local x = cursor.X
+	local y = cursor.Y
 
 	for _ = 1, n do
 		for i = 1, #inserted_lines do
@@ -89,13 +90,12 @@ local function extend(loc, number, replay)
 		mode.insert()
 	end
 
-	local buf = micro.CurPane().Buf
 	if insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE then
 		buf:Insert(loc, table.concat(lines, "\n"))
 	elseif insert_mode == LINES_MODE then
 		buf:Insert(loc, table.concat(lines, "\n") .. "\n")
 	else
-		bell.program_error("insert.extend: invalid insert mode = " .. insert_mode)
+		bell.fatal("insert.extend: invalid insert mode = " .. insert_mode)
 		return
 	end
 
@@ -103,8 +103,8 @@ local function extend(loc, number, replay)
 		mode.command()
 	end
 
-	cursor.Loc.X = x
-	cursor.Loc.Y = y
+	cursor.X = x
+	cursor.Y = y
 	motion.update_virtual_cursor()
 end
 
@@ -171,9 +171,10 @@ end
 
 local function insert_here(number, replay)
 	chars_mode()
+
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
@@ -186,13 +187,14 @@ end
 local function insert_line_start(number, replay)
 	chars_mode()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local spaces = line:match("^(%s*).*$")
-	cursor.Loc.X = #spaces
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 
 	if replay then
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
@@ -205,13 +207,14 @@ end
 local function insert_after_here(number, replay)
 	chars_mode()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length, 0))
+	cursor.X = math.min(cursor.X + 1, math.max(length, 0))
 
 	if replay then
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
@@ -226,13 +229,14 @@ local function insert_after_line_end(number, replay)
 
 	motion.move_line_end()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X + 1, math.max(length, 0))
+	cursor.X = math.min(cursor.X + 1, math.max(length, 0))
 
 	if replay then
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
@@ -244,22 +248,24 @@ end
 
 local function open_below(number, replay)
 	lines_mode()
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
 	if replay then
-		local linesnum = cursor:Buf():LinesNum()
-		local loc = buffer.Loc(0, math.min(cursor.Loc.Y + 1, linesnum - 1))
+		local linesnum = buf:LinesNum()
+		local loc = buffer.Loc(0, math.min(cursor.Y + 1, linesnum - 1))
 		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		cursor.Loc.X = utf8.RuneCount(line)
-		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
+		local line = buf:Line(cursor.Y)
+		cursor.X = utf8.RuneCount(line)
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n")
 
 		utils.next_tick(function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			cursor.Loc.X = 0
+			cursor.Y = math.max(cursor.Y - 1, 0)
+			cursor.X = 0
 			motion.update_virtual_cursor()
 
 			save_state(number, replay)
@@ -269,20 +275,22 @@ end
 
 local function open_above(number, replay)
 	lines_mode()
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
 	if replay then
-		local loc = buffer.Loc(0, cursor.Loc.Y)
+		local loc = buffer.Loc(0, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		cursor.Loc.X = 0
-		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
+		cursor.X = 0
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n")
 
 		utils.next_tick(function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
-			cursor.Loc.X = 0
+			cursor.Y = math.max(cursor.Y - 2, 0)
+			cursor.X = 0
 			motion.update_virtual_cursor()
 
 			save_state(number, replay)
@@ -292,20 +300,22 @@ end
 
 local function open_here(number, replay)
 	lines_mode()
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
 	if replay then
-		local loc = buffer.Loc(0, cursor.Loc.Y)
+		local loc = buffer.Loc(0, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		cursor.Loc.X = 0
-		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
+		cursor.X = 0
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n")
 
 		utils.next_tick(function()
-			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			cursor.Loc.X = 0
+			cursor.Y = math.max(cursor.Y - 1, 0)
+			cursor.X = 0
 			motion.update_virtual_cursor()
 
 			save_state(number, replay)
@@ -315,9 +325,10 @@ end
 
 local function insert_here_replace(number, replay)
 	replace_mode()
+
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		extend(loc, number, replay)
 	else
 		mode.insert()
