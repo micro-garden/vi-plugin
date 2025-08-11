@@ -17,332 +17,271 @@ local mode = require("mode")
 local motion = require("motion")
 local utils = require("utils")
 
-local DELETED_NONE = 0
-local DELETED_LINES = 1
-local DELETED_CHARS = 2
+local kill_buffer = nil
+local kill_lines = nil
 
-local deleted_mode = DELETED_NONE
-local deleted_lines = {}
-local deleted_chars = {}
-
-local function clear_deleted_lines()
-	deleted_lines = {}
+local function clear_kill_buffer()
+	kill_buffer = {}
 end
 
-local function clear_deleted_chars()
-	deleted_chars = {}
+local function insert_killed_lines(lines)
+	table.insert(kill_buffer, lines)
+	kill_lines = true
 end
 
-local function insert_deleted_line(line)
-	table.insert(deleted_lines, line)
-	deleted_mode = DELETED_LINES
+local function insert_killed_chars(chars)
+	table.insert(kill_buffer, chars)
+	kill_lines = false
 end
 
-local function insert_deleted_chars(chars)
-	table.insert(deleted_chars, chars)
-	deleted_mode = DELETED_CHARS
-end
-
+-- command: dd
 local function delete_lines(number)
 	mode.show()
 
-	deleted_lines = {}
-	for i = 1, number do
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		table.insert(deleted_lines, line)
-		micro.CurPane():DeleteLine()
-		--[[
-		local start_loc = buffer.Loc(0, cursor.Loc.Y)
-		local end_loc = buffer.Loc(0, cursor.Loc.Y + 1)
-		cursor:Buf():Remove(start_loc, end_loc)
-		]]
-
-		local last_line_index = cursor:Buf():LinesNum() - 1
-		if cursor.Loc.Y == last_line_index then
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local length = utf8.RuneCount(line)
-			if length < 1 then
-				cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
-			end
-		end
-		local line = cursor:Buf():Line(cursor.Loc.Y)
-		local spaces = line:match("^(%s*).*$")
-		cursor.Loc.X = #spaces
-		motion.update_virtual_cursor()
+	local pane = micro.CurPane()
+	local buf = pane.buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y + number - 1 > last_line_index then
+		editor.bell("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		return
 	end
 
-	deleted_mode = DELETED_LINES
+	clear_kill_buffer()
+	cursor.X = 0
+	for i = 1, number do
+		local line = buf:Line(cursor.Y)
+		insert_killed_lines(line)
+		pane:DeleteLine()
+		last_line_index = utils.last_line_index(buf)
+		cursor.Y = math.min(cursor.Y, last_line_index)
+	end
+
+	utils.after(editor.TICK_DURATION, function()
+		local line = buf:Line(cursor.Y)
+		local spaces = line:match("^(%s*)")
+		cursor.X = utf8.RuneCount(spaces)
+		motion.update_virtual_cursor()
+	end)
 end
 
+-- command: yy Y
 local function copy_lines(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	local line = cursor:Buf():Line(last_line_index)
-	local length = utf8.RuneCount(line)
-	if length < 1 then
-		last_line_index = math.max(last_line_index - 1, 0)
-	end
-	if cursor.Loc.Y + number - 1 > last_line_index then
-		editor.bell("line number out of range: " .. cursor.Loc.Y + number + 1 .. " > " .. last_line_index + 1)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y + number - 1 > last_line_index then
+		editor.bell("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
 		return
 	end
 
-	deleted_lines = {}
+	clear_kill_buffer()
 	for i = 1, number do
-		local line = cursor:Buf():Line(cursor.Loc.Y + i - 1)
-		table.insert(deleted_lines, line)
+		local line = buf:Line(cursor.Y + i - 1)
+		insert_killed_lines(line)
 	end
-
-	deleted_mode = DELETED_LINES
 end
 
+-- command: x
 local function delete_chars(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
 		editor.bell("no character in the line")
 		return
 	end
 
-	local saved_x = cursor.Loc.X
+	local n = math.min(number, length - cursor.X)
 
-	deleted_chars = {}
+	clear_kill_buffer()
+	insert_killed_chars(utils.utf8_sub(line, cursor.X + 1, cursor.X + n))
 
-	local n = math.min(number, length - cursor.Loc.X)
-
-	local str = line
-	local start_offset = 0
-	local cursor_x = cursor.Loc.X
-	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		start_offset = start_offset + size
-	end
-
-	local end_offset = start_offset
-	for _ = 1, n do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		end_offset = end_offset + size
-	end
-
-	table.insert(deleted_chars, line:sub(1 + start_offset, end_offset))
+	local saved_x = cursor.X
 
 	for _ = 1, n do
-		micro.CurPane():Delete()
+		pane:Delete()
 	end
-
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
 	utils.after(editor.TICK_DURATION, function()
-		line = cursor:Buf():Line(cursor.Loc.Y)
+		line = buf:Line(cursor.Y)
 		length = utf8.RuneCount(line)
-		cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
+		cursor.X = math.min(saved_x, math.max(length - 1, 0))
 		motion.update_virtual_cursor()
-
-		deleted_mode = DELETED_CHARS
 	end)
 end
 
+-- command: X
 local function delete_chars_backward(number)
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
 		editor.bell("no character in the line")
 		return
 	end
 
-	local cursor_x = cursor.Loc.X
-	local saved_x = cursor_x
+	local n = math.min(number, cursor.X)
 
-	deleted_chars = {}
+	clear_kill_buffer()
+	insert_killed_chars(utils.utf8_sub(line, cursor.X - n + 1, cursor.X))
 
-	local n = math.min(number, cursor_x)
+	local saved_x = cursor.X
 
-	local str = line
-	local end_offset = 0
-	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		end_offset = end_offset + size
-	end
-
-	local start_offset = end_offset
+	cursor.X = cursor.X - n
 	for _ = 1, n do
-		local r, size = utf8.DecodeLastRuneInString(str)
-		str = str:sub(1, -size - 1)
-		start_offset = start_offset - size
+		pane:Delete()
 	end
-
-	table.insert(deleted_chars, line:sub(1 + start_offset, end_offset))
-
-	cursor.Loc.X = cursor.Loc.X - n
-	for _ = 1, n do
-		micro.CurPane():Delete()
-	end
-
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
 
 	utils.after(editor.TICK_DURATION, function()
-		cursor.Loc.X = math.max(saved_x - n, 0)
+		line = buf:Line(cursor.Y)
+		length = utf8.RuneCount(line)
+		cursor.X = math.min(math.max(saved_x - n, 0), math.max(length - 1, 0))
 		motion.update_virtual_cursor()
-
-		deleted_mode = DELETED_CHARS
 	end)
 end
 
+-- command: p
 local function paste_below(number)
 	mode.show()
 
-	if deleted_mode == DELETED_NONE then
-		editor.vi_error("no copied lines/characters yet")
+	if not kill_buffer then
+		editor.vi_error("kill buffer is empty yet")
 		return
 	end
 
 	local text
-	if deleted_mode == DELETED_LINES then
-		text = "\n" .. table.concat(deleted_lines, "\n")
-	elseif deleted_mode == DELETED_CHARS then
-		text = table.concat(deleted_chars)
-	else
-		editor.program_error("paste_below: invalid deleted mode = " .. deleted_mode)
-		return
+	if kill_lines then
+		text = "\n" .. table.concat(kill_buffer, "\n")
+	else -- kill chars
+		text = table.concat(kill_buffer)
 	end
 
 	mode.insert()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local saved_length = utf8.RuneCount(line)
-	local saved_x = cursor.Loc.X
+	local saved_x = cursor.X
 	local saved_y
 	for _ = 1, number do
-		saved_y = cursor.Loc.Y
-		if deleted_mode == DELETED_LINES then
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			cursor.Loc.X = utf8.RuneCount(line)
-		elseif deleted_mode == DELETED_CHARS then
-			local line = cursor:Buf():Line(cursor.Loc.Y)
+		saved_y = cursor.Y
+		if kill_lines then
+			line = buf:Line(cursor.Y)
+			cursor.X = utf8.RuneCount(line)
+		else -- kill chars
+			line = buf:Line(cursor.Y)
 			local length = utf8.RuneCount(line)
-			cursor.Loc.X = math.min(saved_x + 1, math.max(length, 0))
+			cursor.X = math.min(saved_x + 1, math.max(length, 0))
 		end
-		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), text)
-		if deleted_mode == DELETED_LINES then
-			cursor.Loc.Y = saved_y + 1
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), text)
+		if kill_lines then
+			cursor.Y = saved_y + 1
 		end
 	end
 
 	utils.after(editor.TICK_DURATION, function()
-		if deleted_mode == DELETED_LINES then
-			cursor.Loc.Y = saved_y + 1
+		if kill_lines then
+			cursor.Y = saved_y + 1
 
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local spaces = line:match("^(%s*).*$")
-			cursor.Loc.X = #spaces
+			line = buf:Line(cursor.Y)
+			local spaces = line:match("^(%s*)")
+			cursor.X = utf8.RuneCount(spaces)
 			motion.update_virtual_cursor()
-		elseif deleted_mode == DELETED_CHARS then
+		else -- kill chars
 			if saved_length < 1 then
-				cursor.Loc.X = saved_x
+				cursor.X = saved_x
 			else
-				cursor.Loc.X = saved_x + 1
+				cursor.X = saved_x + 1
 			end
-			motion.update_virtual_cursor()
-		else
-			editor.program_error("paste_below After: invalid deleted mode = " .. deleted_mode)
 		end
+		motion.update_virtual_cursor()
 
 		mode.command()
 	end)
 end
 
+-- command: P
 local function paste_above(number)
 	mode.show()
 
-	if deleted_mode == DELETED_NONE then
-		editor.vi_error("no copied lines/characters yet")
+	if not kill_buffer then
+		editor.vi_error("kill buffer is empty yet")
 		return
 	end
 
 	local text
-	if deleted_mode == DELETED_LINES then
-		text = table.concat(deleted_lines, "\n") .. "\n"
-	elseif deleted_mode == DELETED_CHARS then
-		text = table.concat(deleted_chars)
-	else
-		editor.program_error("paste_above: invalid deleted mode = " .. deleted_mode)
-		return
+	if kill_lines then
+		text = table.concat(kill_buffer, "\n") .. "\n"
+	else -- kill chars
+		text = table.concat(kill_buffer)
 	end
 
 	mode.insert()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local saved_x = cursor.Loc.X
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local saved_x = cursor.X
 	local saved_y
 	for _ = 1, number do
-		saved_y = cursor.Loc.Y
-		if deleted_mode == DELETED_LINES then
-			cursor.Loc.X = 0
+		saved_y = cursor.Y
+		if kill_lines then
+			cursor.X = 0
 		end
-		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), text)
-		if deleted_mode == DELETED_LINES then
-			cursor.Loc.Y = saved_y
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), text)
+		if kill_lines then
+			cursor.Y = saved_y
 		end
 	end
 
 	utils.after(editor.TICK_DURATION, function()
-		if deleted_mode == DELETED_LINES then
-			cursor.Loc.Y = saved_y
+		if kill_lines then
+			cursor.Y = saved_y
 
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local spaces = line:match("^(%s*).*$")
-			cursor.Loc.X = #spaces
-			motion.update_virtual_cursor()
-		elseif deleted_mode == DELETED_CHARS then
-			cursor.Loc.X = saved_x
-			motion.update_virtual_cursor()
-		else
-			editor.program_error("paste_above After: invalid deleted mode = " .. deleted_mode)
+			local line = buf:Line(cursor.Y)
+			local spaces = line:match("^(%s*)")
+			cursor.X = utf8.RuneCount(spaces)
+		else -- kill chars
+			cursor.X = saved_x
 		end
+		motion.update_virtual_cursor()
 
 		mode.command()
 	end)
 end
 
+-- command: d
 local function delete_lines_region(start_y, end_y)
-	mode.show()
-
 	if end_y < start_y then
-		start_y, end_y = end_y, start_y
+		start_y, end_y = end_y, start_y -- swap
 	end
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor.Loc.X = 0
-	cursor.Loc.Y = start_y
+	cursor.X = 0
+	cursor.Y = start_y
 	delete_lines(end_y - start_y + 1)
 end
 
+-- command: y
 local function copy_lines_region(start_y, end_y)
-	mode.show()
-
 	if end_y < start_y then
-		start_y, end_y = end_y, start_y
+		start_y, end_y = end_y, start_y -- swap
 	end
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	cursor.Loc.X = 0
-	cursor.Loc.Y = start_y
+	cursor.X = 0
+	cursor.Y = start_y
 	copy_lines(end_y - start_y + 1)
 end
 
@@ -351,124 +290,100 @@ local function is_ordered(start_loc, end_loc)
 		return true
 	elseif start_loc.Y > end_loc.Y then
 		return false
-	else
-		if start_loc.X < end_loc.X then
-			return true
-		elseif start_loc.X > end_loc.X then
-			return false
-		else
-			return true
-		end
+	else -- start_loc.Y == end_loc.Y
+		return start_loc.X <= end_loc.X
 	end
 end
 
+-- command: d
 local function delete_chars_region(start_loc, end_loc)
 	mode.show()
 
 	if not is_ordered(start_loc, end_loc) then
-		start_loc, end_loc = end_loc, start_loc
+		start_loc, end_loc = end_loc, start_loc -- swap
 	end
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local substr = cursor:Buf():Substr(start_loc, end_loc)
-	deleted_chars = {}
-	table.insert(deleted_chars, substr)
-	deleted_mode = DELETED_CHARS
-	cursor:Buf():Remove(start_loc, end_loc)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local substr = buf:Substr(start_loc, end_loc)
+	clear_kill_buffer()
+	insert_killed_chars(substr)
+	buf:Remove(start_loc, end_loc)
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
-	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
-	motion.update_virtual_cursor()
+	utils.after(editor.TICK_DURATION, function()
+		local line = buf:Line(cursor.Y)
+		local length = utf8.RuneCount(line)
+		cursor.X = math.min(cursor.X, math.max(length - 1, 0))
+		motion.update_virtual_cursor()
+	end)
 end
 
+-- command: y
 local function copy_chars_region(start_loc, end_loc)
 	mode.show()
 
 	if not is_ordered(start_loc, end_loc) then
-		start_loc, end_loc = end_loc, start_loc
+		start_loc, end_loc = end_loc, start_loc -- swap
 	end
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local substr = cursor:Buf():Substr(start_loc, end_loc)
-	deleted_chars = {}
-	table.insert(deleted_chars, substr)
-	deleted_mode = DELETED_CHARS
+	local buf = micro.CurPane().Buf
+	local substr = buf:Substr(start_loc, end_loc)
+	clear_kill_buffer()
+	insert_killed_chars(substr)
 end
 
+-- command: d$ D
 local function delete_to_line_end()
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
 		editor.bell("no characters in this line")
 		return
 	end
 
-	deleted_chars = {}
+	clear_kill_buffer()
+	insert_killed_chars(line:sub(1 + cursor.X))
 
-	local str = line
-	local start_offset = 0
-	local cursor_x = cursor.Loc.X
-	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		start_offset = start_offset + size
-	end
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+	local end_loc = buffer.Loc(length, cursor.Y)
+	buf:Remove(start_loc, end_loc)
 
-	table.insert(deleted_chars, line:sub(1 + start_offset))
-	deleted_mode = DELETED_CHARS
-
-	local start_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
-	local end_loc = buffer.Loc(length, cursor.Loc.Y)
-	cursor:Buf():Remove(start_loc, end_loc)
-
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-	cursor.Loc.X = math.min(cursor.Loc.X, math.max(length - 1, 0))
+	cursor.X = math.min(cursor.X, math.max(length - 1, 0))
 	motion.update_virtual_cursor()
 end
 
+-- command: y$
 local function copy_to_line_end()
 	mode.show()
 
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local line = cursor:Buf():Line(cursor.Loc.Y)
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
-
-	deleted_chars = {}
-
-	local str = line
-	local start_offset = 0
-	local cursor_x = cursor.Loc.X
-	for _ = 1, cursor_x do
-		local r, size = utf8.DecodeRuneInString(str)
-		str = str:sub(1 + size)
-		start_offset = start_offset + size
+	if length < 1 then
+		editor.bell("no characters in this line")
+		return
 	end
 
-	table.insert(deleted_chars, line:sub(1 + start_offset))
-	deleted_mode = DELETED_CHARS
+	clear_kill_buffer()
+	insert_killed_chars(line:sub(1 + cursor.X))
 end
 
+-- command: J
 local function join_lines(number)
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local at_last = false
-	local last_line_index = cursor:Buf():LinesNum() - 1
-	if cursor.Loc.Y == last_line_index then
-		at_last = true
-	elseif cursor.Loc.Y == last_line_index - 1 then
-		local line = cursor:Buf():Line(last_line_index)
-		local length = utf8.RuneCount(line)
-		if length < 1 then
-			at_last = true
-		end
-	end
-	if at_last then
+	mode.show()
+
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y >= last_line_index then
 		editor.vi_error("no lines to join below")
 		return
 	end
@@ -479,52 +394,40 @@ local function join_lines(number)
 	end
 
 	for _ = 1, n do
-		local at_last = false
-		if cursor.Loc.Y == last_line_index then
-			at_last = true
-		elseif cursor.Loc.Y == last_line_index - 1 then
-			local line = cursor:Buf():Line(last_line_index)
-			local length = utf8.RuneCount(line)
-			if length < 1 then
-				at_last = true
-			end
-		end
-		if at_last then
+		if cursor.Y >= last_line_index then
 			break
 		end
 
-		local line = cursor:Buf():Line(cursor.Loc.Y)
+		local line = buf:Line(cursor.Y)
 		local length = utf8.RuneCount(line)
-		cursor.Loc.X = length
-		local next_line = cursor:Buf():Line(cursor.Loc.Y + 1)
-		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+		cursor.X = length
+		local next_line = buf:Line(cursor.Y + 1)
+		local loc = buffer.Loc(cursor.X, cursor.Y)
 		local spaces, body = next_line:match("^(%s*)(.*)$")
 		if #body > 0 then
-			cursor:Buf():Insert(loc, " " .. body)
+			buf:Insert(loc, " " .. body)
 		end
-		cursor.Loc.Y = cursor.Loc.Y + 1
-		micro.CurPane():DeleteLine()
+		cursor.Y = cursor.Y + 1
+		pane:DeleteLine()
+		cursor.Y = cursor.Y - 1
 
 		utils.after(editor.TICK_DURATION, function()
-			cursor.Loc.Y = loc.Y
-			local line = cursor:Buf():Line(cursor.Loc.Y)
-			local current_length = utf8.RuneCount(line)
+			cursor.Y = loc.Y
+			line = buf:Line(cursor.Y)
 			if length < 1 or #next_line < 1 then
-				cursor.Loc.X = math.max(current_length - 1, 0)
+				local current_length = utf8.RuneCount(line)
+				cursor.X = math.max(current_length - 1, 0)
 			else
-				cursor.Loc.X = loc.X
+				cursor.X = loc.X
 			end
 			motion.update_virtual_cursor()
-
-			deleted_mode = DELETED_LINES
 		end)
 	end
 end
 
-M.clear_deleted_lines = clear_deleted_lines
-M.clear_deleted_chars = clear_deleted_chars
-M.insert_deleted_line = insert_deleted_line
-M.insert_deleted_chars = insert_deleted_chars
+M.clear_kill_buffer = clear_kill_buffer
+--M.insert_killed_lines = insert_killed_lines
+M.insert_killed_chars = insert_killed_chars
 
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines

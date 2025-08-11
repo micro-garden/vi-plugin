@@ -13,7 +13,7 @@ end
 local utils = require("utils")
 
 -- settings
-TICK_DURATION = time.ParseDuration("100ms")
+TICK_DURATION = time.ParseDuration("0ms")
 BELL_DURATION = time.ParseDuration("1s")
 
 local command_buffer = ""
