@@ -28,7 +28,7 @@ local function replace_chars(number, replay)
 	local saved_x = cursor.Loc.X
 	local insert_after = cursor.Loc.X + number >= length
 
-	edit.clear_deleted_words()
+	edit.clear_deleted_chars()
 
 	local n = math.min(number, length - cursor.Loc.X)
 
@@ -48,7 +48,7 @@ local function replace_chars(number, replay)
 		end_offset = end_offset + size
 	end
 
-	edit.insert_deleted_word(line:sub(1 + start_offset, end_offset))
+	edit.insert_deleted_chars(line:sub(1 + start_offset, end_offset))
 
 	for _ = 1, n do
 		micro.CurPane():Delete()
@@ -95,8 +95,8 @@ local function replace_lines_region(start_y, end_y, replay)
 	insert.open_here(1, replay)
 end
 
-local function replace_words_region(start_loc, end_loc)
-	edit.delete_words_region(start_loc, end_loc)
+local function replace_chars_region(start_loc, end_loc)
+	edit.delete_chars_region(start_loc, end_loc)
 	insert.insert_here(1, replay)
 end
 
@@ -105,6 +105,6 @@ M.replace_lines = replace_lines
 M.replace_to_line_end = replace_to_line_end
 
 M.replace_lines_region = replace_lines_region
-M.replace_words_region = replace_words_region
+M.replace_chars_region = replace_chars_region
 
 return M

@@ -19,18 +19,18 @@ local utils = require("utils")
 
 local DELETED_NONE = 0
 local DELETED_LINES = 1
-local DELETED_WORDS = 2
+local DELETED_CHARS = 2
 
 local deleted_mode = DELETED_NONE
 local deleted_lines = {}
-local deleted_words = {}
+local deleted_chars = {}
 
 local function clear_deleted_lines()
 	deleted_lines = {}
 end
 
-local function clear_deleted_words()
-	deleted_words = {}
+local function clear_deleted_chars()
+	deleted_chars = {}
 end
 
 local function insert_deleted_line(line)
@@ -38,9 +38,9 @@ local function insert_deleted_line(line)
 	deleted_mode = DELETED_LINES
 end
 
-local function insert_deleted_word(word)
-	table.insert(deleted_words, words)
-	deleted_mode = DELETED_WORDS
+local function insert_deleted_chars(chars)
+	table.insert(deleted_chars, chars)
+	deleted_mode = DELETED_CHARS
 end
 
 local function delete_lines(number)
@@ -112,7 +112,7 @@ local function delete_chars(number)
 
 	local saved_x = cursor.Loc.X
 
-	deleted_words = {}
+	deleted_chars = {}
 
 	local n = math.min(number, length - cursor.Loc.X)
 
@@ -132,7 +132,7 @@ local function delete_chars(number)
 		end_offset = end_offset + size
 	end
 
-	table.insert(deleted_words, line:sub(1 + start_offset, end_offset))
+	table.insert(deleted_chars, line:sub(1 + start_offset, end_offset))
 
 	for _ = 1, n do
 		micro.CurPane():Delete()
@@ -148,7 +148,7 @@ local function delete_chars(number)
 		cursor.Loc.X = math.min(saved_x, math.max(length - 1, 0))
 		motion.update_virtual_cursor()
 
-		deleted_mode = DELETED_WORDS
+		deleted_mode = DELETED_CHARS
 	end)
 end
 
@@ -166,7 +166,7 @@ local function delete_chars_backward(number)
 	local cursor_x = cursor.Loc.X
 	local saved_x = cursor_x
 
-	deleted_words = {}
+	deleted_chars = {}
 
 	local n = math.min(number, cursor_x)
 
@@ -185,7 +185,7 @@ local function delete_chars_backward(number)
 		start_offset = start_offset - size
 	end
 
-	table.insert(deleted_words, line:sub(1 + start_offset, end_offset))
+	table.insert(deleted_chars, line:sub(1 + start_offset, end_offset))
 
 	cursor.Loc.X = cursor.Loc.X - n
 	for _ = 1, n do
@@ -199,7 +199,7 @@ local function delete_chars_backward(number)
 		cursor.Loc.X = math.max(saved_x - n, 0)
 		motion.update_virtual_cursor()
 
-		deleted_mode = DELETED_WORDS
+		deleted_mode = DELETED_CHARS
 	end)
 end
 
@@ -207,15 +207,15 @@ local function paste_below(number)
 	mode.show()
 
 	if deleted_mode == DELETED_NONE then
-		micro.InfoBar():Error("no copied lines/words yet")
+		micro.InfoBar():Error("no copied lines/characters yet")
 		return
 	end
 
 	local text
 	if deleted_mode == DELETED_LINES then
 		text = "\n" .. table.concat(deleted_lines, "\n")
-	elseif deleted_mode == DELETED_WORDS then
-		text = table.concat(deleted_words)
+	elseif deleted_mode == DELETED_CHARS then
+		text = table.concat(deleted_chars)
 	else -- program error
 		micro.InfoBar:Error("paste_below: invalid deleted mode = " .. deleted_mode)
 		return
@@ -233,7 +233,7 @@ local function paste_below(number)
 		if deleted_mode == DELETED_LINES then
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			cursor.Loc.X = utf8.RuneCount(line)
-		elseif deleted_mode == DELETED_WORDS then
+		elseif deleted_mode == DELETED_CHARS then
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			local length = utf8.RuneCount(line)
 			cursor.Loc.X = math.min(saved_x + 1, math.max(length, 0))
@@ -252,7 +252,7 @@ local function paste_below(number)
 			local spaces = line:match("^(%s*).*$")
 			cursor.Loc.X = #spaces
 			motion.update_virtual_cursor()
-		elseif deleted_mode == DELETED_WORDS then
+		elseif deleted_mode == DELETED_CHARS then
 			if saved_length < 1 then
 				cursor.Loc.X = saved_x
 			else
@@ -271,15 +271,15 @@ local function paste_above(number)
 	mode.show()
 
 	if deleted_mode == DELETED_NONE then
-		micro.InfoBar():Error("no copied lines/words yet")
+		micro.InfoBar():Error("no copied lines/characters yet")
 		return
 	end
 
 	local text
 	if deleted_mode == DELETED_LINES then
 		text = table.concat(deleted_lines, "\n") .. "\n"
-	elseif deleted_mode == DELETED_WORDS then
-		text = table.concat(deleted_words)
+	elseif deleted_mode == DELETED_CHARS then
+		text = table.concat(deleted_chars)
 	else -- program errorlines
 		micro.InfoBar:Error("paste_above: invalid deleted mode = " .. deleted_mode)
 		return
@@ -309,7 +309,7 @@ local function paste_above(number)
 			local spaces = line:match("^(%s*).*$")
 			cursor.Loc.X = #spaces
 			motion.update_virtual_cursor()
-		elseif deleted_mode == DELETED_WORDS then
+		elseif deleted_mode == DELETED_CHARS then
 			cursor.Loc.X = saved_x
 			motion.update_virtual_cursor()
 		else -- program error
@@ -362,7 +362,7 @@ local function is_ordered(start_loc, end_loc)
 	end
 end
 
-local function delete_words_region(start_loc, end_loc)
+local function delete_chars_region(start_loc, end_loc)
 	mode.show()
 
 	if not is_ordered(start_loc, end_loc) then
@@ -371,10 +371,9 @@ local function delete_words_region(start_loc, end_loc)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local substr = cursor:Buf():Substr(start_loc, end_loc)
-	deleted_words = {}
-	table.insert(deleted_words, substr)
-	deleted_mode = DELETED_WORDS
-
+	deleted_chars = {}
+	table.insert(deleted_chars, substr)
+	deleted_mode = DELETED_CHARS
 	cursor:Buf():Remove(start_loc, end_loc)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -384,7 +383,7 @@ local function delete_words_region(start_loc, end_loc)
 	motion.update_virtual_cursor()
 end
 
-local function copy_words_region(start_loc, end_loc)
+local function copy_chars_region(start_loc, end_loc)
 	mode.show()
 
 	if not is_ordered(start_loc, end_loc) then
@@ -393,9 +392,9 @@ local function copy_words_region(start_loc, end_loc)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local substr = cursor:Buf():Substr(start_loc, end_loc)
-	deleted_words = {}
-	table.insert(deleted_words, substr)
-	deleted_mode = DELETED_WORDS
+	deleted_chars = {}
+	table.insert(deleted_chars, substr)
+	deleted_mode = DELETED_CHARS
 end
 
 local function delete_to_line_end()
@@ -405,7 +404,7 @@ local function delete_to_line_end()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 
-	deleted_words = {}
+	deleted_chars = {}
 
 	local str = line
 	local start_offset = 0
@@ -416,8 +415,8 @@ local function delete_to_line_end()
 		start_offset = start_offset + size
 	end
 
-	table.insert(deleted_words, line:sub(1 + start_offset))
-	deleted_mode = DELETED_WORDS
+	table.insert(deleted_chars, line:sub(1 + start_offset))
+	deleted_mode = DELETED_CHARS
 
 	local start_loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
 	local end_loc = buffer.Loc(length, cursor.Loc.Y)
@@ -437,7 +436,7 @@ local function copy_to_line_end()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 
-	deleted_words = {}
+	deleted_chars = {}
 
 	local str = line
 	local start_offset = 0
@@ -448,8 +447,8 @@ local function copy_to_line_end()
 		start_offset = start_offset + size
 	end
 
-	table.insert(deleted_words, line:sub(1 + start_offset))
-	deleted_mode = DELETED_WORDS
+	table.insert(deleted_chars, line:sub(1 + start_offset))
+	deleted_mode = DELETED_CHARS
 end
 
 local function join_lines(number)
@@ -519,9 +518,9 @@ local function join_lines(number)
 end
 
 M.clear_deleted_lines = clear_deleted_lines
-M.clear_deleted_words = clear_deleted_words
+M.clear_deleted_chars = clear_deleted_chars
 M.insert_deleted_line = insert_deleted_line
-M.insert_deleted_word = insert_deleted_word
+M.insert_deleted_chars= insert_deleted_chars
 
 M.delete_lines = delete_lines
 M.copy_lines = copy_lines
@@ -532,8 +531,8 @@ M.paste_above = paste_above
 
 M.delete_lines_region = delete_lines_region
 M.copy_lines_region = copy_lines_region
-M.delete_words_region = delete_words_region
-M.copy_words_region = copy_words_region
+M.delete_chars_region = delete_chars_region
+M.copy_chars_region = copy_chars_region
 M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
 

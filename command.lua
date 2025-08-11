@@ -293,15 +293,15 @@ local function run_compound(number, edit_part, subnum, move, letter, replay)
 		matched = true
 	elseif edit_part == "d" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
 		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
-		edit.delete_words_region(start_loc, end_loc)
+		edit.delete_chars_region(start_loc, end_loc)
 		matched = true
 	elseif edit_part == "y" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
 		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
-		edit.copy_words_region(start_loc, end_loc)
+		edit.copy_chars_region(start_loc, end_loc)
 		matched = true
 	elseif edit_part == "c" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
 		local start_loc, end_loc = get_chars_region(number, no_subnum, subnum, move, letter)
-		replace.replace_words_region(start_loc, end_loc)
+		replace.replace_chars_region(start_loc, end_loc)
 		matched = true
 	end
 

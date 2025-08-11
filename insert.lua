@@ -25,10 +25,10 @@ local saved_loc = nil
 local saved_size = nil
 local inserted_lines = {}
 
-local WORDS_MODE = 1
+local CHARS_MODE = 1
 local LINES_MODE = 2
 local REPLACE_MODE = 3
-local insert_mode = WORDS_MODE
+local insert_mode = CHARS_MODE
 
 local function size_with_linefeeds()
 	local buf = micro.CurPane().Buf
@@ -72,7 +72,7 @@ local function extend(loc, func, number, replay)
 		for i = 1, #inserted_lines do
 			table.insert(lines, inserted_lines[i])
 			local length = utf8.RuneCount(inserted_lines[i])
-			if i == 1 and insert_mode == WORDS_MODE or insert_mode == REPLACE_MODE then
+			if i == 1 and insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE then
 				x = math.max(x + length - 1, 0)
 			else
 				x = math.max(length - 1, 0)
@@ -81,12 +81,12 @@ local function extend(loc, func, number, replay)
 		end
 	end
 
-	if replay and (insert_mode == WORDS_MODE or insert_mode == REPLACE_MODE) and #inserted_lines > 0 then
+	if replay and (insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE) and #inserted_lines > 0 then
 		y = y - 1
 	end
 
 	local buf = micro.CurPane().Buf
-	if insert_mode == WORDS_MODE or insert_mode == REPLACE_MODE then
+	if insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE then
 		buf:Insert(loc, table.concat(lines, "\n"))
 	elseif insert_mode == LINES_MODE then
 		buf:Insert(loc, table.concat(lines, "\n") .. "\n")
@@ -109,7 +109,7 @@ local function resume(orig_loc)
 			local x = saved_loc.X
 			local y = saved_loc.Y
 			local run = saved_size
-			if insert_mode == WORDS_MODE or insert_mode == REPLACE_MODE then
+			if insert_mode == CHARS_MODE or insert_mode == REPLACE_MODE then
 				run = run - 1
 				size = size - 1
 			end
@@ -151,8 +151,8 @@ local function resume(orig_loc)
 	end
 end
 
-local function words_mode()
-	insert_mode = WORDS_MODE
+local function chars_mode()
+	insert_mode = CHARS_MODE
 end
 
 local function lines_mode()
@@ -164,7 +164,7 @@ local function replace_mode()
 end
 
 local function insert_here(number, replay)
-	words_mode()
+	chars_mode()
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local loc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
@@ -178,7 +178,7 @@ local function insert_here(number, replay)
 end
 
 local function insert_line_start(number, replay)
-	words_mode()
+	chars_mode()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -197,7 +197,7 @@ local function insert_line_start(number, replay)
 end
 
 local function insert_after_here(number, replay)
-	words_mode()
+	chars_mode()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -216,7 +216,7 @@ local function insert_after_here(number, replay)
 end
 
 local function insert_after_line_end(number, replay)
-	words_mode()
+	chars_mode()
 
 	motion.move_line_end()
 
@@ -324,7 +324,7 @@ end
 M.resume = resume
 M.save_state = save_state
 M.extend = extend
-M.words_mode = words_mode
+M.chars_mode = chars_mode
 M.lines_mode = lines_mode
 M.replace_mode = replace_mode
 
