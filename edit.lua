@@ -12,7 +12,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
 local mode = require("mode")
 local motion = require("motion")
 local utils = require("utils")
@@ -43,7 +43,7 @@ local function delete_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + number - 1 > last_line_index then
-		editor.bell("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
 		return
 	end
 
@@ -57,7 +57,7 @@ local function delete_lines(number)
 		cursor.Y = math.min(cursor.Y, last_line_index)
 	end
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		local line = buf:Line(cursor.Y)
 		local spaces = line:match("^(%s*)")
 		cursor.X = utf8.RuneCount(spaces)
@@ -73,7 +73,7 @@ local function copy_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + number - 1 > last_line_index then
-		editor.bell("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
 		return
 	end
 
@@ -94,7 +94,7 @@ local function delete_chars(number)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		editor.bell("no character in the line")
+		bell.ring("no character in the line")
 		return
 	end
 
@@ -109,7 +109,7 @@ local function delete_chars(number)
 		pane:Delete()
 	end
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		line = buf:Line(cursor.Y)
 		length = utf8.RuneCount(line)
 		cursor.X = math.min(saved_x, math.max(length - 1, 0))
@@ -127,7 +127,7 @@ local function delete_chars_backward(number)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		editor.bell("no character in the line")
+		bell.ring("no character in the line")
 		return
 	end
 
@@ -143,7 +143,7 @@ local function delete_chars_backward(number)
 		pane:Delete()
 	end
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		line = buf:Line(cursor.Y)
 		length = utf8.RuneCount(line)
 		cursor.X = math.min(math.max(saved_x - n, 0), math.max(length - 1, 0))
@@ -156,7 +156,7 @@ local function paste_below(number)
 	mode.show()
 
 	if not kill_buffer then
-		editor.vi_error("kill buffer is empty yet")
+		bell.message("kill buffer is empty yet")
 		return
 	end
 
@@ -191,7 +191,7 @@ local function paste_below(number)
 		end
 	end
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		if kill_lines then
 			cursor.Y = saved_y + 1
 
@@ -217,7 +217,7 @@ local function paste_above(number)
 	mode.show()
 
 	if not kill_buffer then
-		editor.vi_error("kill buffer is empty yet")
+		bell.message("kill buffer is empty yet")
 		return
 	end
 
@@ -245,7 +245,7 @@ local function paste_above(number)
 		end
 	end
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		if kill_lines then
 			cursor.Y = saved_y
 
@@ -310,7 +310,7 @@ local function delete_chars_region(start_loc, end_loc)
 	insert_killed_chars(substr)
 	buf:Remove(start_loc, end_loc)
 
-	utils.after(editor.TICK_DURATION, function()
+	utils.next_tick(function()
 		local line = buf:Line(cursor.Y)
 		local length = utf8.RuneCount(line)
 		cursor.X = math.min(cursor.X, math.max(length - 1, 0))
@@ -341,7 +341,7 @@ local function delete_to_line_end()
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		editor.bell("no characters in this line")
+		bell.ring("no characters in this line")
 		return
 	end
 
@@ -367,7 +367,7 @@ local function copy_to_line_end()
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		editor.bell("no characters in this line")
+		bell.ring("no characters in this line")
 		return
 	end
 
@@ -384,7 +384,7 @@ local function join_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y >= last_line_index then
-		editor.vi_error("no lines to join below")
+		bell.message("no lines to join below")
 		return
 	end
 
@@ -411,7 +411,7 @@ local function join_lines(number)
 		pane:DeleteLine()
 		cursor.Y = cursor.Y - 1
 
-		utils.after(editor.TICK_DURATION, function()
+		utils.next_tick(function()
 			cursor.Y = loc.Y
 			line = buf:Line(cursor.Y)
 			if length < 1 or #next_line < 1 then

@@ -11,7 +11,6 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
 local mode = require("mode")
 local motion = require("motion")
 local edit = require("edit")
@@ -64,7 +63,7 @@ local function replace_chars(number, replay)
 		local length = utf8.RuneCount(line)
 		cursor.Loc.X = math.min(cursor.Loc.X + 1, length - 1)
 
-		utils.after(editor.TICK_DURATION, function()
+		utils.next_tick(function()
 			local cursor = micro.CurPane().Buf:GetActiveCursor()
 			local line = cursor:Buf():Line(cursor.Loc.Y)
 			local length = utf8.RuneCount(line)

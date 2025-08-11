@@ -9,7 +9,8 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
+local combuf = require("combuf")
 local mode = require("mode")
 local command = require("command")
 
@@ -37,7 +38,7 @@ function onBeforeTextEvent(buf, ev)
 
 	-- assert
 	if ev.EventType ~= TEXT_EVENT_INSERT then
-		editor.program_error("Invalid text event type = ev.EventType")
+		bell.program_error("Invalid text event type = ev.EventType")
 		return true
 	end
 
@@ -60,12 +61,13 @@ function onBeforeTextEvent(buf, ev)
 	delta.End.X = 0
 	delta.End.Y = 0
 
-	local command_buffer = editor.add_input_to_command_buffer(input)
+	combuf.insert_chars(input)
+	local comb = combuf.get()
 
 	local number_str, edit, subnum_str, move, dummy_letter =
-		command_buffer:match("^(%d*)([iIaAoOdyYxXDsScCpPJm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
+		comb:match("^(%d*)([iIaAoOdyYxXDsScCpPJm%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
 
-	local mark_command, letter = command_buffer:match("([m'`])([^'`])$")
+	local mark_command, letter = comb:match("([m'`])([^'`])$")
 	if mark_command == "m" then
 		edit = mark_command
 	elseif mark_command == "'" or mark_command == "`" then
@@ -73,8 +75,8 @@ function onBeforeTextEvent(buf, ev)
 	end
 
 	if not number_str then
-		editor.error("not (yet) a vi command [" .. command_buffer .. "]")
-		editor.clear_command_buffer()
+		bell.error("not (yet) a vi command [" .. comb .. "]")
+		combuf.clear()
 		return true
 	end
 
@@ -99,7 +101,7 @@ function onBeforeTextEvent(buf, ev)
 	end
 
 	if command.run(no_number, number, edit, no_subnum, subnum, move, letter, false) then
-		editor.clear_command_buffer()
+		combuf.clear()
 		return true
 	end
 

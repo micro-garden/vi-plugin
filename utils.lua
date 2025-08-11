@@ -4,6 +4,8 @@ local micro = import("micro")
 local utf8 = import("unicode/utf8")
 local time = import("time")
 
+TICK_DURATION = time.ParseDuration("0ms")
+
 local function xor(a, b)
 	return (a or b) and not (a and b)
 end
@@ -20,6 +22,10 @@ local function after(duration, fn)
 	else
 		micro.TermMessage("** vi environment error **\nCannot find After API")
 	end
+end
+
+local function next_tick(fn)
+	after(TICK_DURATION, fn)
 end
 
 local function last_line_index(buf)
@@ -62,6 +68,7 @@ end
 
 M.xor = xor
 M.after = after
+M.next_tick = next_tick
 M.last_line_index = last_line_index
 M.utf8_sub = utf8_sub
 

@@ -10,7 +10,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
 local mode = require("mode")
 
 local virtual_cursor_x = 0
@@ -27,7 +27,7 @@ local function move_left(number)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	if cursor.Loc.X <= 0 then
-		editor.bell("already at the beginning of the line")
+		bell.ring("already at the beginning of the line")
 		return
 	end
 	cursor.Loc.X = math.max(cursor.Loc.X - number, 0)
@@ -42,7 +42,7 @@ local function move_right(number)
 	local line = cursor:Buf():Line(cursor.Loc.Y)
 	local length = utf8.RuneCount(line)
 	if cursor.Loc.X >= length - 1 then
-		editor.bell("already at the end of the line")
+		bell.ring("already at the end of the line")
 	end
 	cursor.Loc.X = math.min(cursor.Loc.X + number, math.max(length - 1, 0))
 
@@ -55,7 +55,7 @@ local function move_up(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local dest_y = cursor.Loc.Y - number
 	if dest_y < 0 then
-		editor.bell("cannot move up to line " .. dest_y + 1)
+		bell.ring("cannot move up to line " .. dest_y + 1)
 		return
 	end
 	cursor.Loc.Y = dest_y
@@ -78,7 +78,7 @@ local function move_down(number)
 
 	local dest_y = cursor.Loc.Y + number
 	if dest_y > last_line_index then
-		editor.bell("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
+		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
 		return
 	end
 	cursor.Loc.Y = dest_y
@@ -133,7 +133,7 @@ local function move_next_word(number)
 				local line = cursor:Buf():Line(last_line_index)
 				local length = utf8.RuneCount(line)
 				if length < 1 then
-					editor.bell("no next words")
+					bell.ring("no next words")
 					break
 				end
 			end
@@ -209,7 +209,7 @@ local function move_prev_word(number)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	for _ = 1, number do
 		if cursor.Loc.X < 1 and cursor.Loc.Y < 1 then
-			editor.bell("no previous words")
+			bell.ring("no previous words")
 			break
 		else
 			local line = cursor:Buf():Line(cursor.Loc.Y)
@@ -307,7 +307,7 @@ local function goto_line(number)
 		last_line_index = last_line_index - 1
 	end
 	if number - 1 > last_line_index then
-		editor.bell("line number out of range: " .. number .. " > " .. last_line_index + 1)
+		bell.ring("line number out of range: " .. number .. " > " .. last_line_index + 1)
 		return
 	end
 	cursor.Loc.Y = number - 1

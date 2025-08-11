@@ -11,7 +11,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
 local mode = require("mode")
 local motion = require("motion")
 
@@ -31,7 +31,7 @@ local function goto_line(letter)
 
 	loc = marks[letter]
 	if not loc then
-		editor.bell("no mark set for " .. letter)
+		bell.ring("no mark set for " .. letter)
 		return
 	end
 
@@ -56,7 +56,7 @@ local function goto_char(letter)
 
 	loc = marks[letter]
 	if not loc then
-		editor.bell("no mark set for " .. letter)
+		bell.ring("no mark set for " .. letter)
 		return
 	end
 

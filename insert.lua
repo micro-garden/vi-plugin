@@ -12,7 +12,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
 local mode = require("mode")
 local motion = require("motion")
 local utils = require("utils")
@@ -91,7 +91,7 @@ local function extend(loc, func, number, replay)
 	elseif insert_mode == LINES_MODE then
 		buf:Insert(loc, table.concat(lines, "\n") .. "\n")
 	else
-		editor.program_error("insert.extend: invalid insert mode = " .. insert_mode)
+		bell.program_error("insert.extend: invalid insert mode = " .. insert_mode)
 		return
 	end
 
@@ -251,7 +251,7 @@ local function open_below(number, replay)
 		cursor.Loc.X = utf8.RuneCount(line)
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DURATION, function()
+		utils.next_tick(function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
@@ -274,7 +274,7 @@ local function open_above(number, replay)
 		cursor.Loc.X = 0
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DURATION, function()
+		utils.next_tick(function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 2, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()
@@ -297,7 +297,7 @@ local function open_here(number, replay)
 		cursor.Loc.X = 0
 		cursor:Buf():Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), "\n")
 
-		utils.after(editor.TICK_DURATION, function()
+		utils.next_tick(function()
 			cursor.Loc.Y = math.max(cursor.Loc.Y - 1, 0)
 			cursor.Loc.X = 0
 			motion.update_virtual_cursor()

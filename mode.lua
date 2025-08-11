@@ -9,7 +9,8 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
+local combuf = require("combuf")
 
 -- vi modes
 local MODE_COMMAND = 0
@@ -64,10 +65,10 @@ local function show()
 	elseif mode == MODE_INSERT then
 		mode_line = "vi insert mode"
 	else
-		editor.program_error("mode.show: invalid mode = " .. mode)
+		bell.program_error("mode.show: invalid mode = " .. mode)
 		return
 	end
-	micro.InfoBar():Message(mode_line .. " [" .. editor.command_buffer() .. "]")
+	micro.InfoBar():Message(mode_line .. " [" .. combuf.get() .. "]")
 end
 
 M.command = command

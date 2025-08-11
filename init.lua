@@ -11,7 +11,8 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
+local combuf = require("combuf")
 local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
@@ -19,11 +20,11 @@ local parse = require("parse")
 
 function Vi(bp)
 	-- reset states
-	editor.clear_command_buffer()
+	combuf.clear()
 
 	-- ensure command mode
 	if mode.is_command() then
-		editor.bell("already vi command mode")
+		bell.ring("already vi command mode")
 		return true
 	elseif mode.is_find() then
 		mode.command()
@@ -71,7 +72,7 @@ function ViEnter(bp)
 		mode.command()
 		return true
 	else
-		editor.program_error("ViEnter: invalid mode = " .. mode.code())
+		bell.program_error("ViEnter: invalid mode = " .. mode.code())
 		return false
 	end
 end

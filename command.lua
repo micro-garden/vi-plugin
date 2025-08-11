@@ -11,7 +11,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local editor = require("editor")
+local bell = require("bell")
 local mode = require("mode")
 local motion = require("motion")
 local insert = require("insert")
@@ -53,7 +53,7 @@ local function repeat_command(number)
 	mode.show()
 
 	if not command_cache then
-		editor.vi_error("no command cached yet")
+		bell.message("no command cached yet")
 		return
 	end
 
