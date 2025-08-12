@@ -425,6 +425,51 @@ local function join_lines(number)
 	end
 end
 
+local function indent_line_internal(number, indent)
+	mode.show()
+
+	local pane = micro.CurPane()
+	local buf = pane.buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y + number - 1 > last_line_index then
+		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		return
+	end
+
+	mode.insert()
+	local saved_x = cursor.X
+	local saved_y = cursor.Y
+	for i = 1, number do
+		if indent then
+		micro.CurPane():IndentLine()
+		else
+		micro.CurPane():OutdentLine()
+		end
+		if number > 1 then
+			if i == 1 then
+				saved_x = cursor.X
+				saved_y = cursor.Y
+			end
+			cursor.X = 0
+			cursor.Y = cursor.Y + 1
+		end
+	end
+	if number > 1 then
+		cursor.X = saved_x
+		cursor.Y = saved_y
+	end
+	mode.command()
+end
+
+local function indent_line(number)
+	indent_line_internal(number, true)
+end
+
+local function outdent_line(number)
+	indent_line_internal(number, false)
+end
+
 M.clear_kill_buffer = clear_kill_buffer
 --M.insert_killed_lines = insert_killed_lines
 M.insert_killed_chars = insert_killed_chars
@@ -444,5 +489,7 @@ M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
 
 M.join_lines = join_lines
+M.indent_line = indent_line
+M.outdent_line = outdent_line
 
 return M

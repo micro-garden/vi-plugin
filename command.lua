@@ -168,6 +168,16 @@ local function run_edit(number, edit_part, replay)
 		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
+	elseif edit_part == ">>" then
+		edit.indent_line(number)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
+		undo_mode = true
+		return true
+	elseif edit_part == "<<" then
+		edit.outdent_line(number)
+		cache_command(false, number, edit_part, true, 1, "", nil, nil)
+		undo_mode = true
+		return true
 	else
 		return false
 	end

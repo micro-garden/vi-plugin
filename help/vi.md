@@ -61,6 +61,9 @@ All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 | `p`           | Paste after (insert below current line)  |
 | `P`           | Paste before (insert above current line) |
 | `J`           | Join 2 lines                             |
+| `>>`          | Indent current line                      |
+| `<<`          | Outdent current line                     |
+| `2>>`         | Indent 2 lines                           |
 
 ### Replace commands
 
