@@ -169,12 +169,12 @@ local function run_edit(number, edit_part, replay)
 		undo_mode = true
 		return true
 	elseif edit_part == ">>" then
-		edit.indent_line(number)
+		edit.indent_lines(number)
 		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
 	elseif edit_part == "<<" then
-		edit.outdent_line(number)
+		edit.outdent_lines(number)
 		cache_command(false, number, edit_part, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
@@ -241,8 +241,13 @@ local function run_motion(no_number, number, move, letter)
 	end
 end
 
-local function get_region(number, no_subnum, subnum, move, letter)
+local function get_region(number, no_subnum, subnum, move, letter, save)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local saved_x, saved_y
+	if save ~= nil and save then
+		saved_x, saved_y = cursor.X, cursor.Y
+	end
+
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	for _ = 1, number do
@@ -251,6 +256,9 @@ local function get_region(number, no_subnum, subnum, move, letter)
 
 	local end_loc = buffer.Loc(cursor.X, cursor.Y)
 
+	if save ~= nil and save then
+		cursor.X, cursor.Y = saved_x, saved_y
+	end
 	return start_loc, end_loc
 end
 
@@ -289,6 +297,22 @@ local function run_compound(number, edit_part, no_subnum, subnum, move, letter, 
 	elseif edit_part == "c" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
 		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
 		replace.replace_chars_region(start_loc, end_loc, replay)
+		matched = true
+	elseif edit_part == ">" and (move:match("[jk\nG]+") or move == "'" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+		edit.indent_region(start_loc, end_loc, number)
+		matched = true
+	elseif edit_part == "<" and (move:match("[jk\nG]+") or move == "'" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+		edit.outdent_region(start_loc, end_loc, number)
+		matched = true
+	elseif edit_part == ">" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+		edit.indent_region(start_loc, end_loc, 1)
+		matched = true
+	elseif edit_part == "<" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+		edit.outdent_region(start_loc, end_loc, 1)
 		matched = true
 	end
 

@@ -425,7 +425,7 @@ local function join_lines(number)
 	end
 end
 
-local function indent_line_internal(number, indent)
+local function indent_lines_internal(number, indent)
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -442,9 +442,9 @@ local function indent_line_internal(number, indent)
 	local saved_y = cursor.Y
 	for i = 1, number do
 		if indent then
-		micro.CurPane():IndentLine()
+			micro.CurPane():IndentLine()
 		else
-		micro.CurPane():OutdentLine()
+			micro.CurPane():OutdentLine()
 		end
 		if number > 1 then
 			if i == 1 then
@@ -462,12 +462,29 @@ local function indent_line_internal(number, indent)
 	mode.command()
 end
 
-local function indent_line(number)
-	indent_line_internal(number, true)
+local function indent_lines(number)
+	indent_lines_internal(number, true)
 end
 
-local function outdent_line(number)
-	indent_line_internal(number, false)
+local function outdent_lines(number)
+	indent_lines_internal(number, false)
+end
+
+local function indent_region_internal(start_loc, end_loc, number, indent)
+	if not is_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc -- swap
+	end
+
+	local n = end_loc.Y - start_loc.Y + 1
+	indent_lines_internal(number * n, indent)
+end
+
+local function indent_region(start_loc, end_loc, number)
+	indent_region_internal(start_loc, end_loc, number, true)
+end
+
+local function outdent_region(start_loc, end_loc, number)
+	indent_region_internal(start_loc, end_loc, number, false)
 end
 
 M.clear_kill_buffer = clear_kill_buffer
@@ -489,7 +506,9 @@ M.delete_to_line_end = delete_to_line_end
 M.copy_to_line_end = copy_to_line_end
 
 M.join_lines = join_lines
-M.indent_line = indent_line
-M.outdent_line = outdent_line
+M.indent_lines = indent_lines
+M.outdent_lines = outdent_lines
+M.indent_region = indent_region
+M.outdent_region = outdent_region
 
 return M
