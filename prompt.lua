@@ -47,7 +47,7 @@ local function enter()
 	elseif pb == "qa!" then -- vim
 		pane:QuitAll()
 	else
-		bell.vi_error("unknown command: " + pb)
+		bell.vi_error("not (yet) a ex command [" .. pb .. "]")
 	end
 	clear()
 	mode.command()

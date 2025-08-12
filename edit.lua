@@ -43,7 +43,7 @@ local function delete_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + number - 1 > last_line_index then
-		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		bell.ring("cannot delete " .. number .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
 		return
 	end
 
@@ -73,7 +73,7 @@ local function copy_lines(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + number - 1 > last_line_index then
-		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+		bell.ring("cannot copy" .. number .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
 		return
 	end
 
@@ -94,7 +94,7 @@ local function delete_chars(number)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		bell.ring("no character in the line")
+		bell.ring("nothing to delete, line is empty")
 		return
 	end
 
@@ -127,7 +127,7 @@ local function delete_chars_backward(number)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		bell.ring("no character in the line")
+		bell.ring("nothing to delete, line is empty")
 		return
 	end
 
@@ -156,7 +156,7 @@ local function paste_below(number)
 	mode.show()
 
 	if not kill_buffer then
-		bell.vi_info("kill buffer is empty yet")
+		bell.vi_info("nothing to paste yet")
 		return
 	end
 
@@ -217,7 +217,7 @@ local function paste_above(number)
 	mode.show()
 
 	if not kill_buffer then
-		bell.vi_info("kill buffer is empty yet")
+		bell.vi_info("nothing to paste yet")
 		return
 	end
 
@@ -341,7 +341,7 @@ local function delete_to_line_end()
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		bell.ring("no characters in this line")
+		bell.ring("nothing to delete, line is empty")
 		return
 	end
 
@@ -367,7 +367,7 @@ local function copy_to_line_end()
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if length < 1 then
-		bell.ring("no characters in this line")
+		bell.ring("nothing to copy, line is empty")
 		return
 	end
 

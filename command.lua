@@ -53,7 +53,7 @@ local function repeat_command(number)
 	mode.show()
 
 	if not command_cache then
-		bell.vi_info("no command cached yet")
+		bell.vi_info("nothing to repeat yet")
 		return
 	end
 

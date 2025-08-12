@@ -30,7 +30,7 @@ local function after(duration, fn)
 	then
 		time.AfterFunc(duration, fn)
 	else
-		micro.TermMessage("** vi environment error **\nCannot find After API")
+		micro.TermMessage("** vi environment error **\ncannot find After* method")
 	end
 end
 

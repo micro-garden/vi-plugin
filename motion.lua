@@ -29,7 +29,7 @@ local function move_left(number)
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	if cursor.X <= 0 then
-		bell.ring("already at the beginning of the line")
+		bell.ring("already at the line start")
 		return
 	end
 	cursor.X = math.max(cursor.X - number, 0)
@@ -46,7 +46,7 @@ local function move_right(number)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 	if cursor.X >= length - 1 then
-		bell.ring("already at the end of the line")
+		bell.ring("already at the line end")
 	end
 	cursor.X = math.min(cursor.X + number, math.max(length - 1, 0))
 
@@ -61,7 +61,7 @@ local function move_up(number)
 	local cursor = buf:GetActiveCursor()
 	local dest_y = cursor.Y - number
 	if dest_y < 0 then
-		bell.ring("cannot move up to line " .. dest_y + 1)
+		bell.ring("Not enough lines above")
 		return
 	end
 	cursor.Y = dest_y
@@ -81,7 +81,7 @@ local function move_down(number)
 
 	local dest_y = cursor.Y + number
 	if dest_y > last_line_index then
-		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
+		bell.ring("Not enough lines below")
 		return
 	end
 	cursor.Y = dest_y
@@ -147,7 +147,7 @@ local function move_next_word(number)
 	local length = utf8.RuneCount(line)
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.X >= length - 1 and cursor.Y >= last_line_index then
-		bell.ring("no next words")
+		bell.ring("no more words ahead")
 		return
 	end
 
@@ -194,7 +194,7 @@ local function move_prev_word(number)
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	if cursor.X < 1 and cursor.Y < 1 then
-		bell.ring("no previous words")
+		bell.ring("no more words behind")
 		return
 	end
 
@@ -263,7 +263,7 @@ local function goto_line(number)
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if number - 1 > last_line_index then
-		bell.ring("line number out of range: " .. number .. " > " .. last_line_index + 1)
+		bell.ring("line number too large: " .. number .. " > " .. last_line_index + 1)
 		return
 	end
 	cursor.Y = number - 1

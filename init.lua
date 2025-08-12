@@ -25,7 +25,7 @@ function Vi(_)
 
 	-- ensure command mode
 	if mode.is_command() then
-		bell.ring("already vi command mode")
+		bell.ring("already in vi command mode")
 		return true
 	elseif mode.is_find() then
 		mode.command()
@@ -98,7 +98,7 @@ function ViDefault(_, args)
 		return
 	end
 	config.SetGlobalOption("vi.default", tostring(default))
-	bell.info("set vi.default " .. tostring(default))
+	bell.info("vi.default is now " .. tostring(default))
 end
 
 function preinit()
