@@ -34,8 +34,12 @@ local function after(duration, fn)
 	end
 end
 
-local function next_tick(fn)
-	after(TICK_DURATION, fn)
+local function next_tick(fn, n)
+	if not n or n < 1 then
+		after(TICK_DURATION, fn)
+	else
+		next_tick(fn, n - 1)
+	end
 end
 
 local function last_line_index(buf)

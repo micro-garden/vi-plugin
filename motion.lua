@@ -143,71 +143,45 @@ local function move_next_word(number)
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+		bell.ring("no next words")
+		return
+	end
+
 	for _ = 1, number do
-		local line = buf:Line(cursor.Y)
-		local length = utf8.RuneCount(line)
+		if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+			break
+		end
+		local str = utils.utf8_sub(line, cursor.X + 1)
 
-		if cursor.X >= length - 1 then
-			local last_line_index = utils.last_line_index(buf)
-			if cursor.Y >= last_line_index then
-				bell.ring("no next words")
-				break
-			end
-			cursor.Y = cursor.Y + 1
-
-			line = buf:Line(cursor.Y)
-			local spaces = line:match("^(%s*)")
-			cursor.X = utf8.RuneCount(spaces)
+		local word, word_spaces, symbols, symbol_spaces = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+		local forward
+		if #word > 0 then
+			forward = utf8.RuneCount(word .. word_spaces)
+		elseif #symbols > 0 then
+			forward = utf8.RuneCount(symbols .. symbol_spaces)
 		else
-			local str = line
-			local cursor_x = cursor.X
-			for _ = 1, cursor_x do
-				local _, size = utf8.DecodeRuneInString(str)
-				str = str:sub(1 + size)
-			end
+			forward = utf8.RuneCount(word_spaces)
+		end
+		cursor.X = cursor.X + forward
 
-			local prefix, prespaces, word, postspaces, postfix =
-				str:match("^([^%w_\128-\255%s]*)(%s*)([%w_\128-\255]*)(%s*)([^%w\128-\255]*)")
-			local forward = 0
-			if #prefix > 0 then
-				forward = utf8.RuneCount(prefix .. prespaces)
-			elseif #word > 0 and #postfix > 0 then
-				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces)
-			elseif #word > 0 and #postspaces > 0 then
-				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces)
-			elseif #word > 0 then
-				forward = utf8.RuneCount(prefix .. prespaces .. word .. postspaces) + 1
-			elseif #prespaces > 0 then
-				forward = utf8.RuneCount(prespaces)
-			end
-
-			cursor.X = cursor.X + forward
-			local last_line_index = buf:LinesNum() - 1
-			while cursor.X > length - 1 do
-				if cursor.Y >= last_line_index - 1 then
-					local last_line = buf:Line(last_line_index)
-					local last_line_length = utf8.RuneCount(last_line)
-					if last_line_length < 1 then
-						break
-					end
-				end
+		if cursor.X > length - 1 then
+			while cursor.Y < last_line_index do
 				cursor.Y = cursor.Y + 1
 
 				line = buf:Line(cursor.Y)
 				length = utf8.RuneCount(line)
 				local spaces = line:match("^(%s*)")
-				cursor.X = cursor.X + utf8.RuneCount(spaces)
+				cursor.X = utf8.RuneCount(spaces)
 
-				if cursor.Y == last_line_index - 1 then
-					local last_line = buf:Line(last_line_index)
-					local last_line_length = utf8.RuneCount(last_line)
-					if last_line_length < 1 then
-						break
-					end
-				elseif cursor.Y >= last_line_index then
+				if length > cursor.X then
 					break
 				end
 			end
+			cursor.X = math.min(cursor.X, length - 1)
 		end
 	end
 
@@ -219,72 +193,53 @@ local function move_prev_word(number)
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
+	if cursor.X < 1 and cursor.Y < 1 then
+		bell.ring("no previous words")
+		return
+	end
+
 	for _ = 1, number do
 		if cursor.X < 1 and cursor.Y < 1 then
-			bell.ring("no previous words")
 			break
+		end
+		local line = buf:Line(cursor.Y)
+		local str = utils.utf8_sub(line, 1, cursor.X):reverse()
+
+		local spaces, symbols, word = str:match("^(%s*)([^%w_\128-\255%s]*)([%w_\128-\255]*)")
+		local backward
+		if #symbols > 0 then
+			backward = utf8.RuneCount(spaces .. symbols)
+		elseif #word > 0 then
+			backward = utf8.RuneCount(spaces .. word)
 		else
-			local line = buf:Line(cursor.Y)
+			backward = utf8.RuneCount(spaces) + 1
+		end
+		cursor.X = cursor.X - backward
 
-			local str = line
-			local cursor_x = cursor.X
-			local start_offset = 0
-			for _ = 1, cursor_x do
-				local _, size = utf8.DecodeRuneInString(str)
-				str = str:sub(1 + size)
-				start_offset = start_offset + size
-			end
-
-			str = line:sub(1, start_offset):reverse()
-
-			local prefix, prespaces, word, postspaces, postfix =
-				str:match("^([^%w_\128-\255%s]*)(%s*)([%w_\128-\255]*)(%s*)([^%w\128-\255%s]*)")
-			local backward = 0
-			if cursor.X < 1 then
-				backward = cursor.X + 1
-			elseif #prefix > 0 then
-				backward = utf8.RuneCount(prefix .. prespaces)
-			elseif #word > 0 and #postfix > 0 then
-				backward = utf8.RuneCount(prefix .. prespaces .. word)
-			elseif #word > 0 and #postspaces > 0 then
-				backward = utf8.RuneCount(prefix .. prespaces .. word)
-			elseif #word > 0 then
-				backward = utf8.RuneCount(prefix .. prespaces .. word)
-			elseif #prespaces > 0 and #postfix > 0 then
-				backward = utf8.RuneCount(prespaces .. postfix)
-			elseif #prespaces > 0 then
-				backward = utf8.RuneCount(prespaces) + 1
-			end
-
-			local carry = backward > 0 and cursor.X - backward < 0
-			cursor.X = math.max(cursor.X - backward, 0)
-			while carry do
-				if cursor.Y < 1 and cursor.X < 1 then
-					break
-				end
-
+		if cursor.X < 0 then
+			local length
+			while cursor.Y > 0 do
 				cursor.Y = cursor.Y - 1
 
-				line = buf:Line(cursor.Y):reverse()
-				local length = utf8.RuneCount(line)
-				cursor.X = math.max(length - 1, 0)
-
-				if length > 0 then
-					local spaces, word, symbols = line:match("^(%s*)([%w_\128-\255]*)([^%w_\128-\255%s]*)") -- luacheck: ignore
-					backward = 0
-					if #word > 0 then
-						backward = utf8.RuneCount(word .. spaces) - 1
-					elseif #symbols > 0 then
-						backward = utf8.RuneCount(symbols .. spaces) - 1
-					elseif #spaces > 0 then
-						backward = utf8.RuneCount(spaces) + 1
-					end
-
-					carry = backward > 0 and cursor.X - backward < 0
-
-					cursor.X = math.max(cursor.X - backward, 0)
+				line = buf:Line(cursor.Y)
+				length = utf8.RuneCount(line)
+				if not line:match("^(%s*)$") then
+					break
 				end
 			end
+			cursor.X = length
+
+			local str = utils.utf8_sub(line, 1, cursor.X):reverse() -- luacheck: ignore
+			local spaces, symbols, word = str:match("^(%s*)([^%w_\128-\255%s]*)([%w_\128-\255]*)") -- luacheck: ignore
+			local backward -- luacheck: ignore
+			if #symbols > 0 then
+				backward = utf8.RuneCount(spaces .. symbols)
+			elseif #word > 0 then
+				backward = utf8.RuneCount(spaces .. word)
+			else
+				backward = utf8.RuneCount(spaces)
+			end
+			cursor.X = cursor.X - backward
 		end
 	end
 

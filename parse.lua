@@ -38,7 +38,7 @@ function onBeforeTextEvent(buf, ev)
 
 	-- assert
 	if ev.EventType ~= TEXT_EVENT_INSERT then
-		bell.fatal("Invalid text event type = ev.EventType")
+		bell.fatal("Invalid text event type = " .. ev.EventType)
 		return true
 	end
 
@@ -85,7 +85,7 @@ function onBeforeTextEvent(buf, ev)
 	if #number_str < 1 then
 		no_number = true
 	elseif number_str == "0" then
-		number_str, move = "", "0"
+		move = "0"
 	else
 		number = tonumber(number_str)
 	end
@@ -95,7 +95,7 @@ function onBeforeTextEvent(buf, ev)
 	if #subnum_str < 1 then
 		no_subnum = true
 	elseif subnum_str == "0" then
-		subnum_str, move = "", "0"
+		move = "0"
 	else
 		subnum = tonumber(subnum_str)
 	end
