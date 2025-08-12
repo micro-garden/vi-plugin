@@ -12,6 +12,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
+local prompt = require("prompt")
 local motion = require("motion")
 local insert = require("insert")
 local edit = require("edit")
@@ -326,7 +327,11 @@ local function run_compound(number, edit_part, no_subnum, subnum, move, letter, 
 end
 
 local function run_misc(number, edit_part, letter, replay)
-	if edit_part == "m" and letter then
+	if edit_part == ":" then
+		mode.prompt()
+		prompt.show()
+		return true
+	elseif edit_part == "m" and letter then
 		mark.set(letter)
 		return true
 	elseif edit_part == "." then

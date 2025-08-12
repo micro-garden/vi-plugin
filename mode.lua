@@ -16,6 +16,7 @@ local combuf = require("combuf")
 local MODE_COMMAND = 0
 local MODE_INSERT = 1
 local MODE_FIND = 2
+local MODE_PROMPT = 3
 
 -- states
 local mode = MODE_INSERT
@@ -42,6 +43,10 @@ local function find()
 	mode = MODE_FIND
 end
 
+local function prompt()
+	mode = MODE_PROMPT
+end
+
 local function code()
 	return mode
 end
@@ -56,6 +61,10 @@ end
 
 local function is_find()
 	return mode == MODE_FIND
+end
+
+local function is_prompt()
+	return mode == MODE_PROMPT
 end
 
 local function show()
@@ -74,10 +83,12 @@ end
 M.command = command
 M.insert = insert
 M.find = find
+M.prompt = prompt
 M.code = code
 M.is_command = is_command
 M.is_insert = is_insert
 M.is_find = is_find
+M.is_prompt = is_prompt
 M.show = show
 
 return M

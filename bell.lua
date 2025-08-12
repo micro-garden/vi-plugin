@@ -43,6 +43,7 @@ end
 M.fatal = fatal
 M.error = general_error
 M.info = show_message
+M.vi_error = general_error
 M.vi_info = show_message
 M.ring = ring
 return M

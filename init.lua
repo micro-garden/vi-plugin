@@ -12,8 +12,9 @@ if not package.path:find(plug_path, 1, true) then
 end
 
 local bell = require("bell")
-local combuf = require("combuf")
 local mode = require("mode")
+local combuf = require("combuf")
+local prompt = require("prompt")
 local motion = require("motion")
 local insert = require("insert")
 local utils = require("utils")
@@ -28,6 +29,9 @@ function Vi(_)
 		return true
 	elseif mode.is_find() then
 		mode.command()
+		return true
+	elseif mode.is_prompt() then
+		prompt.escape()
 		return true
 	end
 	mode.command()
@@ -68,6 +72,9 @@ function ViEnter(_)
 		return false
 	elseif mode.is_find() then
 		mode.command()
+		return true
+	elseif mode.is_prompt() then
+		prompt.enter()
 		return true
 	else
 		bell.fatal("ViEnter: invalid mode = " .. mode.code())

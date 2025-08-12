@@ -13,6 +13,7 @@ local bell = require("bell")
 local combuf = require("combuf")
 local mode = require("mode")
 local command = require("command")
+local prompt = require("prompt")
 
 -- internal constants
 local TEXT_EVENT_INSERT = 1
@@ -61,11 +62,20 @@ function onBeforeTextEvent(buf, ev)
 	delta.End.X = 0
 	delta.End.Y = 0
 
+	if mode.is_prompt() then
+		if input == "\n" then
+			prompt.enter()
+		else
+			prompt.insert_chars(input)
+		end
+		return true
+	end
+
 	combuf.insert_chars(input)
 	local comb = combuf.get()
 
 	local number_str, edit, subnum_str, move, _ =
-		comb:match("^(%d*)([iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
+		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
 
 	local mark_command, letter = comb:match("([m'`])([^'`])$")
 	if mark_command == "m" then

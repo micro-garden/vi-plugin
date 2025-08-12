@@ -97,12 +97,24 @@ For example:
 | `d2w`   | Delete 2 word                         |
 | `yG`    | Copy from current line to bottom line |
 
-### Other Commands
+### Miscellaneous Commands
 
 | Command | Description         |
 | ------- | ------------------- |
 | `.`     | Repeat last command |
 | `ZZ`    | Quit micro          |
+
+### Prompt Commands
+
+| Command | Description                  |
+| ------- | ---------------------------- |
+| `:w`    | Write current buffer to file |
+| `:q`    | Quit (close current buffer)  |
+| `:q!`   | Force quit without saving    |
+| `:e`    | Open file                    |
+| `:wa`   | Save all buffers to files    |
+
+###
 
 ### vi.default Option
 
