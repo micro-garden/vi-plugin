@@ -31,21 +31,21 @@ end
 
 local function enter()
 	local pb = prompt_buffer
+	local pane = micro.CurPane()
 	if pb == "w" then
-		local pane = micro.CurPane()
 		pane:Save()
 	elseif pb == "q" then
-		local pane = micro.CurPane()
 		pane:Quit()
 	elseif pb == "q!" then
-		local pane = micro.CurPane()
 		pane:ForceQuit()
 	elseif pb == "e" then
-		local pane = micro.CurPane()
 		pane:OpenFile()
 	elseif pb == "wa" then -- vim
-		local pane = micro.CurPane()
 		pane:SaveAll()
+	elseif pb == "qa" then -- vim
+		pane:QuitAll()
+	elseif pb == "qa!" then -- vim
+		pane:QuitAll()
 	else
 		bell.vi_error("unknown command: " + pb)
 	end

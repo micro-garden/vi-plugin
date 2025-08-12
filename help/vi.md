@@ -106,13 +106,14 @@ For example:
 
 ### Prompt Commands
 
-| Command | Description                  |
-| ------- | ---------------------------- |
-| `:w`    | Write current buffer to file |
-| `:q`    | Quit (close current buffer)  |
-| `:q!`   | Force quit without saving    |
-| `:e`    | Open file                    |
-| `:wa`   | Save all buffers to files    |
+| Command               | Description                  |
+| --------------------- | ---------------------------- |
+| `:w`                  | Write current buffer to file |
+| `:q`                  | Quit (close current buffer)  |
+| `:q!`                 | Force quit without saving    |
+| `:e`                  | Open file                    |
+| `:wa` (vim)           | Save all buffers to files    |
+| `:qa` or `:qa!` (vim) | Quit all buffers             |
 
 ###
 
@@ -133,9 +134,3 @@ videfault false
 Without arguments, the `videfault` command toggles the setting.
 
 This setting is saved globally and applies to all newly opened buffers.
-
-## Notes
-
-- Word movement (`w`, `b`) uses micro’s `WordRight` and `WordLeft` logic and
-  may not fully match vi behavior.
-- This plugin is a **proof of concept**, and not a full vi clone.
