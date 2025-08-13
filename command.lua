@@ -292,11 +292,17 @@ local function run_move(no_number, number, mv, letter)
 	end
 
 	-- XXX could not move to misc
-	if mv == "'" and letter then
-		mark.goto_line(letter)
+	if mv == "`" and letter then
+		mark.move_to(letter)
 		return true
-	elseif mv == "`" and letter then
-		mark.goto_char(letter)
+	elseif mv == "'" and letter then
+		mark.move_to_line(letter)
+		return true
+	elseif mv == "``" then
+		mark.back()
+		return true
+	elseif mv == "''" then
+		mark.back_to_line()
 		return true
 	elseif mv == "/" then
 		find.find()

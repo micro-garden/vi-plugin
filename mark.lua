@@ -18,6 +18,11 @@ local utils = require("utils")
 
 local marks = {}
 
+--
+-- Set Mark / Move to Mark
+--
+
+-- key: m{letter}
 local function set(letter)
 	mode.show()
 
@@ -27,25 +32,8 @@ local function set(letter)
 	marks[letter] = loc
 end
 
-local function goto_line(letter)
-	mode.show()
-
-	local loc = marks[letter]
-	if not loc then
-		bell.ring("no mark set for " .. letter)
-		return
-	end
-
-	local cursor = micro.CurPane().Buf:GetActiveCursor()
-	local last_line_index = utils.last_line_index()
-	cursor.Y = math.min(loc.Y, last_line_index)
-
-	cursor.X = 0
-
-	move.update_virtual_cursor()
-end
-
-local function goto_char(letter)
+-- key: `{letter}
+local function move_to(letter)
 	mode.show()
 
 	local loc = marks[letter]
@@ -66,8 +54,46 @@ local function goto_char(letter)
 	move.update_virtual_cursor()
 end
 
+-- key: '{letter}
+local function move_to_line(letter)
+	mode.show()
+
+	local loc = marks[letter]
+	if not loc then
+		bell.ring("no mark set for " .. letter)
+		return
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index()
+	cursor.Y = math.min(loc.Y, last_line_index)
+
+	cursor.X = 0
+
+	move.update_virtual_cursor()
+end
+
+--
+-- Move by Context
+--
+
+-- key: ``
+local function back()
+	bell.todo("not implemented yet")
+end
+
+-- key: ''
+local function back_to_line()
+	bell.todo("not implemented yet")
+end
+
+-- Set Mark / Move to Mark
 M.set = set
-M.goto_line = goto_line
-M.goto_char = goto_char
+M.move_to = move_to
+M.move_to_line = move_to_line
+
+-- Move by Context
+M.back = back
+M.back_to_line = back_to_line
 
 return M
