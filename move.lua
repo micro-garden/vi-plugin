@@ -23,8 +23,12 @@ local function update_virtual_cursor()
 	cursor:StoreVisualX()
 end
 
--- command: h
-local function move_left(number)
+--
+-- Move by Character / Move by Line
+--
+
+-- key: h
+local function left(number)
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -37,42 +41,8 @@ local function move_left(number)
 	update_virtual_cursor()
 end
 
--- command: l
-local function move_right(number)
-	mode.show()
-
-	local buf = micro.CurPane().Buf
-	local cursor = buf:GetActiveCursor()
-	local line = buf:Line(cursor.Y)
-	local length = utf8.RuneCount(line)
-	if cursor.X >= length - 1 then
-		bell.ring("already at the line end")
-	end
-	cursor.X = math.min(cursor.X + number, math.max(length - 1, 0))
-
-	update_virtual_cursor()
-end
-
--- command: k
-local function move_up(number)
-	mode.show()
-
-	local buf = micro.CurPane().Buf
-	local cursor = buf:GetActiveCursor()
-	local dest_y = cursor.Y - number
-	if dest_y < 0 then
-		bell.ring("Not enough lines above")
-		return
-	end
-	cursor.Y = dest_y
-
-	local line = buf:Line(cursor.Y)
-	local length = utf8.RuneCount(line)
-	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
-end
-
--- command: j
-local function move_down(number)
+-- key: j
+local function down(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -91,8 +61,46 @@ local function move_down(number)
 	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
--- command: 0
-local function move_line_start()
+-- key: k
+local function up(number)
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local dest_y = cursor.Y - number
+	if dest_y < 0 then
+		bell.ring("Not enough lines above")
+		return
+	end
+	cursor.Y = dest_y
+
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
+end
+
+-- key: l
+local function right(number)
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if cursor.X >= length - 1 then
+		bell.ring("already at the line end")
+	end
+	cursor.X = math.min(cursor.X + number, math.max(length - 1, 0))
+
+	update_virtual_cursor()
+end
+
+--
+-- Move in Line
+--
+
+-- key: 0
+local function to_start_of_line()
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -101,8 +109,8 @@ local function move_line_start()
 	update_virtual_cursor()
 end
 
--- command: $
-local function move_line_end()
+-- key: $
+local function to_end_of_line()
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -114,43 +122,22 @@ local function move_line_end()
 	update_virtual_cursor()
 end
 
--- command: \n
-local function move_next_line_start(number)
-	mode.show()
-
-	local buf = micro.CurPane().Buf
-	local cursor = buf:GetActiveCursor()
-	local last_line_index = utils.last_line_index(buf)
-
-	local dest_y = cursor.Y + number
-	if dest_y > last_line_index then
-		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
-		return
-	end
-	cursor.Y = dest_y
-
-	local line = buf:Line(cursor.Y)
-	local spaces = line:match("^(%s*)")
-	cursor.X = utf8.RuneCount(spaces)
-	update_virtual_cursor()
-
-	micro.CurPane():Relocate()
-end
-
-local function move_prev_line_start(number)
+-- key: ^
+local function to_non_blank_of_line()
 	bell.todo("not implemented yet")
 end
 
-local function move_to_first_non_blank()
+-- key: |
+local function to_column(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_to_column(number)
-	bell.todo("not implemented yet")
-end
+--
+-- Move by Word / Move by Loose Word
+--
 
--- command: w
-local function move_word(number)
+-- key: w
+local function by_word(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -200,12 +187,8 @@ local function move_word(number)
 	update_virtual_cursor()
 end
 
-local function move_word_loose(number)
-	bell.todo("not implemented yet")
-end
-
--- command: b
-local function move_word_back(number)
+-- key: b
+local function backward_by_word(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -263,43 +246,60 @@ local function move_word_back(number)
 	update_virtual_cursor()
 end
 
-local function move_word_back_loose(number)
+-- key: e
+local function to_end_of_word(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_word_end(number)
+-- key: W
+local function by_loose_word(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_word_end_loose(number)
+-- key: B
+local function backward_by_loose_word(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_sentence(number)
+-- key: E
+local function to_end_of_loose_word(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_sentence_back(number)
+--
+-- Move by Line
+--
+
+-- key: Enter, +
+local function to_non_blank_of_next_line(number)
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+
+	local dest_y = cursor.Y + number
+	if dest_y > last_line_index then
+		bell.ring("cannot move down to line " .. dest_y + 1 .. " > " .. last_line_index + 1)
+		return
+	end
+	cursor.Y = dest_y
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+	update_virtual_cursor()
+
+	micro.CurPane():Relocate()
+end
+
+-- key: -
+local function to_non_blank_of_prev_line(number)
 	bell.todo("not implemented yet")
 end
 
-local function move_paragraph(number)
-	bell.todo("not implemented yet")
-end
-
-local function move_paragraph_back(number)
-	bell.todo("not implemented yet")
-end
-
-local function move_section(number)
-	bell.todo("not implemented yet")
-end
-
-local function move_section_back(number)
-	bell.todo("not implemented yet")
-end
-
-local function goto_bottom()
+-- key: G
+local function to_last_line()
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -309,7 +309,8 @@ local function goto_bottom()
 	update_virtual_cursor()
 end
 
-local function goto_line(number)
+-- key: {number}G
+local function to_line(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -324,35 +325,111 @@ local function goto_line(number)
 	update_virtual_cursor()
 end
 
+--
+-- Move by Block
+--
+
+-- key: )
+local function by_sentence(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: (
+local function backward_by_sentence(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: }
+local function by_paragraph(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: {
+local function backward_by_paragraph(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: ]]
+local function by_section(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: [[
+local function backward_by_section(number)
+	bell.todo("not implemented yet")
+end
+
+--
+-- Move in View
+--
+
+-- key: H
+local function to_top_of_view()
+	bell.todo("not implemented yet")
+end
+
+-- key: M
+local function to_middle_of_view()
+	bell.todo("not implemented yet")
+end
+
+-- key: L
+local function to_bottom_of_view()
+	bell.todo("not implemented yet")
+end
+
+-- key: {number}H
+local function to_below_top_of_view(number)
+	bell.todo("not implemented yet")
+end
+
+-- key: {number}L
+local function to_above_bottom_of_view(number)
+	bell.todo("not implemented yet")
+end
+
+--
 M.update_virtual_cursor = update_virtual_cursor
 
-M.move_left = move_left
-M.move_right = move_right
-M.move_up = move_up
-M.move_down = move_down
+-- Move by Character / Move by line
+M.left = left
+M.down = down
+M.up = up
+M.right = right
 
-M.move_line_start = move_line_start
-M.move_line_end = move_line_end
-M.move_next_line_start = move_next_line_start
-M.move_prev_line_start = move_prev_line_start
-M.move_to_first_non_blank = move_to_first_non_blank
-M.move_to_column = move_to_column
+-- Move in Line
+M.to_start_of_line = to_start_of_line
+M.to_end_of_line = to_end_of_line
+M.to_non_blank_of_line = to_non_blank_of_line
+M.to_column = to_column
 
-M.move_word = move_word
-M.move_word_loose = move_word_loose
-M.move_word_back = move_word_back
-M.move_word_back_loose = move_word_back_loose
-M.move_word_end = move_word_end
-M.move_word_end_loose = move_word_end_loose
+-- Move by Word / Move by Loose Word
+M.by_word = by_word
+M.backward_by_word = backward_by_word
+M.to_end_of_word = to_end_of_word
+M.by_loose_word = by_loose_word
+M.backward_by_loose_word = backward_by_loose_word
+M.to_end_of_loose_word = to_end_of_loose_word
 
-M.move_sentence = move_sentence
-M.move_sentence_back = move_sentence_back
-M.move_paragraph = move_sentence
-M.move_paragraph_back = move_sentence_back
-M.move_section = move_section
-M.move_section_back = move_section_back
+-- Move by Line
+M.to_non_blank_of_next_line = to_non_blank_of_next_line
+M.to_non_blank_of_prev_line = to_non_blank_of_prev_line
+M.to_last_line = to_last_line
+M.to_line = to_line
 
-M.goto_bottom = goto_bottom
-M.goto_line = goto_line
+-- Move by Block
+M.by_sentence = by_sentence
+M.backward_by_sentence = backward_by_sentence
+M.by_paragraph = by_paragraph
+M.backward_by_paragraph = backward_by_paragraph
+M.by_section = by_section
+M.backward_by_section = backward_by_section
+
+-- Move in View
+M.to_top_of_view = to_top_of_view
+M.to_middle_of_view = to_middle_of_view
+M.to_bottom_of_view = to_bottom_of_view
+M.to_below_top_of_view = to_below_top_of_view
+M.to_above_bottom_of_view = to_above_bottom_of_view
 
 return M

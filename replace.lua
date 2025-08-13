@@ -12,7 +12,7 @@ if not package.path:find(plug_path, 1, true) then
 end
 
 local mode = require("mode")
-local motion = require("motion")
+local move = require("move")
 local edit = require("edit")
 local insert = require("insert")
 local utils = require("utils")
@@ -56,7 +56,7 @@ local function replace_chars(number, replay)
 			else
 				cursor.X = math.min(saved_x, math.max(length - 1, 0))
 			end
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 
 			insert.insert_here_replace(1, replay)
 		end)

@@ -1,7 +1,5 @@
 local M = {}
 
-local micro = import("micro")
-
 local config = import("micro/config")
 local plug_name = "vi"
 local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
@@ -74,14 +72,14 @@ function onBeforeTextEvent(buf, ev)
 	combuf.insert_chars(input)
 	local comb = combuf.get()
 
-	local number_str, edit, subnum_str, move, _ =
-		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl\n%+%-0%$%^|wWbBeE%(%){}%[%]G'`/?nN]*)(.-)$")
+	local number_str, edit, subnum_str, mv, _ =
+		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nN]*)(.-)$")
 
 	local mark_command, letter = comb:match("([m'`])([^'`])$")
 	if mark_command == "m" then
 		edit = mark_command
 	elseif mark_command == "'" or mark_command == "`" then
-		move = mark_command
+		mv = mark_command
 	end
 
 	if not number_str then
@@ -95,7 +93,7 @@ function onBeforeTextEvent(buf, ev)
 	if #number_str < 1 then
 		no_number = true
 	elseif number_str == "0" then
-		move = "0"
+		mv = "0"
 	else
 		number = tonumber(number_str)
 	end
@@ -105,12 +103,12 @@ function onBeforeTextEvent(buf, ev)
 	if #subnum_str < 1 then
 		no_subnum = true
 	elseif subnum_str == "0" then
-		move = "0"
+		mv = "0"
 	else
 		subnum = tonumber(subnum_str)
 	end
 
-	if command.run(no_number, number, edit, no_subnum, subnum, move, letter, false) then
+	if command.run(no_number, number, edit, no_subnum, subnum, mv, letter, false) then
 		combuf.clear()
 		return true
 	end

@@ -14,7 +14,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
-local motion = require("motion")
+local move = require("move")
 local utils = require("utils")
 
 local saved = false
@@ -105,7 +105,7 @@ local function extend(loc, number, replay)
 
 	cursor.X = x
 	cursor.Y = y
-	motion.update_virtual_cursor()
+	move.update_virtual_cursor()
 end
 
 local function resume(orig_loc)
@@ -227,7 +227,7 @@ end
 local function insert_after_line_end(number, replay)
 	chars_mode()
 
-	motion.move_line_end()
+	move.to_end_of_line()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -266,7 +266,7 @@ local function open_below(number, replay)
 		utils.next_tick(function()
 			cursor.Y = math.max(cursor.Y - 1, 0)
 			cursor.X = 0
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 
 			save_state(number, replay)
 		end)
@@ -291,7 +291,7 @@ local function open_above(number, replay)
 		utils.next_tick(function()
 			cursor.Y = math.max(cursor.Y - 2, 0)
 			cursor.X = 0
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 
 			save_state(number, replay)
 		end)
@@ -316,7 +316,7 @@ local function open_here(number, replay)
 		utils.next_tick(function()
 			cursor.Y = math.max(cursor.Y - 1, 0)
 			cursor.X = 0
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 
 			save_state(number, replay)
 		end)

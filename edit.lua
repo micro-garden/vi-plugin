@@ -14,7 +14,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
-local motion = require("motion")
+local move = require("move")
 local utils = require("utils")
 
 local kill_buffer = nil
@@ -61,7 +61,7 @@ local function delete_lines(number)
 		local line = buf:Line(cursor.Y)
 		local spaces = line:match("^(%s*)")
 		cursor.X = utf8.RuneCount(spaces)
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 	end)
 end
 
@@ -113,7 +113,7 @@ local function delete_chars(number)
 		line = buf:Line(cursor.Y)
 		length = utf8.RuneCount(line)
 		cursor.X = math.min(saved_x, math.max(length - 1, 0))
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 	end)
 end
 
@@ -147,7 +147,7 @@ local function delete_chars_backward(number)
 		line = buf:Line(cursor.Y)
 		length = utf8.RuneCount(line)
 		cursor.X = math.min(math.max(saved_x - n, 0), math.max(length - 1, 0))
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 	end)
 end
 
@@ -198,7 +198,7 @@ local function paste_below(number)
 			line = buf:Line(cursor.Y)
 			local spaces = line:match("^(%s*)")
 			cursor.X = utf8.RuneCount(spaces)
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 		else -- kill chars
 			if saved_length < 1 then
 				cursor.X = saved_x
@@ -206,7 +206,7 @@ local function paste_below(number)
 				cursor.X = saved_x + 1
 			end
 		end
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 
 		mode.command()
 	end)
@@ -255,7 +255,7 @@ local function paste_above(number)
 		else -- kill chars
 			cursor.X = saved_x
 		end
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 
 		mode.command()
 	end)
@@ -314,7 +314,7 @@ local function delete_chars_region(start_loc, end_loc)
 		local line = buf:Line(cursor.Y)
 		local length = utf8.RuneCount(line)
 		cursor.X = math.min(cursor.X, math.max(length - 1, 0))
-		motion.update_virtual_cursor()
+		move.update_virtual_cursor()
 	end)
 end
 
@@ -355,7 +355,7 @@ local function delete_to_line_end()
 	line = buf:Line(cursor.Y)
 	length = utf8.RuneCount(line)
 	cursor.X = math.min(cursor.X, math.max(length - 1, 0))
-	motion.update_virtual_cursor()
+	move.update_virtual_cursor()
 end
 
 -- command: y$
@@ -420,7 +420,7 @@ local function join_lines(number)
 			else
 				cursor.X = loc.X
 			end
-			motion.update_virtual_cursor()
+			move.update_virtual_cursor()
 		end)
 	end
 end

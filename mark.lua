@@ -13,7 +13,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
-local motion = require("motion")
+local move = require("move")
 local utils = require("utils")
 
 local marks = {}
@@ -42,7 +42,7 @@ local function goto_line(letter)
 
 	cursor.X = 0
 
-	motion.update_virtual_cursor()
+	move.update_virtual_cursor()
 end
 
 local function goto_char(letter)
@@ -63,7 +63,7 @@ local function goto_char(letter)
 	local length = utf8.RuneCount(line)
 	cursor.X = math.min(loc.X, length - 1)
 
-	motion.update_virtual_cursor()
+	move.update_virtual_cursor()
 end
 
 M.set = set

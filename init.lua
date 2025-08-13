@@ -15,7 +15,7 @@ local bell = require("bell")
 local mode = require("mode")
 local combuf = require("combuf")
 local prompt = require("prompt")
-local motion = require("motion")
+local move = require("move")
 local insert = require("insert")
 local utils = require("utils")
 
@@ -53,7 +53,7 @@ function Vi(_)
 	pane:Relocate()
 
 	--
-	motion.update_virtual_cursor()
+	move.update_virtual_cursor()
 	mode.show()
 
 	--

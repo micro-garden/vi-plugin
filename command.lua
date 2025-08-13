@@ -13,7 +13,7 @@ end
 local bell = require("bell")
 local mode = require("mode")
 local prompt = require("prompt")
-local motion = require("motion")
+local move = require("move")
 local insert = require("insert")
 local edit = require("edit")
 local replace = require("replace")
@@ -26,7 +26,7 @@ local command_cache = nil
 
 local undo_mode = true -- true: undo, false: redo
 
-local function cache_command(no_number, number, edit_part, no_subnum, subnum, move, letter)
+local function cache_command(no_number, number, edit_part, no_subnum, subnum, mv, letter)
 	command_cache = {}
 
 	command_cache.no_number = no_number
@@ -34,7 +34,7 @@ local function cache_command(no_number, number, edit_part, no_subnum, subnum, mo
 	command_cache.edit = edit_part
 	command_cache.no_subnum = no_subnum
 	command_cache.subnum = subnum
-	command_cache.move = move
+	command_cache.mv = mv
 	command_cache.letter = letter
 end
 
@@ -44,7 +44,7 @@ local function get_command_cache()
 		command_cache.edit,
 		command_cache.no_subnum,
 		command_cache.subnum,
-		command_cache.move,
+		command_cache.mv,
 		command_cache.letter,
 		true
 end
@@ -184,96 +184,130 @@ local function run_edit(number, edit_part, replay)
 	end
 end
 
-local function run_motion(no_number, number, move, letter)
-	if move == "h" then
-		motion.move_left(number)
+local function run_move(no_number, number, mv, letter)
+	-- Move by Character / Move by Line
+	if mv == "h" then
+		move.left(number)
 		return true
-	elseif move == "j" then
-		motion.move_down(number)
+	elseif mv == "j" then
+		move.down(number)
 		return true
-	elseif move == "k" then
-		motion.move_up(number)
+	elseif mv == "k" then
+		move.up(number)
 		return true
-	elseif move == "l" then
-		motion.move_right(number)
+	elseif mv == "l" then
+		move.right(number)
 		return true
-	elseif move == "\n" or move == "+" then
-		motion.move_next_line_start(number)
+	end
+
+	-- Move in Line
+	if mv == "0" then
+		move.to_start_of_line()
 		return true
-	elseif move == "-" then
-		motion.move_prev_line_start(number)
+	elseif mv == "$" then
+		move.to_end_of_line()
 		return true
-	elseif move == "0" then
-		motion.move_line_start()
+	elseif mv == "^" then
+		move.to_non_blank_of_line()
 		return true
-	elseif move == "$" then
-		motion.move_line_end()
+	elseif mv == "|" then
+		move.to_column(number)
 		return true
-	elseif move == "^" then
-		motion.move_to_first_non_blank()
+	end
+
+	-- Move by Word / Move by Loose Word
+	if mv == "w" then
+		move.by_word(number)
 		return true
-	elseif move == "|" then
-		motion.move_to_column(number)
+	elseif mv == "b" then
+		move.backward_by_word(number)
 		return true
-	elseif move == "w" then
-		motion.move_word(number)
+	elseif mv == "e" then
+		move.to_end_of_word(number)
 		return true
-	elseif move == "W" then
-		motion.move_word_loose(number)
+	elseif mv == "W" then
+		move.by_loose_word(number)
 		return true
-	elseif move == "b" then
-		motion.move_word_back(number)
+	elseif mv == "B" then
+		move.backward_by_loose_word(number)
 		return true
-	elseif move == "B" then
-		motion.move_word_back_loose(number)
+	elseif mv == "E" then
+		move.to_end_of_loose_word(number)
 		return true
-	elseif move == "e" then
-		motion.move_word_end(number)
+	end
+
+	-- Move by Line
+	if mv == "\n" or mv == "+" then
+		move.to_non_blank_of_next_line(number)
 		return true
-	elseif move == "E" then
-		motion.move_word_end_loose(number)
+	elseif mv == "-" then
+		move.to_non_blank_of_prev_line(number)
 		return true
-	elseif move == "(" then
-		motion.move_sentence_back(number)
-		return true
-	elseif move == ")" then
-		motion.move_sentence(number)
-		return true
-	elseif move == "{" then
-		motion.move_paragraph_back(number)
-		return true
-	elseif move == "}" then
-		motion.move_paragraph(number)
-		return true
-	elseif move == "[[" then
-		motion.move_section_back(number)
-		return true
-	elseif move == "]]" then
-		motion.move_section(number)
-		return true
-	elseif move == "G" then
+	elseif mv == "G" then
 		if no_number then
-			motion.goto_bottom()
+			move.to_last_line()
 		else
-			motion.goto_line(number)
+			move.to_line(number)
 		end
 		return true
-	elseif move == "'" and letter then
+	end
+
+	-- Move by Block
+	if mv == ")" then
+		move.by_sentence(number)
+		return true
+	elseif mv == "(" then
+		move.backward_by_sentence(number)
+		return true
+	elseif mv == "}" then
+		move.by_paragraph(number)
+		return true
+	elseif mv == "{" then
+		move.backward_by_paragraph(number)
+		return true
+	elseif mv == "]]" then
+		move.by_section(number)
+		return true
+	elseif mv == "[[" then
+		move.backward_by_section(number)
+		return true
+	end
+
+	-- Move in View
+	if no_number and mv == "H" then
+		move.to_top_of_view()
+		return true
+	elseif mv == "M" then
+		move.to_middle_of_view()
+		return true
+	elseif no_number and mv == "L" then
+		move.to_bottom_of_view()
+		return true
+	elseif mv == "H" then
+		move.to_below_top_of_view(number)
+		return true
+	elseif mv == "L" then
+		move.to_above_bottom_of_view(number)
+		return true
+	end
+
+	-- XXX could not move to misc
+	if mv == "'" and letter then
 		mark.goto_line(letter)
 		return true
-	elseif move == "`" and letter then
+	elseif mv == "`" and letter then
 		mark.goto_char(letter)
 		return true
-	elseif move == "/" then
+	elseif mv == "/" then
 		find.find()
 		return true
-	elseif move == "?" then
+	elseif mv == "?" then
 		find.reverse_find()
 		return true
-	elseif move == "n" then
+	elseif mv == "n" then
 		find.find_next(number)
 		return true
-	elseif move == "N" then
+	elseif mv == "N" then
 		find.find_prev(number)
 		return true
 	else
@@ -281,7 +315,7 @@ local function run_motion(no_number, number, move, letter)
 	end
 end
 
-local function get_region(number, no_subnum, subnum, move, letter, save)
+local function get_region(number, no_subnum, subnum, mv, letter, save)
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local saved_x, saved_y
 	if save ~= nil and save then
@@ -291,7 +325,7 @@ local function get_region(number, no_subnum, subnum, move, letter, save)
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	for _ = 1, number do
-		run_motion(no_subnum, subnum, move, letter)
+		run_move(no_subnum, subnum, mv, letter)
 	end
 
 	local end_loc = buffer.Loc(cursor.X, cursor.Y)
@@ -302,62 +336,62 @@ local function get_region(number, no_subnum, subnum, move, letter, save)
 	return start_loc, end_loc
 end
 
-local function run_compound(number, edit_part, no_subnum, subnum, move, letter, replay)
+local function run_compound(number, edit_part, no_subnum, subnum, mv, letter, replay)
 	local matched = false
 
-	if edit_part == "d" and move == "$" then
+	if edit_part == "d" and mv == "$" then
 		edit.delete_to_line_end()
 		matched = true
-	elseif edit_part == "y" and move == "$" then
+	elseif edit_part == "y" and mv == "$" then
 		edit.copy_to_line_end()
 		matched = true
-	elseif edit_part == "c" and move == "$" then
+	elseif edit_part == "c" and mv == "$" then
 		replace.replace_to_line_end(replay)
 		matched = true
-	elseif edit_part == "d" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "d" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		edit.delete_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
-	elseif edit_part == "y" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "y" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		edit.copy_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
-	elseif edit_part == "c" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "c" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		replace.replace_lines_region(start_loc.Y, end_loc.Y, replay)
 		matched = true
-	elseif edit_part == "d" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "d" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		edit.delete_chars_region(start_loc, end_loc)
 		matched = true
-	elseif edit_part == "y" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		edit.copy_chars_region(start_loc, end_loc)
 		matched = true
-	elseif edit_part == "c" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(number, no_subnum, subnum, move, letter)
+	elseif edit_part == "c" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+		local start_loc, end_loc = get_region(number, no_subnum, subnum, mv, letter)
 		replace.replace_chars_region(start_loc, end_loc, replay)
 		matched = true
-	elseif edit_part == ">" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+	elseif edit_part == ">" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.indent_region(start_loc, end_loc, number)
 		matched = true
-	elseif edit_part == "<" and (move:match("[jk\nG]+") or move == "'" and letter) then
-		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+	elseif edit_part == "<" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.outdent_region(start_loc, end_loc, number)
 		matched = true
-	elseif edit_part == ">" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+	elseif edit_part == ">" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.indent_region(start_loc, end_loc, 1)
 		matched = true
-	elseif edit_part == "<" and (move:match("[hl0wbnN]+") or move == "`" and letter) then
-		local start_loc, end_loc = get_region(1, no_subnum, subnum, move, letter, true)
+	elseif edit_part == "<" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.outdent_region(start_loc, end_loc, 1)
 		matched = true
 	end
 
 	if matched then
-		cache_command(false, number, edit_part, no_subnum, subnum, move, letter)
+		cache_command(false, number, edit_part, no_subnum, subnum, mv, letter)
 		undo_mode = true
 		return true
 	else
@@ -366,6 +400,7 @@ local function run_compound(number, edit_part, no_subnum, subnum, move, letter, 
 end
 
 local function run_misc(number, edit_part, letter, replay)
+	--
 	if edit_part == ":" then
 		mode.prompt()
 		prompt.show()
@@ -388,12 +423,12 @@ local function run_misc(number, edit_part, letter, replay)
 	end
 end
 
-local function run(no_number, number, edit_part, no_subnum, subnum, move, letter, replay)
-	if run_compound(number, edit_part, no_subnum, subnum, move, letter, replay) then
+local function run(no_number, number, edit_part, no_subnum, subnum, mv, letter, replay)
+	if run_compound(number, edit_part, no_subnum, subnum, mv, letter, replay) then
 		return true
 	elseif run_edit(number, edit_part, replay) then
 		return true
-	elseif run_motion(no_number, number, move, letter) then
+	elseif run_move(no_number, number, mv, letter) then
 		return true
 	elseif run_misc(number, edit_part, letter, replay) then
 		return true
