@@ -75,7 +75,7 @@ function onBeforeTextEvent(buf, ev)
 	local comb = combuf.get()
 
 	local number_str, edit, subnum_str, move, _ =
-		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl\n0%$wbG'`/?nN]*)(.-)$")
+		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl\n%+%-0%$%^|wWbBeE%(%){}%[%]G'`/?nN]*)(.-)$")
 
 	local mark_command, letter = comb:match("([m'`])([^'`])$")
 	if mark_command == "m" then

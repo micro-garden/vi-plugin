@@ -28,6 +28,7 @@ You can return to insert mode with the `i` command.
 | `w`              | Move to beginning of next word (experimental)     |
 | `b`              | Move to beginning of previous word (experimental) |
 | `<Enter>` / `\n` | Move to beginning of next line                    |
+| `+`              | Move to beginning of next line                    |
 | `G`              | Move to the bottom of the file                    |
 | `10G`            | Move to line 10                                   |
 | `m` + letter     | Mark current position as letter (symplified)      |

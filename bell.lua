@@ -13,6 +13,7 @@ end
 local utils = require("utils")
 
 local FATAL_HEAD = "** vi fatal error **\n"
+local TODO_HEAD = "TODO"
 local BELL_HEAD = " * RING! * "
 local BELL_DURATION = time.ParseDuration("1s")
 
@@ -22,6 +23,14 @@ end
 
 local function fatal(message)
 	micro.TermMessage(FATAL_HEAD .. message)
+end
+
+local function todo(message)
+	if message then
+		micro.InfoBar():Error(TODO_HEAD .. ": " .. message)
+	else
+		micro.InfoBar():Error(TODO_HEAD)
+	end
 end
 
 local function show_message(message)
@@ -41,6 +50,7 @@ local function ring(reason)
 end
 
 M.fatal = fatal
+M.todo = todo
 M.error = general_error
 M.info = show_message
 M.vi_error = general_error

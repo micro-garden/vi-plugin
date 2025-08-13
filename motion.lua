@@ -137,8 +137,20 @@ local function move_next_line_start(number)
 	micro.CurPane():Relocate()
 end
 
+local function move_prev_line_start(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_to_first_non_blank()
+	bell.todo("not implemented yet")
+end
+
+local function move_to_column(number)
+	bell.todo("not implemented yet")
+end
+
 -- command: w
-local function move_next_word(number)
+local function move_word(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -188,7 +200,12 @@ local function move_next_word(number)
 	update_virtual_cursor()
 end
 
-local function move_prev_word(number)
+local function move_word_loose(number)
+	bell.todo("not implemented yet")
+end
+
+-- command: b
+local function move_word_back(number)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -246,6 +263,42 @@ local function move_prev_word(number)
 	update_virtual_cursor()
 end
 
+local function move_word_back_loose(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_word_end(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_word_end_loose(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_sentence(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_sentence_back(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_paragraph(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_paragraph_back(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_section(number)
+	bell.todo("not implemented yet")
+end
+
+local function move_section_back(number)
+	bell.todo("not implemented yet")
+end
+
 local function goto_bottom()
 	mode.show()
 
@@ -272,15 +325,33 @@ local function goto_line(number)
 end
 
 M.update_virtual_cursor = update_virtual_cursor
+
 M.move_left = move_left
 M.move_right = move_right
 M.move_up = move_up
 M.move_down = move_down
+
 M.move_line_start = move_line_start
 M.move_line_end = move_line_end
 M.move_next_line_start = move_next_line_start
-M.move_next_word = move_next_word
-M.move_prev_word = move_prev_word
+M.move_prev_line_start = move_prev_line_start
+M.move_to_first_non_blank = move_to_first_non_blank
+M.move_to_column = move_to_column
+
+M.move_word = move_word
+M.move_word_loose = move_word_loose
+M.move_word_back = move_word_back
+M.move_word_back_loose = move_word_back_loose
+M.move_word_end = move_word_end
+M.move_word_end_loose = move_word_end_loose
+
+M.move_sentence = move_sentence
+M.move_sentence_back = move_sentence_back
+M.move_paragraph = move_sentence
+M.move_paragraph_back = move_sentence_back
+M.move_section = move_section
+M.move_section_back = move_section_back
+
 M.goto_bottom = goto_bottom
 M.goto_line = goto_line
 

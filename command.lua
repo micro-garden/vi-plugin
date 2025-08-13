@@ -197,8 +197,11 @@ local function run_motion(no_number, number, move, letter)
 	elseif move == "l" then
 		motion.move_right(number)
 		return true
-	elseif move == "\n" then
+	elseif move == "\n" or move == "+" then
 		motion.move_next_line_start(number)
+		return true
+	elseif move == "-" then
+		motion.move_prev_line_start(number)
 		return true
 	elseif move == "0" then
 		motion.move_line_start()
@@ -206,11 +209,47 @@ local function run_motion(no_number, number, move, letter)
 	elseif move == "$" then
 		motion.move_line_end()
 		return true
+	elseif move == "^" then
+		motion.move_to_first_non_blank()
+		return true
+	elseif move == "|" then
+		motion.move_to_column(number)
+		return true
 	elseif move == "w" then
-		motion.move_next_word(number)
+		motion.move_word(number)
+		return true
+	elseif move == "W" then
+		motion.move_word_loose(number)
 		return true
 	elseif move == "b" then
-		motion.move_prev_word(number)
+		motion.move_word_back(number)
+		return true
+	elseif move == "B" then
+		motion.move_word_back_loose(number)
+		return true
+	elseif move == "e" then
+		motion.move_word_end(number)
+		return true
+	elseif move == "E" then
+		motion.move_word_end_loose(number)
+		return true
+	elseif move == "(" then
+		motion.move_sentence_back(number)
+		return true
+	elseif move == ")" then
+		motion.move_sentence(number)
+		return true
+	elseif move == "{" then
+		motion.move_paragraph_back(number)
+		return true
+	elseif move == "}" then
+		motion.move_paragraph(number)
+		return true
+	elseif move == "[[" then
+		motion.move_section_back(number)
+		return true
+	elseif move == "]]" then
+		motion.move_section(number)
 		return true
 	elseif move == "G" then
 		if no_number then
