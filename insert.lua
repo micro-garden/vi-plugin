@@ -169,7 +169,12 @@ local function replace_mode()
 	insert_mode = REPLACE_MODE
 end
 
-local function insert_here(num, replay)
+--
+-- Enter Insert Mode
+--
+
+-- key: i
+local function before(num, replay)
 	chars_mode()
 
 	if replay then
@@ -184,27 +189,8 @@ local function insert_here(num, replay)
 	end
 end
 
-local function insert_line_start(num, replay)
-	chars_mode()
-
-	local buf = micro.CurPane().Buf
-	local cursor = buf:GetActiveCursor()
-	local line = buf:Line(cursor.Y)
-	local spaces = line:match("^(%s*)")
-	cursor.X = utf8.RuneCount(spaces)
-
-	if replay then
-		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, num, replay)
-	else
-		mode.insert()
-		mode.show()
-
-		save_state(num, replay)
-	end
-end
-
-local function insert_after_here(num, replay)
+-- key: a
+local function after(num, replay)
 	chars_mode()
 
 	local buf = micro.CurPane().Buf
@@ -224,7 +210,29 @@ local function insert_after_here(num, replay)
 	end
 end
 
-local function insert_after_line_end(num, replay)
+-- key: I
+local function before_non_blank(num, replay)
+	chars_mode()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+
+	if replay then
+		local loc = buffer.Loc(cursor.X, cursor.Y)
+		extend(loc, num, replay)
+	else
+		mode.insert()
+		mode.show()
+
+		save_state(num, replay)
+	end
+end
+
+-- key: A
+local function after_end_of_line(num, replay)
 	chars_mode()
 
 	move.to_end_of_line()
@@ -246,6 +254,16 @@ local function insert_after_line_end(num, replay)
 	end
 end
 
+-- key: R
+local function overwrite(num, replay)
+	bell.not_planned("R (insert.overwrite)")
+end
+
+--
+-- Open Line
+--
+
+-- key: o
 local function open_below(num, replay)
 	lines_mode()
 
@@ -273,6 +291,7 @@ local function open_below(num, replay)
 	end
 end
 
+-- key: O
 local function open_above(num, replay)
 	lines_mode()
 
@@ -323,7 +342,7 @@ local function open_here(num, replay)
 	end
 end
 
-local function insert_here_replace(num, replay)
+local function before_replace(num, replay)
 	replace_mode()
 
 	if replay then
@@ -338,20 +357,25 @@ local function insert_here_replace(num, replay)
 	end
 end
 
+--
 M.resume = resume
 M.extend = extend
 M.chars_mode = chars_mode
 M.lines_mode = lines_mode
 M.replace_mode = replace_mode
 
-M.insert_here = insert_here
-M.insert_line_start = insert_line_start
-M.insert_after_here = insert_after_here
-M.insert_after_line_end = insert_after_line_end
+-- Enter Insert Mode
+M.before = before
+M.before_non_blank = before_non_blank
+M.after = after
+M.after_end_of_line = after_end_of_line
+M.overwrite = overwrite
 M.open_below = open_below
+-- Open Line
 M.open_above = open_above
 M.open_here = open_here
 
-M.insert_here_replace = insert_here_replace
+--
+M.before_replace = before_replace
 
 return M

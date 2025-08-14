@@ -82,22 +82,27 @@ end
 
 local function run_edit(num, op, replay)
 	if op == "i" then
-		insert.insert_here(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
-		undo_mode = true
-		return true
-	elseif op == "I" then
-		insert.insert_line_start(num, replay)
+		insert.before(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
 	elseif op == "a" then
-		insert.insert_after_here(num, replay)
+		insert.after(num, replay)
+		cache_command(false, num, op, true, 1, "", nil, nil)
+		undo_mode = true
+		return true
+	elseif op == "I" then
+		insert.before_non_blank(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
 	elseif op == "A" then
-		insert.insert_after_line_end(num, replay)
+		insert.after_end_of_line(num, replay)
+		cache_command(false, num, op, true, 1, "", nil, nil)
+		undo_mode = true
+		return true
+	elseif op == "R" then
+		insert.overwrite(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true

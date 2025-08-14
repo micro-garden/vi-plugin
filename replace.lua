@@ -58,7 +58,7 @@ local function replace_chars(num, replay)
 			end
 			move.update_virtual_cursor()
 
-			insert.insert_here_replace(1, replay)
+			insert.before_replace(1, replay)
 		end)
 	end
 end
@@ -70,7 +70,7 @@ end
 
 local function replace_to_line_end(replay)
 	edit.delete_to_line_end()
-	insert.insert_after_here(1, replay)
+	insert.after(1, replay)
 end
 
 local function replace_lines_region(start_y, end_y, replay)
@@ -96,9 +96,9 @@ local function replace_chars_region(start_loc, end_loc, replay)
 
 	utils.next_tick(function()
 		if insert_after then
-			insert.insert_after_here(1, replay)
+			insert.after(1, replay)
 		else
-			insert.insert_here(1, replay)
+			insert.before(1, replay)
 		end
 	end, 2)
 end
