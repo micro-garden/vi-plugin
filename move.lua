@@ -246,9 +246,97 @@ local function backward_by_word(num)
 	update_virtual_cursor()
 end
 
+--
+local function one_word()
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	local last_line_index = utils.last_line_index(buf)
+
+	local str = utils.utf8_sub(line, cursor.X + 1)
+
+	local word, word_spaces, symbols, symbol_spaces = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+	local forward
+	if #word > 0 then
+		forward = utf8.RuneCount(word .. word_spaces)
+	elseif #symbols > 0 then
+		forward = utf8.RuneCount(symbols .. symbol_spaces)
+	else
+		forward = utf8.RuneCount(word_spaces)
+	end
+	cursor.X = cursor.X + forward
+
+	if cursor.X > length - 1 then
+		while cursor.Y < last_line_index do
+			cursor.Y = cursor.Y + 1
+
+			line = buf:Line(cursor.Y)
+			length = utf8.RuneCount(line)
+			local spaces = line:match("^(%s*)")
+			cursor.X = utf8.RuneCount(spaces)
+
+			if length > cursor.X then
+				break
+			end
+		end
+		cursor.X = math.min(cursor.X, length - 1)
+	end
+end
+
 -- key: e
 local function to_end_of_word(num)
-	bell.planned("e (move.to_end_of_word)")
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+		bell.ring("no more words ahead")
+		return
+	end
+
+	local str = utils.utf8_sub(line, cursor.X + 1)
+	local word, _, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+	if #word == 1 or #symbols == 1 then
+		one_word()
+	end
+
+	for _ = 1, num do
+		if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+			break
+		end
+		str = utils.utf8_sub(line, cursor.X + 1)
+
+		word, _, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+		local forward
+		if #word > 0 then
+			forward = utf8.RuneCount(word) - 1
+		elseif #symbols > 0 then
+			forward = utf8.RuneCount(symbols) - 1
+		end
+		cursor.X = cursor.X + forward
+
+		if cursor.X > length - 1 then
+			while cursor.Y < last_line_index do
+				cursor.Y = cursor.Y + 1
+
+				line = buf:Line(cursor.Y)
+				length = utf8.RuneCount(line)
+				local spaces = line:match("^(%s*)")
+				cursor.X = utf8.RuneCount(spaces)
+
+				if length > cursor.X then
+					break
+				end
+			end
+			cursor.X = math.min(cursor.X, length - 1)
+		end
+	end
+
+	update_virtual_cursor()
 end
 
 -- key: W
