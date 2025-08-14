@@ -1,0 +1,537 @@
+local M = {}
+
+local micro = import("micro")
+local buffer = import("micro/buffer")
+local utf8 = import("unicode/utf8")
+
+local config = import("micro/config")
+local plug_name = "vi"
+local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+if not package.path:find(plug_path, 1, true) then
+	package.path = package.path .. ";" .. plug_path
+end
+
+local bell = require("bell")
+local mode = require("mode")
+local move = require("move")
+local insert = require("insert")
+local utils = require("utils")
+
+local kill_buffer = nil
+local kill_lines = nil
+
+local function clear_kill_buffer()
+	kill_buffer = {}
+end
+
+local function insert_killed_lines(lines)
+	table.insert(kill_buffer, lines)
+	kill_lines = true
+end
+
+local function insert_killed_chars(chars)
+	table.insert(kill_buffer, chars)
+	kill_lines = false
+end
+
+--
+-- Copy (Yank)
+--
+
+-- key: yw
+local function copy_word(num)
+	bell.planned("yw (operator.copy_word)")
+end
+
+-- key: yy Y
+local function copy_line(num)
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y + num - 1 > last_line_index then
+		bell.ring("cannot copy" .. num .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
+		return
+	end
+
+	clear_kill_buffer()
+	for i = 1, num do
+		local line = buf:Line(cursor.Y + i - 1)
+		insert_killed_lines(line)
+	end
+end
+
+-- key: "<reg>yy
+local function copy_line_into_reg(reg, num)
+	bell.planned('"<reg>yy (operator.copy_line_into_reg)')
+end
+
+-- key: y<mv>
+local function copy_region(start_loc, end_loc)
+	mode.show()
+
+	if not utils.is_locs_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc -- swap
+	end
+
+	local buf = micro.CurPane().Buf
+	local substr = buf:Substr(start_loc, end_loc)
+	clear_kill_buffer()
+	insert_killed_chars(substr)
+end
+
+-- key: y<mv>
+local function copy_line_region(start_y, end_y)
+	if end_y < start_y then
+		start_y, end_y = end_y, start_y -- swap
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.X = 0
+	cursor.Y = start_y
+	copy_line(end_y - start_y + 1)
+end
+
+-- key: y$
+local function copy_to_end_of_line()
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		bell.ring("nothing to copy, line is empty")
+		return
+	end
+
+	clear_kill_buffer()
+	insert_killed_chars(line:sub(1 + cursor.X))
+end
+
+--
+-- Paste (Put)
+--
+
+-- key: p
+local function paste(num)
+	mode.show()
+
+	if not kill_buffer then
+		bell.vi_info("nothing to paste yet")
+		return
+	end
+
+	local text
+	if kill_lines then
+		text = "\n" .. table.concat(kill_buffer, "\n")
+	else -- kill chars
+		text = table.concat(kill_buffer)
+	end
+
+	mode.insert()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local saved_length = utf8.RuneCount(line)
+	local saved_x = cursor.X
+	local saved_y
+	for _ = 1, num do
+		saved_y = cursor.Y
+		if kill_lines then
+			line = buf:Line(cursor.Y)
+			cursor.X = utf8.RuneCount(line)
+		else -- kill chars
+			line = buf:Line(cursor.Y)
+			local length = utf8.RuneCount(line)
+			cursor.X = math.min(saved_x + 1, math.max(length, 0))
+		end
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), text)
+		if kill_lines then
+			cursor.Y = saved_y + 1
+		end
+	end
+
+	utils.next_tick(function()
+		if kill_lines then
+			cursor.Y = saved_y + 1
+
+			line = buf:Line(cursor.Y)
+			local spaces = line:match("^(%s*)")
+			cursor.X = utf8.RuneCount(spaces)
+			move.update_virtual_cursor()
+		else -- kill chars
+			if saved_length < 1 then
+				cursor.X = saved_x
+			else
+				cursor.X = saved_x + 1
+			end
+		end
+		move.update_virtual_cursor()
+
+		mode.command()
+	end)
+end
+
+-- key: P
+local function paste_before(num)
+	mode.show()
+
+	if not kill_buffer then
+		bell.vi_info("nothing to paste yet")
+		return
+	end
+
+	local text
+	if kill_lines then
+		text = table.concat(kill_buffer, "\n") .. "\n"
+	else -- kill chars
+		text = table.concat(kill_buffer)
+	end
+
+	mode.insert()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local saved_x = cursor.X
+	local saved_y
+	for _ = 1, num do
+		saved_y = cursor.Y
+		if kill_lines then
+			cursor.X = 0
+		end
+		buf:Insert(buffer.Loc(cursor.X, cursor.Y), text)
+		if kill_lines then
+			cursor.Y = saved_y
+		end
+	end
+
+	utils.next_tick(function()
+		if kill_lines then
+			cursor.Y = saved_y
+
+			local line = buf:Line(cursor.Y)
+			local spaces = line:match("^(%s*)")
+			cursor.X = utf8.RuneCount(spaces)
+		else -- kill chars
+			cursor.X = saved_x
+		end
+		move.update_virtual_cursor()
+
+		mode.command()
+	end)
+end
+
+-- key: "<reg>p
+local function paste_from_reg(reg, num)
+	bell.planned('"<reg>p (operator.paste_from_reg)')
+end
+
+--
+-- Delete
+--
+
+-- key: x
+local function delete(num)
+	mode.show()
+
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		bell.ring("nothing to delete, line is empty")
+		return
+	end
+
+	local n = math.min(num, length - cursor.X)
+
+	clear_kill_buffer()
+	insert_killed_chars(utils.utf8_sub(line, cursor.X + 1, cursor.X + n))
+
+	local saved_x = cursor.X
+
+	for _ = 1, n do
+		pane:Delete()
+	end
+
+	utils.next_tick(function()
+		line = buf:Line(cursor.Y)
+		length = utf8.RuneCount(line)
+		cursor.X = math.min(saved_x, math.max(length - 1, 0))
+		move.update_virtual_cursor()
+	end)
+end
+
+-- key: X
+local function delete_before(num)
+	mode.show()
+
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		bell.ring("nothing to delete, line is empty")
+		return
+	end
+
+	local n = math.min(num, cursor.X)
+
+	clear_kill_buffer()
+	insert_killed_chars(utils.utf8_sub(line, cursor.X - n + 1, cursor.X))
+
+	local saved_x = cursor.X
+
+	cursor.X = cursor.X - n
+	for _ = 1, n do
+		pane:Delete()
+	end
+
+	utils.next_tick(function()
+		line = buf:Line(cursor.Y)
+		length = utf8.RuneCount(line)
+		cursor.X = math.min(math.max(saved_x - n, 0), math.max(length - 1, 0))
+		move.update_virtual_cursor()
+	end)
+end
+
+-- key: dw
+local function delete_word(num)
+	bell.planned("dw (operator.delete_word)")
+end
+
+-- key: dd
+local function delete_line(num)
+	mode.show()
+
+	local pane = micro.CurPane()
+	local buf = pane.buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y + num - 1 > last_line_index then
+		bell.ring("cannot delete " .. num .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
+		return
+	end
+
+	clear_kill_buffer()
+	cursor.X = 0
+	for _ = 1, num do
+		local line = buf:Line(cursor.Y)
+		insert_killed_lines(line)
+		pane:DeleteLine()
+		last_line_index = utils.last_line_index(buf)
+		cursor.Y = math.min(cursor.Y, last_line_index)
+	end
+
+	utils.next_tick(function()
+		local line = buf:Line(cursor.Y)
+		local spaces = line:match("^(%s*)")
+		cursor.X = utf8.RuneCount(spaces)
+		move.update_virtual_cursor()
+	end)
+end
+
+-- key: d
+local function delete_region(start_loc, end_loc)
+	mode.show()
+
+	if not utils.is_locs_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc -- swap
+	end
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local substr = buf:Substr(start_loc, end_loc)
+	clear_kill_buffer()
+	insert_killed_chars(substr)
+	buf:Remove(start_loc, end_loc)
+
+	utils.next_tick(function()
+		local line = buf:Line(cursor.Y)
+		local length = utf8.RuneCount(line)
+		cursor.X = math.min(cursor.X, math.max(length - 1, 0))
+		move.update_virtual_cursor()
+	end)
+end
+
+-- key: d
+local function delete_line_region(start_y, end_y)
+	if end_y < start_y then
+		start_y, end_y = end_y, start_y -- swap
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	cursor.X = 0
+	cursor.Y = start_y
+	delete_line(end_y - start_y + 1)
+end
+
+-- key: d$ D
+local function delete_to_end_of_line()
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if length < 1 then
+		bell.ring("nothing to delete, line is empty")
+		return
+	end
+
+	clear_kill_buffer()
+	insert_killed_chars(line:sub(1 + cursor.X))
+
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+	local end_loc = buffer.Loc(length, cursor.Y)
+	buf:Remove(start_loc, end_loc)
+
+	line = buf:Line(cursor.Y)
+	length = utf8.RuneCount(line)
+	cursor.X = math.min(cursor.X, math.max(length - 1, 0))
+	move.update_virtual_cursor()
+end
+
+--
+-- Change / Substitute
+--
+
+-- key: cw
+local function change_word(num, replay)
+	bell.planned("cw (operator.change_word)")
+end
+
+-- key: cc
+local function change_line(num, replay)
+	delete_line(num)
+	insert.open_here(1, replay)
+end
+
+-- key: c<mv>
+local function change_region(start_loc, end_loc, replay)
+	local insert_after = false
+
+	if end_loc.Y > start_loc.Y and end_loc.X < 1 then
+		local cursor = micro.CurPane().Buf:GetActiveCursor()
+		local line = cursor:Buf():Line(end_loc.Y - 1)
+		local length = utf8.RuneCount(line)
+		end_loc = buffer.Loc(length, end_loc.Y - 1)
+		cursor.X = length
+		cursor.Y = end_loc.Y
+
+		insert_after = true
+	end
+
+	delete_region(start_loc, end_loc)
+
+	utils.next_tick(function()
+		if insert_after then
+			insert.after(1, replay)
+		else
+			insert.before(1, replay)
+		end
+	end, 2)
+end
+
+-- key: c<mv>
+local function change_line_region(start_y, end_y, replay)
+	delete_line_region(start_y, end_y)
+	insert.open_here(1, replay)
+end
+
+-- key: C
+local function change_to_end_of_line(replay)
+	delete_to_end_of_line()
+	insert.after(1, replay)
+end
+
+-- key: s
+local function subst(num, replay)
+	insert.replace_mode()
+
+	local pane = micro.CurPane()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+
+	local n = math.min(num, length - cursor.X)
+
+	clear_kill_buffer()
+	insert_killed_chars(utils.utf8_sub(line, 1 + cursor.X, cursor.X + n))
+
+	local saved_x = cursor.X
+	local insert_after = cursor.X + num >= length
+
+	for _ = 1, n do
+		pane:Delete()
+	end
+
+	if replay then
+		local loc = buffer.Loc(cursor.X, cursor.Y)
+		insert.extend(loc, 1, replay)
+	else
+		mode.show()
+
+		line = buf:Line(cursor.Y)
+		length = utf8.RuneCount(line)
+		cursor.X = math.min(cursor.X + 1, length - 1)
+
+		utils.next_tick(function()
+			line = buf:Line(cursor.Y)
+			length = utf8.RuneCount(line)
+			if insert_after then
+				cursor.X = math.min(saved_x, math.max(length, 0))
+			else
+				cursor.X = math.min(saved_x, math.max(length - 1, 0))
+			end
+			move.update_virtual_cursor()
+
+			insert.before_replace(1, replay)
+		end)
+	end
+end
+
+-- key: S
+local function subst_line(num, replay)
+	change_line(num, replay)
+end
+
+M.clear_kill_buffer = clear_kill_buffer
+--M.insert_killed_lines = insert_killed_lines
+M.insert_killed_chars = insert_killed_chars
+
+-- Copy (Yank)
+M.copy_word = copy_word
+M.copy_line = copy_line
+M.copy_line_into_reg = copy_line_into_reg
+M.copy_region = copy_region
+M.copy_line_region = copy_line_region
+M.copy_to_end_of_line = copy_to_end_of_line
+-- Paste (Put)
+M.paste = paste
+M.paste_before = paste_before
+M.paste_from_rag = paste_from_reg
+-- Delete
+M.delete = delete
+M.delete_before = delete_before
+M.delete_word = delete_word
+M.delete_line = delete_line
+M.delete_region = delete_region
+M.delete_line_region = delete_line_region
+M.delete_to_end_of_line = delete_to_end_of_line
+-- Change / Substitute
+M.change_word = change_word
+M.change_line = change_line
+M.change_region = change_region
+M.change_line_region = change_line_region
+M.change_to_end_of_line = change_to_end_of_line
+M.subst = subst
+M.subst_line = subst_line
+
+return M

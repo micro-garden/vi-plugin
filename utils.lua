@@ -80,11 +80,22 @@ local function utf8_sub(line, from, to)
 	return line:sub(1 + start_offset, end_offset)
 end
 
+local function is_locs_ordered(start_loc, end_loc)
+	if start_loc.Y < end_loc.Y then
+		return true
+	elseif start_loc.Y > end_loc.Y then
+		return false
+	else -- start_loc.Y == end_loc.Y
+		return start_loc.X <= end_loc.X
+	end
+end
+
 M.toboolean = toboolean
 M.xor = xor
 M.after = after
 M.next_tick = next_tick
 M.last_line_index = last_line_index
 M.utf8_sub = utf8_sub
+M.is_locs_ordered = is_locs_ordered
 
 return M
