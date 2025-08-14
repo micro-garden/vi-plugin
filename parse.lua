@@ -72,14 +72,19 @@ function onBeforeTextEvent(buf, ev)
 	combuf.insert_chars(input)
 	local comb = combuf.get()
 
-	local num_str, op, subnum_str, mv, _ =
-		comb:match("^(%d*)([mz:iIaAoOdyYxXDsScCpPJ><%.uZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nN]*)(.-)$")
+	local num_str, op, subnum_str, mv, _ = comb:match(
+		"^(%d*)([mz:iIaAoOdyYxXDsScCpPJ><%.uZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nNfFtT;,]*)(.-)$"
+	)
 
-	local mark_command, letter = comb:match("([m'`])([^'`])$")
-	if mark_command == "m" then
-		op = mark_command
-	elseif mark_command == "'" or mark_command == "`" then
-		mv = mark_command
+	local letter_command, letter = comb:match("([m'`fFtT;,])(.)$")
+	if letter_command then
+		if letter_command == "m" then
+			op = letter_command
+		elseif letter_command == "'" or letter_command == "`" then
+			mv = letter_command
+		elseif letter_command:match("[fFtT;,]") then
+			mv = letter_command
+		end
 	end
 
 	if not num_str then

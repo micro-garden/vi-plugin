@@ -17,6 +17,7 @@ local move = require("move")
 local mark = require("mark")
 local view = require("view")
 local search = require("search")
+local find = require("find")
 local insert = require("insert")
 local edit = require("edit")
 local replace = require("replace")
@@ -293,26 +294,41 @@ local function run_move(no_num, num, mv, letter)
 	end
 
 	-- XXX could not move to misc
-	-- Move to Mark
+	-- Move to Mark / Move by Context
 	if mv == "`" and letter then
-		mark.move_to(letter)
+		if letter == "`" then
+			mark.back()
+		else
+			mark.move_to(letter)
+		end
 		return true
 	elseif mv == "'" and letter then
-		mark.move_to_line(letter)
-		return true
-	end
-
-	-- XXX could not move to misc
-	-- Move by Context
-	if mv == "``" then
-		mark.back()
-		return true
-	elseif mv == "''" then
+		if letter == "'" then
 		mark.back_to_line()
+		else
+			mark.move_to_line(letter)
+		end
 		return true
 	end
+end
 
-	-- XXX could not move to misc
+local function run_view(op, mv)
+	-- Reposition
+	if op == "z" and mv == "\n" then
+		view.to_top()
+		return true
+	elseif op == "z." then
+		view.to_middle()
+		return true
+	elseif op == "z" and mv == "-" then
+		view.to_bottom()
+		return true
+	else
+		return false
+	end
+end
+
+local function run_search(mv, num)
 	if mv == "/\n" then -- not works
 		search.repeat_forward()
 		return true
@@ -336,16 +352,24 @@ local function run_move(no_num, num, mv, letter)
 	end
 end
 
-local function run_view(op, mv)
-	-- Reposition
-	if op == "z" and mv == "\n" then
-		view.to_top()
+local function run_find(mv, num, letter)
+	if mv == "f" and letter then
+		find.forward(num, letter)
 		return true
-	elseif op == "z." then
-		view.to_middle()
+	elseif mv == "F" and letter then
+		find.backward(num, letter)
 		return true
-	elseif op == "z" and mv == "-" then
-		view.to_bottom()
+	elseif mv == "t" and letter then
+		find.before_forward(num, letter)
+		return true
+	elseif mv == "T" and letter then
+		find.before_backward(num, letter)
+		return true
+	elseif mv == ";" then
+		find.next_match(num)
+		return true
+	elseif mv == "," then
+		find.prev_match(num)
 		return true
 	else
 		return false
@@ -464,6 +488,10 @@ local function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 	if run_compound(num, op, no_subnum, subnum, mv, letter, replay) then
 		return true
 	elseif run_edit(num, op, replay) then
+		return true
+	elseif run_find(mv, num, letter) then
+		return true
+	elseif run_search(mv, num) then
 		return true
 	elseif run_view(op, mv) then
 		return true
