@@ -15,14 +15,14 @@ local combuf = require("combuf")
 -- vi modes
 local MODE_COMMAND = 0
 local MODE_INSERT = 1
-local MODE_FIND = 2
+local MODE_SEARCH = 2
 local MODE_PROMPT = 3
 
 -- states
 local mode = MODE_INSERT
 
 local function command()
-	if mode == MODE_FIND then
+	if mode == MODE_SEARCH then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		if cursor:HasSelection() then
 			local start = cursor.CurSelection[1]
@@ -39,8 +39,8 @@ local function insert()
 	mode = MODE_INSERT
 end
 
-local function find()
-	mode = MODE_FIND
+local function search()
+	mode = MODE_SEARCH
 end
 
 local function prompt()
@@ -59,8 +59,8 @@ local function is_insert()
 	return mode == MODE_INSERT
 end
 
-local function is_find()
-	return mode == MODE_FIND
+local function is_search()
+	return mode == MODE_SEARCH
 end
 
 local function is_prompt()
@@ -82,12 +82,12 @@ end
 
 M.command = command
 M.insert = insert
-M.find = find
+M.search = search
 M.prompt = prompt
 M.code = code
 M.is_command = is_command
 M.is_insert = is_insert
-M.is_find = is_find
+M.is_search = is_search
 M.is_prompt = is_prompt
 M.show = show
 

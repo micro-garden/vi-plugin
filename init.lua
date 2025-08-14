@@ -27,7 +27,7 @@ function Vi(_)
 	if mode.is_command() then
 		bell.ring("already in vi command mode")
 		return true
-	elseif mode.is_find() then
+	elseif mode.is_search() then
 		mode.command()
 		return true
 	elseif mode.is_prompt() then
@@ -70,7 +70,7 @@ function ViEnter(_)
 		return true
 	elseif mode.is_insert() then
 		return false
-	elseif mode.is_find() then
+	elseif mode.is_search() then
 		mode.command()
 		return true
 	elseif mode.is_prompt() then

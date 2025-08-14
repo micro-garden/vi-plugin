@@ -12,21 +12,24 @@ end
 
 local mode = require("mode")
 
-local reverse_mode = false
+local backward_mode = false
 
-local function find()
-	mode.find()
-	reverse_mode = false
+-- key: /
+local function forward()
+	mode.search()
+	backward_mode = false
 	micro.CurPane():Find()
 end
 
-local function reverse_find()
-	mode.find()
-	reverse_mode = true
+-- key: ?
+local function backward()
+	mode.search()
+	backward_mode = true
 	micro.CurPane():Find()
 end
 
-local function find_next_internal(num)
+--
+local function match_forward(num)
 	local pane = micro.CurPane()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
@@ -48,7 +51,7 @@ local function find_next_internal(num)
 	end
 end
 
-local function find_prev_internal(num)
+local function match_backward(num)
 	local pane = micro.CurPane()
 	for _ = 1, num do
 		pane:FindPrevious()
@@ -63,25 +66,41 @@ local function find_prev_internal(num)
 	end
 end
 
-local function find_next(num)
-	if reverse_mode then
-		find_prev_internal(num)
+-- key: n
+local function next_match(num)
+	if backward_mode then
+		match_backward(num)
 	else
-		find_next_internal(num)
+		match_forward(num)
 	end
 end
 
-local function find_prev(num)
-	if reverse_mode then
-		find_next_internal(num)
+-- key: N
+local function prev_match(num)
+	if backward_mode then
+		match_forward(num)
 	else
-		find_prev_internal(num)
+		match_backward(num)
 	end
 end
 
-M.find = find
-M.reverse_find = reverse_find
-M.find_next = find_next
-M.find_prev = find_prev
+-- key: / Enter
+local function repeat_forward(num)
+	backward_mode = false
+	match_forward(num)
+end
+
+-- key: ? Enter
+local function repeat_backward(num)
+	backward_mode = true
+	match_backward(num)
+end
+
+M.forward = forward
+M.backward = backward
+M.next_match = next_match
+M.prev_match = prev_match
+M.repeat_forward = repeat_forward
+M.repeat_backward = repeat_backward
 
 return M

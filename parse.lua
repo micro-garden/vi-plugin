@@ -27,7 +27,7 @@ local function bytes_to_string(array)
 end
 
 function onBeforeTextEvent(buf, ev)
-	if mode.is_insert() or mode.is_find() then
+	if mode.is_insert() or mode.is_search() then
 		return true
 	end
 

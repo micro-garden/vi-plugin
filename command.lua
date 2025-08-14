@@ -16,10 +16,10 @@ local prompt = require("prompt")
 local move = require("move")
 local mark = require("mark")
 local view = require("view")
+local search = require("search")
 local insert = require("insert")
 local edit = require("edit")
 local replace = require("replace")
-local find = require("find")
 local misc = require("misc")
 local utils = require("utils")
 
@@ -85,97 +85,97 @@ local function run_edit(num, op, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "I" then
+	elseif op == "I" then
 		insert.insert_line_start(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "a" then
+	elseif op == "a" then
 		insert.insert_after_here(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "A" then
+	elseif op == "A" then
 		insert.insert_after_line_end(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "o" then
+	elseif op == "o" then
 		insert.open_below(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "O" then
+	elseif op == "O" then
 		insert.open_above(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "dd" then
+	elseif op == "dd" then
 		edit.delete_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "yy" then
+	elseif op == "yy" then
 		edit.copy_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "Y" then
+	elseif op == "Y" then
 		edit.copy_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "x" then
+	elseif op == "x" then
 		edit.delete_chars(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "X" then
+	elseif op == "X" then
 		edit.delete_chars_backward(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "D" then
+	elseif op == "D" then
 		edit.delete_to_line_end()
 		cache_command(false, 1, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "s" then
+	elseif op == "s" then
 		replace.replace_chars(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "S" or op== "cc" then
+	elseif op == "S" or op == "cc" then
 		replace.replace_lines(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "C" then
+	elseif op == "C" then
 		replace.replace_to_line_end(replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "p" then
+	elseif op == "p" then
 		edit.paste_below(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "P" then
+	elseif op == "P" then
 		edit.paste_above(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "J" then
+	elseif op == "J" then
 		edit.join_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== ">>" then
+	elseif op == ">>" then
 		edit.indent_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op== "<<" then
+	elseif op == "<<" then
 		edit.outdent_lines(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
@@ -313,17 +313,23 @@ local function run_move(no_num, num, mv, letter)
 	end
 
 	-- XXX could not move to misc
-	if mv == "/" then
-		find.find()
+	if mv == "/\n" then -- not works
+		search.repeat_forward()
+		return true
+	elseif mv == "?\n" then -- not works
+		search.repeat_backward()
+		return true
+	elseif mv == "/" then
+		search.forward()
 		return true
 	elseif mv == "?" then
-		find.reverse_find()
+		search.backward()
 		return true
 	elseif mv == "n" then
-		find.find_next(num)
+		search.next_match(num)
 		return true
 	elseif mv == "N" then
-		find.find_prev(num)
+		search.prev_match(num)
 		return true
 	else
 		return false
@@ -332,13 +338,13 @@ end
 
 local function run_view(op, mv)
 	-- Reposition
-	if op== "z" and mv == "\n" then
+	if op == "z" and mv == "\n" then
 		view.to_top()
 		return true
-	elseif op== "z." then
+	elseif op == "z." then
 		view.to_middle()
 		return true
-	elseif op== "z" and mv == "-" then
+	elseif op == "z" and mv == "-" then
 		view.to_bottom()
 		return true
 	else
@@ -370,52 +376,52 @@ end
 local function run_compound(num, op, no_subnum, subnum, mv, letter, replay)
 	local matched = false
 
-	if op== "d" and mv == "$" then
+	if op == "d" and mv == "$" then
 		edit.delete_to_line_end()
 		matched = true
-	elseif op== "y" and mv == "$" then
+	elseif op == "y" and mv == "$" then
 		edit.copy_to_line_end()
 		matched = true
-	elseif op== "c" and mv == "$" then
+	elseif op == "c" and mv == "$" then
 		replace.replace_to_line_end(replay)
 		matched = true
-	elseif op== "d" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+	elseif op == "d" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		edit.delete_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
-	elseif op== "y" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+	elseif op == "y" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		edit.copy_lines_region(start_loc.Y, end_loc.Y)
 		matched = true
-	elseif op== "c" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+	elseif op == "c" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		replace.replace_lines_region(start_loc.Y, end_loc.Y, replay)
 		matched = true
-	elseif op== "d" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "d" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		edit.delete_chars_region(start_loc, end_loc)
 		matched = true
-	elseif op== "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		edit.copy_chars_region(start_loc, end_loc)
 		matched = true
-	elseif op== "c" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "c" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		replace.replace_chars_region(start_loc, end_loc, replay)
 		matched = true
-	elseif op== ">" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+	elseif op == ">" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
 		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.indent_region(start_loc, end_loc, num)
 		matched = true
-	elseif op== "<" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
+	elseif op == "<" and (mv:match("[jk\nG]+") or mv == "'" and letter) then
 		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.outdent_region(start_loc, end_loc, num)
 		matched = true
-	elseif op== ">" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == ">" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.indent_region(start_loc, end_loc, 1)
 		matched = true
-	elseif op== "<" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "<" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(1, no_subnum, subnum, mv, letter, true)
 		edit.outdent_region(start_loc, end_loc, 1)
 		matched = true
@@ -432,21 +438,21 @@ end
 
 local function run_misc(num, op, letter, replay)
 	--
-	if op== ":" then
+	if op == ":" then
 		mode.prompt()
 		prompt.show()
 		return true
-	elseif op== "m" and letter then
+	elseif op == "m" and letter then
 		mark.set(letter)
 		return true
-	elseif op== "." then
+	elseif op == "." then
 		repeat_command(num)
 		return true
-	elseif op== "u" then
+	elseif op == "u" then
 		cache_command(false, num, op, true, 1, "", nil)
 		undo(num, replay)
 		return true
-	elseif op== "ZZ" then
+	elseif op == "ZZ" then
 		misc.quit()
 		return true
 	else
