@@ -1,4 +1,4 @@
-VERSION = "0.0.9"
+VERSION = "0.0.10"
 
 local micro = import("micro")
 local config = import("micro/config")
@@ -112,6 +112,7 @@ function init()
 	config.TryBindKey("Escape", "Escape,Deselect,ClearInfo,RemoveAllMultiCursors,UnhighlightSearch,lua:vi.Vi", false)
 	config.TryBindKey("Enter", "lua:vi.ViEnter|InsertNewline", false)
 	config.AddRuntimeFile("vi", config.RTHelp, "help/vi.md")
+	config.AddRuntimeFile("vi", config.RTHelp, "help/vicommands.md")
 end
 
 function postinit()

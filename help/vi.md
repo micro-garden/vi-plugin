@@ -15,25 +15,34 @@ You can return to insert mode with the `i` command.
 
 ## Supported Commands
 
+See full list of supported and planned commands by running:
+
+```
+help vicommands
+```
+
+Followings are major implemented commands.
+
 ### Movement Commands
 
-| Command          | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `h`              | Move left                                         |
-| `l`              | Move right                                        |
-| `j`              | Move down                                         |
-| `k`              | Move up                                           |
-| `0`              | Move to beginning of line                         |
-| `$`              | Move to end of line                               |
-| `w`              | Move to beginning of next word (experimental)     |
-| `b`              | Move to beginning of previous word (experimental) |
-| `<Enter>` / `\n` | Move to beginning of next line                    |
-| `+`              | Move to beginning of next line                    |
-| `G`              | Move to the bottom of the file                    |
-| `10G`            | Move to line 10                                   |
-| `m` + letter     | Mark current position as letter (symplified)      |
-| `'` + letter     | Move to marked line                               |
-| ````` + letter   | Move to markd character                           |
+| Command          | Description                                  |
+| ---------------- | -------------------------------------------- |
+| `h`              | Move left                                    |
+| `l`              | Move right                                   |
+| `j`              | Move down                                    |
+| `k`              | Move up                                      |
+| `0`              | Move to beginning of line                    |
+| `$`              | Move to end of line                          |
+| `w`              | Move to beginning of next word               |
+| `b`              | Move to beginning of previous word           |
+| `e`              | Move to end of word                          |
+| `<Enter>` / `\n` | Move to beginning of next line               |
+| `+`              | Move to beginning of next line               |
+| `G`              | Move to the bottom of the file               |
+| `10G`            | Move to line 10                              |
+| `m` + letter     | Mark current position as letter (symplified) |
+| `'` + letter     | Move to marked line                          |
+| ````` + letter   | Move to markd character                      |
 
 All movement commands support numeric prefixes, e.g. `3j` moves down 3 lines.
 

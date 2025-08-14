@@ -4,7 +4,8 @@
 [micro](https://micro-editor.github.io/) text editor that provides a simple
 vi-style modal editing mode.
 
-See [help/vi.md](help/vi.md) for more details.
+See [help/vi.md](help/vi.md) and [help/vicommands.md](help/vicommands.md) for
+more details.
 
 ## Installation
 
