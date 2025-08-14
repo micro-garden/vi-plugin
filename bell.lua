@@ -13,7 +13,8 @@ end
 local utils = require("utils")
 
 local FATAL_HEAD = "** vi fatal error **\n"
-local TODO_HEAD = "TODO"
+local NOT_PLANNED_HEAD = "Not planned to implement"
+local PLANNED_HEAD = "Not implemented yet, but planned"
 local BELL_HEAD = " * RING! * "
 local BELL_DURATION = time.ParseDuration("1s")
 
@@ -25,11 +26,19 @@ local function fatal(message)
 	micro.TermMessage(FATAL_HEAD .. message)
 end
 
-local function todo(message)
+local function not_planned(message)
 	if message then
-		micro.InfoBar():Error(TODO_HEAD .. ": " .. message)
+		micro.InfoBar():Error(NOT_PLANNED_HEAD .. ": " .. message)
 	else
-		micro.InfoBar():Error(TODO_HEAD)
+		micro.InfoBar():Error(NOT_PLANNED_HEAD)
+	end
+end
+
+local function planned(message)
+	if message then
+		micro.InfoBar():Error(PLANNED_HEAD .. ": " .. message)
+	else
+		micro.InfoBar():Error(PLANNED_HEAD)
 	end
 end
 
@@ -50,7 +59,8 @@ local function ring(reason)
 end
 
 M.fatal = fatal
-M.todo = todo
+M.not_planned = not_planned
+M.planned = planned
 M.error = general_error
 M.info = show_message
 M.vi_error = general_error

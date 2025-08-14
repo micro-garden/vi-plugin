@@ -26,7 +26,7 @@ local function reverse_find()
 	micro.CurPane():Find()
 end
 
-local function find_next_internal(number)
+local function find_next_internal(num)
 	local pane = micro.CurPane()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
@@ -36,7 +36,7 @@ local function find_next_internal(number)
 		cursor.X = cursor.X + 1
 	end
 
-	for _ = 1, number do
+	for _ = 1, num do
 		pane:FindNext()
 	end
 
@@ -48,9 +48,9 @@ local function find_next_internal(number)
 	end
 end
 
-local function find_prev_internal(number)
+local function find_prev_internal(num)
 	local pane = micro.CurPane()
-	for _ = 1, number do
+	for _ = 1, num do
 		pane:FindPrevious()
 	end
 
@@ -63,19 +63,19 @@ local function find_prev_internal(number)
 	end
 end
 
-local function find_next(number)
+local function find_next(num)
 	if reverse_mode then
-		find_prev_internal(number)
+		find_prev_internal(num)
 	else
-		find_next_internal(number)
+		find_next_internal(num)
 	end
 end
 
-local function find_prev(number)
+local function find_prev(num)
 	if reverse_mode then
-		find_next_internal(number)
+		find_next_internal(num)
 	else
-		find_prev_internal(number)
+		find_prev_internal(num)
 	end
 end
 

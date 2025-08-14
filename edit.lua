@@ -35,21 +35,21 @@ local function insert_killed_chars(chars)
 end
 
 -- command: dd
-local function delete_lines(number)
+local function delete_lines(num)
 	mode.show()
 
 	local pane = micro.CurPane()
 	local buf = pane.buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-	if cursor.Y + number - 1 > last_line_index then
-		bell.ring("cannot delete " .. number .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
+	if cursor.Y + num - 1 > last_line_index then
+		bell.ring("cannot delete " .. num .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
 		return
 	end
 
 	clear_kill_buffer()
 	cursor.X = 0
-	for _ = 1, number do
+	for _ = 1, num do
 		local line = buf:Line(cursor.Y)
 		insert_killed_lines(line)
 		pane:DeleteLine()
@@ -66,26 +66,26 @@ local function delete_lines(number)
 end
 
 -- command: yy Y
-local function copy_lines(number)
+local function copy_lines(num)
 	mode.show()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-	if cursor.Y + number - 1 > last_line_index then
-		bell.ring("cannot copy" .. number .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
+	if cursor.Y + num - 1 > last_line_index then
+		bell.ring("cannot copy" .. num .. " lines, only " .. last_line_index - cursor.Y + 1 .. " below")
 		return
 	end
 
 	clear_kill_buffer()
-	for i = 1, number do
+	for i = 1, num do
 		local line = buf:Line(cursor.Y + i - 1)
 		insert_killed_lines(line)
 	end
 end
 
 -- command: x
-local function delete_chars(number)
+local function delete_chars(num)
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -98,7 +98,7 @@ local function delete_chars(number)
 		return
 	end
 
-	local n = math.min(number, length - cursor.X)
+	local n = math.min(num, length - cursor.X)
 
 	clear_kill_buffer()
 	insert_killed_chars(utils.utf8_sub(line, cursor.X + 1, cursor.X + n))
@@ -118,7 +118,7 @@ local function delete_chars(number)
 end
 
 -- command: X
-local function delete_chars_backward(number)
+local function delete_chars_backward(num)
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -131,7 +131,7 @@ local function delete_chars_backward(number)
 		return
 	end
 
-	local n = math.min(number, cursor.X)
+	local n = math.min(num, cursor.X)
 
 	clear_kill_buffer()
 	insert_killed_chars(utils.utf8_sub(line, cursor.X - n + 1, cursor.X))
@@ -152,7 +152,7 @@ local function delete_chars_backward(number)
 end
 
 -- command: p
-local function paste_below(number)
+local function paste_below(num)
 	mode.show()
 
 	if not kill_buffer then
@@ -175,7 +175,7 @@ local function paste_below(number)
 	local saved_length = utf8.RuneCount(line)
 	local saved_x = cursor.X
 	local saved_y
-	for _ = 1, number do
+	for _ = 1, num do
 		saved_y = cursor.Y
 		if kill_lines then
 			line = buf:Line(cursor.Y)
@@ -213,7 +213,7 @@ local function paste_below(number)
 end
 
 -- command: P
-local function paste_above(number)
+local function paste_above(num)
 	mode.show()
 
 	if not kill_buffer then
@@ -234,7 +234,7 @@ local function paste_above(number)
 	local cursor = buf:GetActiveCursor()
 	local saved_x = cursor.X
 	local saved_y
-	for _ = 1, number do
+	for _ = 1, num do
 		saved_y = cursor.Y
 		if kill_lines then
 			cursor.X = 0
@@ -376,7 +376,7 @@ local function copy_to_line_end()
 end
 
 -- command: J
-local function join_lines(number)
+local function join_lines(num)
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -388,7 +388,7 @@ local function join_lines(number)
 		return
 	end
 
-	local n = number
+	local n = num
 	if n > 1 then
 		n = n - 1
 	end
@@ -425,28 +425,28 @@ local function join_lines(number)
 	end
 end
 
-local function indent_lines_internal(number, indent)
+local function indent_lines_internal(num, indent)
 	mode.show()
 
 	local pane = micro.CurPane()
 	local buf = pane.buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-	if cursor.Y + number - 1 > last_line_index then
-		bell.ring("there are not " .. number .. " lines below, only " .. last_line_index - cursor.Y + 1)
+	if cursor.Y + num - 1 > last_line_index then
+		bell.ring("there are not " .. num .. " lines below, only " .. last_line_index - cursor.Y + 1)
 		return
 	end
 
 	mode.insert()
 	local saved_x = cursor.X
 	local saved_y = cursor.Y
-	for i = 1, number do
+	for i = 1, num do
 		if indent then
 			micro.CurPane():IndentLine()
 		else
 			micro.CurPane():OutdentLine()
 		end
-		if number > 1 then
+		if num > 1 then
 			if i == 1 then
 				saved_x = cursor.X
 				saved_y = cursor.Y
@@ -455,36 +455,36 @@ local function indent_lines_internal(number, indent)
 			cursor.Y = cursor.Y + 1
 		end
 	end
-	if number > 1 then
+	if num > 1 then
 		cursor.X = saved_x
 		cursor.Y = saved_y
 	end
 	mode.command()
 end
 
-local function indent_lines(number)
-	indent_lines_internal(number, true)
+local function indent_lines(num)
+	indent_lines_internal(num, true)
 end
 
-local function outdent_lines(number)
-	indent_lines_internal(number, false)
+local function outdent_lines(num)
+	indent_lines_internal(num, false)
 end
 
-local function indent_region_internal(start_loc, end_loc, number, indent)
+local function indent_region_internal(start_loc, end_loc, num, indent)
 	if not is_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc -- swap
 	end
 
 	local n = end_loc.Y - start_loc.Y + 1
-	indent_lines_internal(number * n, indent)
+	indent_lines_internal(num * n, indent)
 end
 
-local function indent_region(start_loc, end_loc, number)
-	indent_region_internal(start_loc, end_loc, number, true)
+local function indent_region(start_loc, end_loc, num)
+	indent_region_internal(start_loc, end_loc, num, true)
 end
 
-local function outdent_region(start_loc, end_loc, number)
-	indent_region_internal(start_loc, end_loc, number, false)
+local function outdent_region(start_loc, end_loc, num)
+	indent_region_internal(start_loc, end_loc, num, false)
 end
 
 M.clear_kill_buffer = clear_kill_buffer

@@ -72,30 +72,30 @@ function onBeforeTextEvent(buf, ev)
 	combuf.insert_chars(input)
 	local comb = combuf.get()
 
-	local number_str, edit, subnum_str, mv, _ =
-		comb:match("^(%d*)([:iIaAoOdyYxXDsScCpPJ><m%.uZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nN]*)(.-)$")
+	local num_str, op, subnum_str, mv, _ =
+		comb:match("^(%d*)([mz:iIaAoOdyYxXDsScCpPJ><%.uZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nN]*)(.-)$")
 
 	local mark_command, letter = comb:match("([m'`])([^'`])$")
 	if mark_command == "m" then
-		edit = mark_command
+		op = mark_command
 	elseif mark_command == "'" or mark_command == "`" then
 		mv = mark_command
 	end
 
-	if not number_str then
+	if not num_str then
 		bell.error("not (yet) a vi command [" .. comb .. "]")
 		combuf.clear()
 		return true
 	end
 
-	local no_number = false
-	local number = 1
-	if #number_str < 1 then
-		no_number = true
-	elseif number_str == "0" then
+	local no_num = false
+	local num = 1
+	if #num_str < 1 then
+		no_num = true
+	elseif num_str == "0" then
 		mv = "0"
 	else
-		number = tonumber(number_str)
+		num = tonumber(num_str)
 	end
 
 	local no_subnum = false
@@ -108,7 +108,7 @@ function onBeforeTextEvent(buf, ev)
 		subnum = tonumber(subnum_str)
 	end
 
-	if command.run(no_number, number, edit, no_subnum, subnum, mv, letter, false) then
+	if command.run(no_num, num, op, no_subnum, subnum, mv, letter, false) then
 		combuf.clear()
 		return true
 	end

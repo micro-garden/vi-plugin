@@ -79,12 +79,12 @@ end
 
 -- key: ``
 local function back()
-	bell.todo("not implemented yet")
+	bell.planned("`` (mark.back)" )
 end
 
 -- key: ''
 local function back_to_line()
-	bell.todo("not implemented yet")
+	bell.planned("'' (mark.back_to_line)")
 end
 
 -- Set Mark / Move to Mark

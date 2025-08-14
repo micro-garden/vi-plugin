@@ -18,7 +18,7 @@ local move = require("move")
 local utils = require("utils")
 
 local saved = false
-local saved_number = 1
+local saved_num = 1
 local saved_replay = false
 
 local saved_loc = nil
@@ -41,9 +41,9 @@ local function size_with_linefeeds()
 	return size
 end
 
-local function save_state(number, replay)
+local function save_state(num, replay)
 	saved = true
-	saved_number = number
+	saved_num = num
 	saved_replay = replay
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -55,12 +55,12 @@ local function save_state(number, replay)
 	saved_size = size_with_linefeeds()
 end
 
-local function extend(loc, number, replay)
+local function extend(loc, num, replay)
 	local n
 	if replay then
-		n = number
+		n = num
 	else
-		n = number - 1
+		n = num - 1
 	end
 	local lines = {}
 
@@ -149,10 +149,10 @@ local function resume(orig_loc)
 	end
 
 	if saved then
-		extend(orig_loc, saved_number, saved_replay)
+		extend(orig_loc, saved_num, saved_replay)
 
 		saved = false
-		saved_number = 1
+		saved_num = 1
 		saved_replay = false
 	end
 end
@@ -169,22 +169,22 @@ local function replace_mode()
 	insert_mode = REPLACE_MODE
 end
 
-local function insert_here(number, replay)
+local function insert_here(num, replay)
 	chars_mode()
 
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(number, replay)
+		save_state(num, replay)
 	end
 end
 
-local function insert_line_start(number, replay)
+local function insert_line_start(num, replay)
 	chars_mode()
 
 	local buf = micro.CurPane().Buf
@@ -195,16 +195,16 @@ local function insert_line_start(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(number, replay)
+		save_state(num, replay)
 	end
 end
 
-local function insert_after_here(number, replay)
+local function insert_after_here(num, replay)
 	chars_mode()
 
 	local buf = micro.CurPane().Buf
@@ -215,16 +215,16 @@ local function insert_after_here(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(number, replay)
+		save_state(num, replay)
 	end
 end
 
-local function insert_after_line_end(number, replay)
+local function insert_after_line_end(num, replay)
 	chars_mode()
 
 	move.to_end_of_line()
@@ -237,16 +237,16 @@ local function insert_after_line_end(number, replay)
 
 	if replay then
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(number, replay)
+		save_state(num, replay)
 	end
 end
 
-local function open_below(number, replay)
+local function open_below(num, replay)
 	lines_mode()
 
 	local buf = micro.CurPane().Buf
@@ -254,7 +254,7 @@ local function open_below(number, replay)
 	if replay then
 		local linesnum = buf:LinesNum()
 		local loc = buffer.Loc(0, math.min(cursor.Y + 1, linesnum - 1))
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -268,19 +268,19 @@ local function open_below(number, replay)
 			cursor.X = 0
 			move.update_virtual_cursor()
 
-			save_state(number, replay)
+			save_state(num, replay)
 		end)
 	end
 end
 
-local function open_above(number, replay)
+local function open_above(num, replay)
 	lines_mode()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	if replay then
 		local loc = buffer.Loc(0, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -293,19 +293,19 @@ local function open_above(number, replay)
 			cursor.X = 0
 			move.update_virtual_cursor()
 
-			save_state(number, replay)
+			save_state(num, replay)
 		end)
 	end
 end
 
-local function open_here(number, replay)
+local function open_here(num, replay)
 	lines_mode()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	if replay then
 		local loc = buffer.Loc(0, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
@@ -318,23 +318,23 @@ local function open_here(number, replay)
 			cursor.X = 0
 			move.update_virtual_cursor()
 
-			save_state(number, replay)
+			save_state(num, replay)
 		end)
 	end
 end
 
-local function insert_here_replace(number, replay)
+local function insert_here_replace(num, replay)
 	replace_mode()
 
 	if replay then
 		local cursor = micro.CurPane().Buf:GetActiveCursor()
 		local loc = buffer.Loc(cursor.X, cursor.Y)
-		extend(loc, number, replay)
+		extend(loc, num, replay)
 	else
 		mode.insert()
 		mode.show()
 
-		save_state(number, replay)
+		save_state(num, replay)
 	end
 end
 

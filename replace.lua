@@ -17,7 +17,7 @@ local edit = require("edit")
 local insert = require("insert")
 local utils = require("utils")
 
-local function replace_chars(number, replay)
+local function replace_chars(num, replay)
 	insert.replace_mode()
 
 	local pane = micro.CurPane()
@@ -26,13 +26,13 @@ local function replace_chars(number, replay)
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
 
-	local n = math.min(number, length - cursor.X)
+	local n = math.min(num, length - cursor.X)
 
 	edit.clear_kill_buffer()
 	edit.insert_killed_chars(utils.utf8_sub(line, 1 + cursor.X, cursor.X + n))
 
 	local saved_x = cursor.X
-	local insert_after = cursor.X + number >= length
+	local insert_after = cursor.X + num >= length
 
 	for _ = 1, n do
 		pane:Delete()
@@ -63,8 +63,8 @@ local function replace_chars(number, replay)
 	end
 end
 
-local function replace_lines(number, replay)
-	edit.delete_lines(number)
+local function replace_lines(num, replay)
+	edit.delete_lines(num)
 	insert.open_here(1, replay)
 end
 
