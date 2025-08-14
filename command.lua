@@ -487,7 +487,7 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 		operator.delete_word(num)
 		matched = true
 	elseif op == "c" and mv == "w" then
-		operator.change_word(num)
+		operator.change_word(num, replay)
 		matched = true
 	elseif op == "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
@@ -574,6 +574,9 @@ local function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 	elseif run_edit(num, op, letter, replay) then
 		return true
 	elseif run_misc(num, op, letter, replay) then
+		return true
+	elseif mv == "g" then
+		move.by_word_for_change(num) -- XXX debug
 		return true
 	end
 

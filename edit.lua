@@ -76,7 +76,7 @@ local function indent_lines_internal(num, right)
 	mode.show()
 
 	local pane = micro.CurPane()
-	local buf = pane.buf
+	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + num - 1 > last_line_index then

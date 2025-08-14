@@ -35,7 +35,7 @@ local function after(duration, fn)
 end
 
 local function next_tick(fn, n)
-	if not n or n < 1 then
+	if not n or n < 2 then
 		after(TICK_DURATION, fn)
 	else
 		next_tick(fn, n - 1)

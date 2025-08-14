@@ -38,11 +38,6 @@ end
 -- Copy (Yank)
 --
 
--- key: yw
-local function copy_word(num)
-	bell.planned("yw (operator.copy_word)")
-end
-
 -- key: yy Y
 local function copy_line(num)
 	mode.show()
@@ -79,6 +74,17 @@ local function copy_region(start_loc, end_loc)
 	local substr = buf:Substr(start_loc, end_loc)
 	clear_kill_buffer()
 	insert_killed_chars(substr)
+end
+
+-- key: yw
+local function copy_word(num)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+	move.by_word(num)
+	local end_loc = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = start_loc.X
+	cursor.Y = start_loc.Y
+	copy_region(start_loc, end_loc)
 end
 
 -- key: y<mv>
@@ -300,17 +306,12 @@ local function delete_before(num)
 	end)
 end
 
--- key: dw
-local function delete_word(num)
-	bell.planned("dw (operator.delete_word)")
-end
-
 -- key: dd
 local function delete_line(num)
 	mode.show()
 
 	local pane = micro.CurPane()
-	local buf = pane.buf
+	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
 	if cursor.Y + num - 1 > last_line_index then
@@ -359,6 +360,17 @@ local function delete_region(start_loc, end_loc)
 	end)
 end
 
+-- key: dw
+local function delete_word(num)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local loc_start = buffer.Loc(cursor.X, cursor.Y)
+	move.by_word(num)
+	local loc_end = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = loc_start.X
+	cursor.Y = loc_start.Y
+	delete_region(loc_start, loc_end)
+end
+
 -- key: d
 local function delete_line_region(start_y, end_y)
 	if end_y < start_y then
@@ -401,11 +413,6 @@ end
 -- Change / Substitute
 --
 
--- key: cw
-local function change_word(num, replay)
-	bell.planned("cw (operator.change_word)")
-end
-
 -- key: cc
 local function change_line(num, replay)
 	delete_line(num)
@@ -414,28 +421,39 @@ end
 
 -- key: c<mv>
 local function change_region(start_loc, end_loc, replay)
-	local insert_after = false
-
-	if end_loc.Y > start_loc.Y and end_loc.X < 1 then
-		local cursor = micro.CurPane().Buf:GetActiveCursor()
-		local line = cursor:Buf():Line(end_loc.Y - 1)
-		local length = utf8.RuneCount(line)
-		end_loc = buffer.Loc(length, end_loc.Y - 1)
-		cursor.X = length
-		cursor.Y = end_loc.Y
-
-		insert_after = true
+	if not utils.is_locs_ordered(start_loc, end_loc) then
+		start_loc, end_loc = end_loc, start_loc -- swap
 	end
+
+	local buf = micro.CurPane().Buf
+	local line = buf:Line(end_loc.Y)
+	local length = utf8.RuneCount(line)
+	local end_of_line = end_loc.Y >= length
 
 	delete_region(start_loc, end_loc)
 
 	utils.next_tick(function()
-		if insert_after then
+		local cursor = buf:GetActiveCursor()
+		cursor.X = start_loc.X
+		cursor.Y = start_loc.Y
+		if end_of_line then
 			insert.after(1, replay)
 		else
 			insert.before(1, replay)
 		end
 	end, 2)
+end
+
+-- key: cw
+-- XXX buggy
+local function change_word(num, replay)
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local loc_start = buffer.Loc(cursor.X, cursor.Y)
+	move.by_word_for_change(num)
+	local loc_end = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = loc_start.X
+	cursor.Y = loc_start.Y
+	change_region(loc_start, loc_end, replay)
 end
 
 -- key: c<mv>
