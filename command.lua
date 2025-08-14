@@ -98,13 +98,13 @@ local function run_move(no_num, num, mv, letter)
 
 	-- Move in Line
 	if mv == "0" then
-		move.to_start_of_line()
+		move.to_start()
 		return true
 	elseif mv == "$" then
-		move.to_end_of_line()
+		move.to_end()
 		return true
 	elseif mv == "^" then
-		move.to_non_blank_of_line()
+		move.to_non_blank()
 		return true
 	elseif mv == "|" then
 		move.to_column(num)
@@ -289,7 +289,7 @@ local function run_insert(num, op, replay)
 		undo_mode = true
 		return true
 	elseif op == "A" then
-		insert.after_end_of_line(num, replay)
+		insert.after_end(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
@@ -362,7 +362,7 @@ local function run_operator(num, op, replay)
 		undo_mode = true
 		return true
 	elseif op == "D" then
-		operator.delete_to_end_of_line()
+		operator.delete_to_end()
 		cache_command(false, 1, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
@@ -375,7 +375,7 @@ local function run_operator(num, op, replay)
 		undo_mode = true
 		return true
 	elseif op == "C" then
-		operator.change_to_end_of_line(replay)
+		operator.change_to_end(replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
@@ -472,13 +472,13 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 	local matched = false
 
 	if op == "y" and mv == "$" then
-		operator.copy_to_end_of_line()
+		operator.copy_to_end()
 		matched = true
 	elseif op == "d" and mv == "$" then
-		operator.delete_to_end_of_line()
+		operator.delete_to_end()
 		matched = true
 	elseif op == "c" and mv == "$" then
-		operator.change_to_end_of_line(replay)
+		operator.change_to_end(replay)
 		matched = true
 	elseif op == "y" and mv == "w" then
 		operator.copy_word(num)

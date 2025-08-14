@@ -79,7 +79,7 @@ end
 
 -- key: ``
 local function back()
-	bell.planned("`` (mark.back)" )
+	bell.planned("`` (mark.back)")
 end
 
 -- key: ''

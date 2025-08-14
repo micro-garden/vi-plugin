@@ -100,7 +100,7 @@ end
 --
 
 -- key: 0
-local function to_start_of_line()
+local function to_start()
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -110,7 +110,7 @@ local function to_start_of_line()
 end
 
 -- key: $
-local function to_end_of_line()
+local function to_end()
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -123,8 +123,8 @@ local function to_end_of_line()
 end
 
 -- key: ^
-local function to_non_blank_of_line()
-	bell.planned("^ (move.to_non_blank_of_line)")
+local function to_non_blank()
+	bell.planned("^ (move.to_non_blank)")
 end
 
 -- key: <num>|
@@ -540,9 +540,9 @@ M.up = up
 M.right = right
 
 -- Move in Line
-M.to_start_of_line = to_start_of_line
-M.to_end_of_line = to_end_of_line
-M.to_non_blank_of_line = to_non_blank_of_line
+M.to_start = to_start
+M.to_end = to_end
+M.to_non_blank = to_non_blank
 M.to_column = to_column
 
 -- Move by Word / Move by Loose Word

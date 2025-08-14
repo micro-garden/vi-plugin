@@ -13,7 +13,7 @@ end
 
 local bell = require("bell")
 local mode = require("mode")
-local move= require("move")
+local move = require("move")
 local utils = require("utils")
 
 -- key: r

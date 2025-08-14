@@ -232,10 +232,10 @@ local function before_non_blank(num, replay)
 end
 
 -- key: A
-local function after_end_of_line(num, replay)
+local function after_end(num, replay)
 	chars_mode()
 
-	move.to_end_of_line()
+	move.to_end()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -368,7 +368,7 @@ M.replace_mode = replace_mode
 M.before = before
 M.before_non_blank = before_non_blank
 M.after = after
-M.after_end_of_line = after_end_of_line
+M.after_end = after_end
 M.overwrite = overwrite
 M.open_below = open_below
 -- Open Line

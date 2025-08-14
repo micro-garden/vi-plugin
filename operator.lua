@@ -100,7 +100,7 @@ local function copy_line_region(start_y, end_y)
 end
 
 -- key: y$
-local function copy_to_end_of_line()
+local function copy_to_end()
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -384,7 +384,7 @@ local function delete_line_region(start_y, end_y)
 end
 
 -- key: d$ D
-local function delete_to_end_of_line()
+local function delete_to_end()
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -463,8 +463,8 @@ local function change_line_region(start_y, end_y, replay)
 end
 
 -- key: C
-local function change_to_end_of_line(replay)
-	delete_to_end_of_line()
+local function change_to_end(replay)
+	delete_to_end()
 	insert.after(1, replay)
 end
 
@@ -530,7 +530,7 @@ M.copy_line = copy_line
 M.copy_line_into_reg = copy_line_into_reg
 M.copy_region = copy_region
 M.copy_line_region = copy_line_region
-M.copy_to_end_of_line = copy_to_end_of_line
+M.copy_to_end = copy_to_end
 -- Paste (Put)
 M.paste = paste
 M.paste_before = paste_before
@@ -542,13 +542,13 @@ M.delete_word = delete_word
 M.delete_line = delete_line
 M.delete_region = delete_region
 M.delete_line_region = delete_line_region
-M.delete_to_end_of_line = delete_to_end_of_line
+M.delete_to_end = delete_to_end
 -- Change / Substitute
 M.change_word = change_word
 M.change_line = change_line
 M.change_region = change_region
 M.change_line_region = change_line_region
-M.change_to_end_of_line = change_to_end_of_line
+M.change_to_end = change_to_end
 M.subst = subst
 M.subst_line = subst_line
 
