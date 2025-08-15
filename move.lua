@@ -1,3 +1,4 @@
+-- Motion Commands
 local M = {}
 
 local micro = import("micro")
@@ -16,6 +17,7 @@ local utils = require("utils")
 
 local virtual_cursor_x = 0
 
+--
 local function update_virtual_cursor()
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	virtual_cursor_x = cursor.X
@@ -27,7 +29,7 @@ end
 -- Move by Character / Move by Line
 --
 
--- key: h
+-- h : Move cursor left by character.
 local function left(num)
 	mode.show()
 
@@ -41,7 +43,7 @@ local function left(num)
 	update_virtual_cursor()
 end
 
--- key: j
+-- j : Move cursor down by line.
 local function down(num)
 	mode.show()
 
@@ -61,7 +63,7 @@ local function down(num)
 	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
--- key: k
+-- k : Move cursor up by line.
 local function up(num)
 	mode.show()
 
@@ -79,7 +81,7 @@ local function up(num)
 	cursor.X = math.min(virtual_cursor_x, math.max(length - 1, 0))
 end
 
--- key: l
+-- l : Move cursor right by character.
 local function right(num)
 	mode.show()
 
@@ -99,7 +101,7 @@ end
 -- Move in Line
 --
 
--- key: 0
+-- 0 : Move cursor to start of current line.
 local function to_start()
 	mode.show()
 
@@ -109,7 +111,7 @@ local function to_start()
 	update_virtual_cursor()
 end
 
--- key: $
+-- $ : Move cursor to end of current line.
 local function to_end()
 	mode.show()
 
@@ -122,12 +124,12 @@ local function to_end()
 	update_virtual_cursor()
 end
 
--- key: ^
+-- ^ : Move cursor to first non-blank character of current line.
 local function to_non_blank()
 	bell.planned("^ (move.to_non_blank)")
 end
 
--- key: <num>|
+-- <num>| : Move cursor to column <num> of current line.
 local function to_column(num)
 	bell.planned("<num>| (move.to_column)")
 end
@@ -136,7 +138,7 @@ end
 -- Move by Word / Move by Loose Word
 --
 
--- key: w
+-- w : Move cursor forward by word.
 local function by_word(num)
 	mode.show()
 
@@ -187,7 +189,8 @@ local function by_word(num)
 	update_virtual_cursor()
 end
 
---
+-- internal use
+-- (g) : Move cursor forward by word to be used by cw command.
 local function by_word_for_change(num)
 	mode.show()
 
@@ -207,7 +210,7 @@ local function by_word_for_change(num)
 		end
 		local str = utils.utf8_sub(line, cursor.X + 1)
 
-		local word, word_spaces, symbols, symbol_spaces = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+		local word, word_spaces, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
 		local forward
 		if #word > 0 then
 			forward = utf8.RuneCount(word)
@@ -241,7 +244,7 @@ local function by_word_for_change(num)
 	update_virtual_cursor()
 end
 
--- key: b
+-- b : Move cursor backward by word.
 local function backward_by_word(num)
 	mode.show()
 
@@ -300,7 +303,8 @@ local function backward_by_word(num)
 	update_virtual_cursor()
 end
 
---
+-- internal use
+-- (none) : Move cursor forward by one word.
 local function one_word()
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -338,7 +342,7 @@ local function one_word()
 	end
 end
 
--- key: e
+-- e : Move cursor to end of word.
 local function to_end_of_word(num)
 	mode.show()
 
@@ -393,17 +397,17 @@ local function to_end_of_word(num)
 	update_virtual_cursor()
 end
 
--- key: W
+-- W : Move cursor forward by loose word.
 local function by_loose_word(num)
 	bell.planned("W (move.by_loose_word)")
 end
 
--- key: B
+-- B : Move cursor backward by loose word.
 local function backward_by_loose_word(num)
 	bell.planned("B (move.backward_by_loose_word)")
 end
 
--- key: E
+-- E : Move cursor to end of loose word.
 local function to_end_of_loose_word(num)
 	bell.planned("E (move.to_end_of_loose_word)")
 end
@@ -412,7 +416,7 @@ end
 -- Move by Line
 --
 
--- key: Enter, +
+-- Enter, + :  Move cursor to first non-blank character of next line.
 local function to_non_blank_of_next_line(num)
 	mode.show()
 
@@ -435,12 +439,12 @@ local function to_non_blank_of_next_line(num)
 	micro.CurPane():Relocate()
 end
 
--- key: -
+-- - : Move cursor to first non-blank character of previous line.
 local function to_non_blank_of_prev_line(num)
 	bell.planned("- (move.to_non_blank_of_prev_line)")
 end
 
--- key: G
+-- G : Move cursor to last line.
 local function to_last_line()
 	mode.show()
 
@@ -451,7 +455,7 @@ local function to_last_line()
 	update_virtual_cursor()
 end
 
--- key: <num>G
+-- <num>G : Move cursor to line <num>.
 local function to_line(num)
 	mode.show()
 
@@ -471,32 +475,32 @@ end
 -- Move by Block
 --
 
--- key: )
+-- ) : Move cursor forward by sentence.
 local function by_sentence(num)
 	bell.planned(") (move.by_sentence)")
 end
 
--- key: (
+-- ( : Move cursor backward by sentence.
 local function backward_by_sentence(num)
 	bell.planned("( (move.backward_by_sentence)")
 end
 
--- key: }
+-- } : Move cursor forward by paragraph.
 local function by_paragraph(num)
 	bell.planned("} (move.by_paragraph)")
 end
 
--- key: {
+-- { : Move cursor backward by paragraph.
 local function backward_by_paragraph(num)
 	bell.planned("{ (move.backward_by_paragraph)")
 end
 
--- key: ]]
+-- ]] : Move cursor forward by section.
 local function by_section(num)
 	bell.planned("]] (move.by_section)")
 end
 
--- key: [[
+-- [[ : Move cursor backward by section.
 local function backward_by_section(num)
 	bell.planned("[[ (move.backward_by_section)")
 end
@@ -505,32 +509,36 @@ end
 -- Move in View
 --
 
--- key: H
+-- H : Move cursor to top of view.
 local function to_top_of_view()
 	bell.planned("H (move.to_top_of_view)")
 end
 
--- key: M
+-- M : Move cursor to middle of view.
 local function to_middle_of_view()
 	bell.planned("M (move.to_middle_of_view)")
 end
 
--- key: L
+-- L : Move cursor to bottom of view.
 local function to_bottom_of_view()
 	bell.planned("L (move.to_bottom_of_view)")
 end
 
--- key: <num>H
+-- <num>H : Move cursor below <num> lines from top of view.
 local function to_below_top_of_view(num)
 	bell.planned("<num>H (to_below_top_of_view)")
 end
 
--- key: <num>L
+-- <num>L : Move cursor above <num> lines from bottom of view.
 local function to_above_bottom_of_view(num)
 	bell.planned("<num>L (to_bottom_of_view)")
 end
 
 --
+-- exports
+--
+
+-- internal use
 M.update_virtual_cursor = update_virtual_cursor
 
 -- Move by Character / Move by line

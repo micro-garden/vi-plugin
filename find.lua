@@ -1,3 +1,4 @@
+-- Character Finding Commands
 local M = {}
 
 local config = import("micro/config")
@@ -9,37 +10,40 @@ end
 
 local bell = require("bell")
 
--- key: f<letter>
+-- f<letter> : Find character <letter> forward in current line.
 local function forward(num, letter)
 	bell.planned("f<letter> (find.forward)")
 end
 
--- key: F<letter>
+-- F<letter> : Find character <letter> backward in current line.
 local function backward(num, letter)
 	bell.planned("F<letter> (find.backward)")
 end
 
--- key: t<letter>
+-- t<letter> : Find before character <letter> forward in current line.
 local function before_forward(num, letter)
 	bell.planned("t<letter> (find.before_forward)")
 end
 
--- key: T<letter>
+-- T<letter> : Find before character <letter> backward in current line.
 local function before_backward(num, letter)
 	bell.planned("T<letter> (find.before_backward)")
 end
 
--- key: ;
+-- ; : Find next match.
 local function next_match(num)
 	bell.planned(";<letter> (find.next_match)")
 end
 
--- key: ,
+-- , : Find previous match.
 local function prev_match(num)
 	bell.planned(",<letter> (find.prev_match)")
 end
 
 --
+-- exports
+--
+
 M.forward = forward
 M.backward = backward
 M.before_forward = before_forward

@@ -1,3 +1,4 @@
+-- View Commands
 local M = {}
 
 local config = import("micro/config")
@@ -13,32 +14,32 @@ local bell = require("bell")
 -- Scroll by View Height / Scroll by Line
 --
 
--- key: Ctrl-f
+-- Ctrl-f : Scroll down by view height.
 local function down()
 	bell.not_planned("Ctrl-f (view.down)")
 end
 
--- key: Ctrl-b
+-- Ctrl-b : Scroll up by view height.
 local function up()
 	bell.not_planned("Ctrl-b (view.up)")
 end
 
--- key: Ctrl-d
+-- Ctrl-d : Scroll down by half view height.
 local function down_half()
 	bell.not_planned("Ctrl-d (view.down_half)")
 end
 
--- key: Ctrl-u
+-- Ctrl-u : Scroll up by half view height.
 local function up_half()
 	bell.not_planned("Ctrl-u (view.up_half)")
 end
 
--- key: Ctrl-y
+-- Ctrl-y : Scroll down by line.
 local function down_line()
 	bell.not_planned("Ctrl-y (view.down_line)")
 end
 
--- key: Ctrl-e
+-- Ctrl-e : Scroll up by line.
 local function up_line()
 	bell.not_planned("Ctrl-e (view.up_line)")
 end
@@ -47,17 +48,17 @@ end
 -- Reposition
 --
 
--- key: z Enter
+-- z Enter : Reposition cursor line to top of view.
 local function to_top()
 	bell.planned("z Enter (view.to_top)")
 end
 
--- key: z.
+-- z. : Reposition cursor line middle of view.
 local function to_middle()
 	bell.planned("z. (view.to_middle)")
 end
 
--- key: z-
+-- z- : Reposition cursor line bottom of view.
 local function to_bottom()
 	bell.planned("z- (view.to_bottom)")
 end
@@ -66,10 +67,14 @@ end
 -- Redraw
 --
 
--- key: Ctrl-l
+-- Ctrl-l : Redraw view.
 local function redraw()
 	bell.not_planned("Ctrl-l (view.redraw)")
 end
+
+--
+-- exports
+--
 
 -- Scroll by View Height / Scroll by Line
 M.down = down

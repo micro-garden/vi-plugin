@@ -1,3 +1,4 @@
+-- Miscellaneous Commands
 local M = {}
 
 local micro = import("micro")
@@ -12,28 +13,32 @@ end
 local bell = require("bell")
 local mode = require("mode")
 
--- key: Ctrl-g
+-- Ctrl-g : Show info such as current cursor position.
 local function show_info()
 	bell.not_planned("Ctrl-g (misc.show_info)")
 end
 
--- key: .
+-- . : Repeat last edit.
 -- repeat is implemented in command.lua
 
--- key: u
+-- u : Undo.
 -- undo is implemented in command.lua
 
--- key: U
+-- U : Restore current line to previous state.
 local function restore()
 	bell.planned("U (misc.restore)")
 end
 
--- key: ZZ
+-- ZZ : Save and quit.
 local function save_and_quit()
 	mode.show()
 
 	micro.CurPane():QuitCmd({})
 end
+
+--
+-- exports
+--
 
 M.show_info = show_info
 --M.repeat = repeat

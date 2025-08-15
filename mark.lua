@@ -1,3 +1,4 @@
+-- Marking Commands
 local M = {}
 
 local micro = import("micro")
@@ -22,7 +23,7 @@ local marks = {}
 -- Set Mark / Move to Mark
 --
 
--- key: m{letter}
+-- m<letter> : Mark current cursor position labelled by <letter>.
 local function set(letter)
 	mode.show()
 
@@ -32,7 +33,7 @@ local function set(letter)
 	marks[letter] = loc
 end
 
--- key: `{letter}
+-- `<letter> : Move cursor to marked position labelled by <letter>.
 local function move_to(letter)
 	mode.show()
 
@@ -54,7 +55,7 @@ local function move_to(letter)
 	move.update_virtual_cursor()
 end
 
--- key: '{letter}
+-- '<letter> : Move cursor to marked line labelled by <letter>.
 local function move_to_line(letter)
 	mode.show()
 
@@ -77,15 +78,19 @@ end
 -- Move by Context
 --
 
--- key: ``
+-- `` : Move cursor to previous position in context.
 local function back()
 	bell.planned("`` (mark.back)")
 end
 
--- key: ''
+-- '' :  Move cursor to previous line in context.
 local function back_to_line()
 	bell.planned("'' (mark.back_to_line)")
 end
+
+--
+-- exports
+--
 
 -- Set Mark / Move to Mark
 M.set = set

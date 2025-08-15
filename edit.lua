@@ -1,3 +1,4 @@
+-- Editing Commands
 local M = {}
 
 local micro = import("micro")
@@ -16,12 +17,12 @@ local mode = require("mode")
 local move = require("move")
 local utils = require("utils")
 
--- key: r
+-- r : Replace single character under cursor.
 local function replace(letter)
 	bell.planned("r (edit.replace)")
 end
 
--- key: J
+-- J : Join current line with next line.
 local function join(num)
 	mode.show()
 
@@ -71,6 +72,7 @@ local function join(num)
 	end
 end
 
+-- internal use
 --
 local function indent_lines_internal(num, right)
 	mode.show()
@@ -109,16 +111,17 @@ local function indent_lines_internal(num, right)
 	mode.command()
 end
 
--- key: >>
+-- >> : Indent current line.
 local function indent(num)
 	indent_lines_internal(num, true)
 end
 
--- key: <<
+-- << : Outdent current line.
 local function outdent(num)
 	indent_lines_internal(num, false)
 end
 
+-- internal use
 --
 local function indent_region_internal(start_loc, end_loc, num, right)
 	if not utils.is_locs_ordered(start_loc, end_loc) then
@@ -129,15 +132,19 @@ local function indent_region_internal(start_loc, end_loc, num, right)
 	indent_lines_internal(num * n, right)
 end
 
--- key: ><mv>
+-- > <mv> : Indent region from current cursor to destination of motion <mv>.
 local function indent_region(start_loc, end_loc, num)
 	indent_region_internal(start_loc, end_loc, num, true)
 end
 
--- key: <<mv>
+--  < <mv> : Outdent region from current cursor to destination of motion <mv>.
 local function outdent_region(start_loc, end_loc, num)
 	indent_region_internal(start_loc, end_loc, num, false)
 end
+
+--
+-- exports
+--
 
 M.replace = replace
 M.join = join

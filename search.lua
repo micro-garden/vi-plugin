@@ -1,3 +1,4 @@
+-- Search Commands
 local M = {}
 
 local micro = import("micro")
@@ -14,21 +15,22 @@ local mode = require("mode")
 
 local backward_mode = false
 
--- key: /
+-- /<pattern> Enter - Search <pattern> forward.
 local function forward()
 	mode.search()
 	backward_mode = false
 	micro.CurPane():Find()
 end
 
--- key: ?
+-- ?<pattern> Enter : Search <pattern> backward.
 local function backward()
 	mode.search()
 	backward_mode = true
 	micro.CurPane():Find()
 end
 
---
+-- internal use
+-- (none) : Search next match forward.
 local function match_forward(num)
 	local pane = micro.CurPane()
 	local buf = pane.Buf
@@ -51,6 +53,8 @@ local function match_forward(num)
 	end
 end
 
+-- internal use
+-- (none) : Search next match backward.
 local function match_backward(num)
 	local pane = micro.CurPane()
 	for _ = 1, num do
@@ -66,7 +70,7 @@ local function match_backward(num)
 	end
 end
 
--- key: n
+-- n : Search next match.
 local function next_match(num)
 	if backward_mode then
 		match_backward(num)
@@ -75,7 +79,7 @@ local function next_match(num)
 	end
 end
 
--- key: N
+-- N : Search previous match.
 local function prev_match(num)
 	if backward_mode then
 		match_forward(num)
@@ -84,17 +88,21 @@ local function prev_match(num)
 	end
 end
 
--- key: / Enter
+-- / Enter : Repeat last search forward.
 local function repeat_forward(num)
 	backward_mode = false
 	match_forward(num)
 end
 
--- key: ? Enter
+-- ? Enter : Repeat last search backward.
 local function repeat_backward(num)
 	backward_mode = true
 	match_backward(num)
 end
+
+--
+-- exports
+--
 
 M.forward = forward
 M.backward = backward

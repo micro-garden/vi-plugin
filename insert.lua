@@ -1,9 +1,9 @@
+-- Insertion Commands
 local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
-local time = import("time")
 
 local config = import("micro/config")
 local plug_name = "vi"
@@ -30,6 +30,7 @@ local LINES_MODE = 2
 local REPLACE_MODE = 3
 local insert_mode = CHARS_MODE
 
+--
 local function size_with_linefeeds()
 	local buf = micro.CurPane().Buf
 	local linesnum = buf:LinesNum()
@@ -41,6 +42,7 @@ local function size_with_linefeeds()
 	return size
 end
 
+--
 local function save_state(num, replay)
 	saved = true
 	saved_num = num
@@ -55,6 +57,7 @@ local function save_state(num, replay)
 	saved_size = size_with_linefeeds()
 end
 
+--
 local function extend(loc, num, replay)
 	local n
 	if replay then
@@ -108,6 +111,7 @@ local function extend(loc, num, replay)
 	move.update_virtual_cursor()
 end
 
+--
 local function resume(orig_loc)
 	if saved_loc then
 		local size = size_with_linefeeds()
@@ -157,14 +161,17 @@ local function resume(orig_loc)
 	end
 end
 
+--
 local function chars_mode()
 	insert_mode = CHARS_MODE
 end
 
+--
 local function lines_mode()
 	insert_mode = LINES_MODE
 end
 
+--
 local function replace_mode()
 	insert_mode = REPLACE_MODE
 end
@@ -173,7 +180,7 @@ end
 -- Enter Insert Mode
 --
 
--- key: i
+-- i : Switch to insert mode before cursor.
 local function before(num, replay)
 	chars_mode()
 
@@ -189,7 +196,7 @@ local function before(num, replay)
 	end
 end
 
--- key: a
+-- a : Switch to insert mode after cursor.
 local function after(num, replay)
 	chars_mode()
 
@@ -210,7 +217,7 @@ local function after(num, replay)
 	end
 end
 
--- key: I
+-- I : Switch to insert mode before first non-blank character of current line.
 local function before_non_blank(num, replay)
 	chars_mode()
 
@@ -231,7 +238,7 @@ local function before_non_blank(num, replay)
 	end
 end
 
--- key: A
+-- A : Switch to insert mode after end of current line.
 local function after_end(num, replay)
 	chars_mode()
 
@@ -254,7 +261,7 @@ local function after_end(num, replay)
 	end
 end
 
--- key: R
+-- R : Switch to replace (overwrite) mode.
 local function overwrite(num, replay)
 	bell.not_planned("R (insert.overwrite)")
 end
@@ -263,7 +270,7 @@ end
 -- Open Line
 --
 
--- key: o
+-- o : Open a new line below and switch to insert mode.
 local function open_below(num, replay)
 	lines_mode()
 
@@ -291,7 +298,7 @@ local function open_below(num, replay)
 	end
 end
 
--- key: O
+-- O : Open a new line **above** and switch to insert mode.
 local function open_above(num, replay)
 	lines_mode()
 
@@ -317,6 +324,8 @@ local function open_above(num, replay)
 	end
 end
 
+-- internal use
+-- (none) : Open a new line here and switch to insert mode.
 local function open_here(num, replay)
 	lines_mode()
 
@@ -342,6 +351,8 @@ local function open_here(num, replay)
 	end
 end
 
+-- internal use
+-- (none) : Switch to insert mode before cursor to be used by change commands.
 local function before_replace(num, replay)
 	replace_mode()
 
@@ -358,6 +369,10 @@ local function before_replace(num, replay)
 end
 
 --
+-- exports
+--
+
+-- internal use
 M.resume = resume
 M.extend = extend
 M.chars_mode = chars_mode
@@ -375,7 +390,7 @@ M.open_below = open_below
 M.open_above = open_above
 M.open_here = open_here
 
---
+-- internal use
 M.before_replace = before_replace
 
 return M

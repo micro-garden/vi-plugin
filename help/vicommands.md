@@ -9,6 +9,19 @@ Implementation status:
 * (Stalled): Tried to implement, but not functional yet.
 * (Out of Scope): Not planned to implement.
 
+Command categories:
+
+* Motion
+* Marking
+* View
+* Search
+* Character Finding
+* Insertion
+* Operator (Copy / Delte / Change)
+* Editing
+* Miscellaneous
+* Prompt
+
 ## Motion Commands
 
 ### Move by Character / Move by Line
@@ -30,7 +43,7 @@ Implementation status:
   Move cursor to end of current line. (`move.to_end`)
 * `^` (Planned)  
   Move cursor to first non-blank character of current line. (`move.to_non_blank`)
-* `<num>``|` (Planned)  
+* `<num>|` (Planned)  
   Move cursor to column `<num>` of current line. (`move.to_column`)
 
 ### Move by Word / Move by Loose Word
@@ -56,7 +69,7 @@ Implementation status:
   Move cursor to first non-blank character of previous line. (`move.to_non_blank_of_prev_line`)
 * `G` (**Done**)  
   Move cursor to last line. (`move.to_last_line`)
-* `<num>``G` (**Done**)  
+* `<num>G` (**Done**)  
   Move cursor to line `<num>`. (`move.to_line`)
 
 ### Move by Block
@@ -82,30 +95,30 @@ Implementation status:
   Move cursor to middle of view. (`move.to_middle_of_view`)
 * `L` (Planned)  
   Move cursor to bottom of view. (`move.to_bottom_of_view`)
-* `<num>``H` (Planned)  
+* `<num>H` (Planned)  
   Move cursor below `<num>` lines from top of view. (`move.to_below_top_of_view`)
-* `<num>``L` (Planned)  
+* `<num>L` (Planned)  
   Move cursor above `<num>` lines from bottom of view. (`move.to_above_bottom_of_view`)
 
 ## Marking Commands
 
 ### Set Mark / Move to Mark
 
-* `m``<letter>` (**Done**)  
+* `m<letter>` (**Done**)  
   Mark current cursor position labelled by `<letter>`. (`mark.set`)
-* `Backquote``<letter>` (**Done**)  
+* `Backquote <letter>` (**Done**)  
   Move cursor to marked position labelled by `<letter>`. (`mark.move_to`)
-* `'``<letter>` (**Done**)  
+* `'<letter>` (**Done**)  
   Move cursor to marked line labelled by `<letter>`. (`mark.move_to_line`)
 
 ### Move by Context
 
-* `Backquote``Backquote` (Planned)  
+* `Backquote Backquote` (Planned)  
   Move cursor to previous position in context. (`mark.back`)
 * `''` (Planned)  
   Move cursor to previous line in context. (`mark.back_to_line`)
 
-## View Command
+## View Commands
 
 ### Scroll by View Height / Scroll by Line
 
@@ -124,7 +137,7 @@ Implementation status:
 
 ### Reposition
 
-* `z``Enter` (Planned)  
+* `z Enter` (Planned)  
   Reposition cursor line to top of view. (`view.to_top`)
 * `z.` (Planned)  
   Reposition cursor line middle of view. (`view.to_middle`)
@@ -138,29 +151,29 @@ Implementation status:
 
 ## Search Commands
 
-* `/``<pattern>``Enter` (*Partially*)  
+* `/<pattern> Enter` (*Partially*)  
   Search `<pattern>` forward. (`search.forward`)
-* `?``<pattern>``Enter` (*Partially*)  
+* `?<pattern> Enter` (*Partially*)  
   Search `<pattern>` backward. (`search.backward`)
 * `n` (*Partially*)  
   Search next match. (`search.next_match`)
 * `N` (*Partially*)  
   Search previous match. (`search.prev_match`)
-* `/``Enter` (Planned)  
+* `/ Enter` (Planned)  
   Repeat last search forward. (`search.repeat_forward`)
-* `?``Enter` (Planned)  
+* `? Enter` (Planned)  
   Repeat last search backward. (`search.repeat_backward`)
 
 ## Character Finding Commands
 
-* `f``<letter>` (Planned)  
-  Find character forward in current line. (`find.forward`)
-* `F``<letter>` (Planned)  
-  Find character backward in current line. (`find.backward`)
-* `t``<letter>` (Planned)  
-  Find before character forward in current line. (`find.before_forward`)
-* `T``<letter>` (Planned)  
-  Find before character backward in current line. (`find.before_backward`)
+* `f<letter>` (Planned)  
+  Find character `<letter>` forward in current line. (`find.forward`)
+* `F<letter>` (Planned)  
+  Find character `<letter>` backward in current line. (`find.backward`)
+* `t<letter>` (Planned)  
+  Find before character `<letter>` forward in current line. (`find.before_forward`)
+* `T<letter>` (Planned)  
+  Find before character `<letter>` backward in current line. (`find.before_backward`)
 * `;` (Planned)  
   Find next match. (`find.next_match`)
 * `,` (Planned)  
@@ -179,7 +192,7 @@ Implementation status:
 * `A` (**Done**)  
   Switch to insert mode after end of current line. (`insert.after_end`)
 * `R` (Out of Scope)  
-  Replace (overwrite) mode. (`insert.overwrite`)
+  Switch to replace (overwrite) mode. (`insert.overwrite`)
 
 ### Open Line
 
@@ -194,14 +207,14 @@ Implementation status:
 
 * `yy`, `Y` (**Done**)  
   Copy current line. (`operator.copy_line`)
-* `"``<reg>``yy` (Planned)  
-  Copy current line into register `<reg>`. (`operator.copy_line_into_reg`)
-* `y``<mv>` (**Done**)  
+* `y<mv>` (**Done**)  
   Copy region from current cursor to destination of motion `<mv>`. (`operator.copy_region`, `operator.copy_line_region`)
 * `yw` (**Done**)  
   Copy word. (`operator.copy_word`)
 * `y$` (**Done**)  
   Copy to end of current line. (`operator.copy_to_end`)
+* `"<reg>yy` (Planned)  
+  Copy current line into register `<reg>`. (`operator.copy_line_into_reg`)
 
 ### Paste (Put)
 
@@ -209,7 +222,7 @@ Implementation status:
   Paste after cursor. (`operator.paste`)
 * `P` (**Done**)  
   Paste before cursor. (`operator.paste_before`)
-* `"``<reg>``p` (Planned)  
+* `"<reg>p` (Planned)  
   Paste from register `<reg>`. (`operator.paste_from_reg`)
 
 ### Delete
@@ -220,18 +233,18 @@ Implementation status:
   Delete character before cursor. (`operator.delete_before`)
 * `dd` (**Done**)  
   Delete current line. (`operator.delete_line`)
-* `d``<mv>` (**Done**)  
+* `d<mv>` (**Done**)  
   Delete region from current cursor to destination of motion `<mv>`. (`operator.delete_region`, `operator.delete_line_region`)
 * `dw` (**Done**)  
   Delete word. (`operator.delete_word`)
-* `D` (**Done**)  
+* `d$`, `D` (**Done**)  
   Delete to end of current line. (`operator.delete_to_end`)
 
 ### Change / Substitute
 
 * `cc` (**Done**)  
   Change current line. (`operator.change_line`)
-* `c``<mv>` (**Done**)  
+* `c<mv>` (**Done**)  
   Change region from current cursor to destination of motion `<mv>`. (`operator.change_region`, `operator.change_line_region`)
 * `cw` (***Buggy***)  
   Change word. (`operator.change_word`)
@@ -240,7 +253,7 @@ Implementation status:
 * `s` (***Buggy***)  
   Substitute one character under cursor. (`operator.subst`)
 * `S` (**Done**)  
-  Substtute current line (equals`cc`). (`operator.subst_line`)
+  Substtute current line (equals `cc`). (`operator.subst_line`)
 
 ## Editing Commands
 
@@ -253,9 +266,9 @@ Implementation status:
   Indent current line. (`edit.indent`)
 * `<<` (**Done**)  
   Outdent current line. (`edit.outdent`)
-* `>``<mv>` (**Done**)  
+* `> <mv>` (**Done**)  
   Indent region from current cursor to destination of motion `<mv>`. (`edit.indent_region`)
-* `<``<mv>` (**Done**)  
+* `< <mv>` (**Done**)  
   Outdent region from current cursor to destination of motion `<mv>`. (`edit.outdent_region`)
 
 ## Miscellaneous Commands
@@ -275,42 +288,42 @@ Implementation status:
 
 ### Move
 
-* `:``<num>``Enter` (Planned)  
+* `:<num> Enter` (Planned)  
   Move cursor to line `<num>`. (`prompt.move_to_line`)
 
 ### File
 
-* `:wq``Enter` (Planned)  
+* `:wq Enter` (Planned)  
   Save current file and quit. (`prompt.save_and_quit`)
-* `:w``Enter` (**Done**)  
+* `:w Enter` (**Done**)  
   Save current file. (`prompt.save`)
-* `:w!``Enter` (Out of Scope)  
+* `:w! Enter` (Out of Scope)  
   Force save current file.(`prompt.force_save`)
-* `:q``Enter` (**Done**)  
+* `:q Enter` (**Done**)  
   Quit editor. (`prompt.quit`)
-* `:q!``Enter` (**Done**)  
+* `:q! Enter` (**Done**)  
   Force quit editor. (`prompt.force_quit`)
-* `:e``Enter` (**Done**)  
+* `:e Enter` (**Done**)  
   Open file. (`prompt.open`)
-* `:e!``Enter` (Planned)  
+* `:e! Enter` (Planned)  
   Force open file. (`prompt.force_open`)
-* `:r``Enter` (Out of Scope)  
+* `:r Enter` (Out of Scope)  
   Read file and insert to current buffer. (`prompt.read`)
-* `:n``Enter` (Planned)  
+* `:n Enter` (Planned)  
   Switch to next buffer (tab). (`prompt.next`)
-* `:prev``Enter` (Planned)  
+* `:prev Enter` (Planned)  
   Switch to previous buffer (tab). (`prompt.prev`) (extension)
 
 ### Utility
 
-* `:sh``Enter` (Planned)  
+* `:sh Enter` (Planned)  
   Execute shell. (`prompt.shell`)
 
 ### From Vim
 
-* `:wa``Enter` (**Done**)  
+* `:wa Enter` (**Done**)  
   Save all files. (`prompt.save_all`)
-* `:qa``Enter` (***Partially***)  
+* `:qa Enter` (*Partially*)  
   Close all files and quit editor. (`prompt.quit_all`)
-* `:qa!``Enter` (**Partially**)  
+* `:qa! Enter` (*Partially*)  
   Force close all files and quit editor. (`prompt.force_quit_all`)
