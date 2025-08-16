@@ -1,5 +1,3 @@
-local M = {}
-
 local config = import("micro/config")
 local plug_name = "vi"
 local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
@@ -121,5 +119,3 @@ function onBeforeTextEvent(buf, ev)
 	mode.show()
 	return true
 end
-
-return M

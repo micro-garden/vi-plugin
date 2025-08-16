@@ -1,5 +1,3 @@
-local M = {}
-
 local micro = import("micro")
 local time = import("time")
 
@@ -17,10 +15,6 @@ local NOT_PLANNED_HEAD = "Not planned to implement"
 local PLANNED_HEAD = "Not implemented yet, but planned"
 local BELL_HEAD = " * RING! * "
 local BELL_DURATION = time.ParseDuration("1s")
-
-local function general_error(message)
-	micro.InfoBar():Error(message)
-end
 
 local function fatal(message)
 	micro.TermMessage(FATAL_HEAD .. message)
@@ -42,6 +36,10 @@ local function planned(message)
 	end
 end
 
+local function general_error(message)
+	micro.InfoBar():Error(message)
+end
+
 local function show_message(message)
 	micro.InfoBar():Message(message)
 end
@@ -58,6 +56,12 @@ local function ring(reason)
 	end)
 end
 
+-------------
+-- Exports --
+-------------
+
+local M = {}
+
 M.fatal = fatal
 M.not_planned = not_planned
 M.planned = planned
@@ -66,4 +70,5 @@ M.info = show_message
 M.vi_error = general_error
 M.vi_info = show_message
 M.ring = ring
+
 return M

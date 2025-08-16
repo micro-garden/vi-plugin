@@ -1,5 +1,4 @@
 -- Editing Commands
-local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -12,10 +11,10 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local move = require("move")
-local utils = require("utils")
 
 -- r : Replace single character under cursor.
 local function replace(letter)
@@ -142,9 +141,11 @@ local function outdent_region(start_loc, end_loc, num)
 	indent_region_internal(start_loc, end_loc, num, false)
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.replace = replace
 M.join = join

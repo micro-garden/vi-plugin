@@ -1,5 +1,3 @@
-local M = {}
-
 local micro = import("micro")
 
 local config = import("micro/config")
@@ -132,9 +130,11 @@ local function escape()
 	mode.command()
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.show = show
 M.insert_chars = insert_chars

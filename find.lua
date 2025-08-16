@@ -1,5 +1,4 @@
 -- Character Finding Commands
-local M = {}
 
 local config = import("micro/config")
 local plug_name = "vi"
@@ -40,9 +39,11 @@ local function prev_match(num)
 	bell.planned(",<letter> (find.prev_match)")
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.forward = forward
 M.backward = backward

@@ -1,5 +1,4 @@
 -- Motion Commands
-local M = {}
 
 local micro = import("micro")
 local utf8 = import("unicode/utf8")
@@ -11,9 +10,9 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
-local utils = require("utils")
 
 local virtual_cursor_x = 0
 
@@ -534,9 +533,11 @@ local function to_above_bottom_of_view(num)
 	bell.planned("<num>L (to_bottom_of_view)")
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 -- internal use
 M.update_virtual_cursor = update_virtual_cursor

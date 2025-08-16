@@ -261,7 +261,6 @@ Command categories:
   Replace single character under cursor. (`edit.replace`)
 * `J` (**Done**)  
   Join current line with next line. (`edit.join`)
-
 * `>>` (**Done**)  
   Indent current line. (`edit.indent`)
 * `<<` (**Done**)  

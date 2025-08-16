@@ -1,5 +1,3 @@
-local M = {}
-
 local micro = import("micro")
 local utf8 = import("unicode/utf8")
 local time = import("time")
@@ -89,6 +87,12 @@ local function is_locs_ordered(start_loc, end_loc)
 		return start_loc.X <= end_loc.X
 	end
 end
+
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.toboolean = toboolean
 M.xor = xor

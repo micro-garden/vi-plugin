@@ -1,5 +1,4 @@
 -- Insertion Commands
-local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -12,10 +11,10 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local move = require("move")
-local utils = require("utils")
 
 local saved = false
 local saved_num = 1
@@ -368,9 +367,11 @@ local function before_replace(num, replay)
 	end
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 -- internal use
 M.resume = resume

@@ -1,5 +1,4 @@
 -- View Commands
-local M = {}
 
 local config = import("micro/config")
 local plug_name = "vi"
@@ -72,9 +71,11 @@ local function redraw()
 	bell.not_planned("Ctrl-l (view.redraw)")
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 -- Scroll by View Height / Scroll by Line
 M.down = down

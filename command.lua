@@ -1,5 +1,3 @@
-local M = {}
-
 local micro = import("micro")
 local buffer = import("micro/buffer")
 
@@ -10,6 +8,7 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local prompt = require("prompt")
@@ -22,7 +21,6 @@ local insert = require("insert")
 local operator = require("operator")
 local edit = require("edit")
 local misc = require("misc")
-local utils = require("utils")
 
 local command_cache = nil
 
@@ -48,8 +46,11 @@ local function get_command_cache()
 		command_cache.subnum,
 		command_cache.mv,
 		command_cache.letter,
-		true
+		true -- replay
 end
+
+-- Note: Declaration is used in repeat_command(). Definition is far below.
+local run
 
 local function repeat_command(num)
 	mode.show()
@@ -60,7 +61,7 @@ local function repeat_command(num)
 	end
 
 	for _ = 1, num do
-		M.run(get_command_cache())
+		run(get_command_cache())
 	end
 end
 
@@ -80,7 +81,7 @@ local function undo(num, replay)
 	end
 end
 
-local function run_move(no_num, num, mv, letter)
+local function run_move(no_num, num, mv)
 	-- Move by Character / Move by Line
 	if mv == "h" then
 		move.left(num)
@@ -187,9 +188,15 @@ local function run_move(no_num, num, mv, letter)
 		return true
 	end
 
-	-- XXX could not move to misc
-	-- Move to Mark / Move by Context
-	if mv == "`" and letter then
+	return false
+end
+
+local function run_mark(op, mv, letter)
+	-- Set Mark / Move to Mark
+	if op == "m" and letter then
+		mark.set(letter)
+		return true
+	elseif mv == "`" and letter then
 		if letter == "`" then
 			mark.back()
 		else
@@ -273,6 +280,7 @@ local function run_find(mv, num, letter)
 end
 
 local function run_insert(num, op, replay)
+	-- Enter Insert Mode
 	if op == "i" then
 		insert.before(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
@@ -298,7 +306,10 @@ local function run_insert(num, op, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
 		return true
-	elseif op == "o" then
+	end
+
+	-- Open Line
+	if op == "o" then
 		insert.open_below(num, replay)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
@@ -394,7 +405,7 @@ local function run_operator(num, op, replay)
 	return false
 end
 
-local function run_edit(num, op, letter, replay)
+local function run_edit(num, op, letter)
 	if op == "r" then
 		edit.replace(letter)
 		cache_command(false, num, op, true, 1, "", nil, nil)
@@ -420,16 +431,8 @@ local function run_edit(num, op, letter, replay)
 	return false
 end
 
-local function run_misc(num, op, letter, replay)
-	--
-	if op == ":" then
-		mode.prompt()
-		prompt.show()
-		return true
-	elseif op == "m" and letter then
-		mark.set(letter)
-		return true
-	elseif op == "." then
+local function run_misc(num, op, replay)
+	if op == "." then
 		repeat_command(num)
 		return true
 	elseif op == "u" then
@@ -457,7 +460,10 @@ local function get_region(num, no_subnum, subnum, mv, letter, save)
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	for _ = 1, num do
-		run_move(no_subnum, subnum, mv, letter)
+		if not run_move(no_subnum, subnum, mv) and not run_mark("", mv, letter) then
+			bell.fatal("unknown motion: " .. mv)
+			break
+		end
 	end
 
 	local end_loc = buffer.Loc(cursor.X, cursor.Y)
@@ -524,7 +530,7 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 	return false
 end
 
-local function run_compound_edit(num, op, no_subnum, subnum, mv, letter, replay)
+local function run_compound_edit(num, op, no_subnum, subnum, mv, letter)
 	local matched = false
 
 	if op == ">" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
@@ -554,14 +560,21 @@ local function run_compound_edit(num, op, no_subnum, subnum, mv, letter, replay)
 	return false
 end
 
-local function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
-	if run_compound_edit(num, op, no_subnum, subnum, mv, letter, replay) then
+-- Note: Declared as local far above.
+function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
+	if op == ":" then
+		mode.prompt()
+		prompt.show()
+		return true
+	elseif run_compound_edit(num, op, no_subnum, subnum, mv, letter) then
 		return true
 	elseif run_compound_operator(num, op, no_subnum, subnum, mv, letter, replay) then
 		return true
-	elseif run_move(no_num, num, mv, letter) then
+	elseif run_move(no_num, num, mv) then
 		return true
 	elseif run_view(op, mv) then
+		return true
+	elseif run_mark(op, mv, letter) then
 		return true
 	elseif run_search(mv, num) then
 		return true
@@ -571,9 +584,9 @@ local function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 		return true
 	elseif run_operator(num, op, replay) then
 		return true
-	elseif run_edit(num, op, letter, replay) then
+	elseif run_edit(num, op, letter) then
 		return true
-	elseif run_misc(num, op, letter, replay) then
+	elseif run_misc(num, op, replay) then
 		return true
 	elseif mv == "g" then
 		move.by_word_for_change(num) -- XXX debug
@@ -582,6 +595,12 @@ local function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 
 	return false
 end
+
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.run = run
 

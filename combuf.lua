@@ -1,5 +1,3 @@
-local M = {}
-
 local buf = "" -- command buffer
 
 local function get()
@@ -14,6 +12,12 @@ end
 local function clear()
 	buf = ""
 end
+
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.get = get
 M.insert_chars = insert_chars

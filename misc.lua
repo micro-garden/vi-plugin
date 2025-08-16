@@ -1,5 +1,4 @@
 -- Miscellaneous Commands
-local M = {}
 
 local micro = import("micro")
 
@@ -36,9 +35,11 @@ local function save_and_quit()
 	micro.CurPane():QuitCmd({})
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.show_info = show_info
 --M.repeat = repeat

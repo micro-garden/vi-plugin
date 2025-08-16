@@ -1,5 +1,4 @@
 -- Operator Commands
-local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -12,11 +11,11 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local move = require("move")
 local insert = require("insert")
-local utils = require("utils")
 
 local kill_buffer = nil
 local kill_lines = nil
@@ -523,9 +522,11 @@ local function subst_line(num, replay)
 	change_line(num, replay)
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 -- internal use
 M.clear_kill_buffer = clear_kill_buffer

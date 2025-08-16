@@ -1,5 +1,4 @@
 -- Search Commands
-local M = {}
 
 local micro = import("micro")
 local utf8 = import("unicode/utf8")
@@ -100,9 +99,11 @@ local function repeat_backward(num)
 	match_backward(num)
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.forward = forward
 M.backward = backward

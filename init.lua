@@ -11,13 +11,13 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local combuf = require("combuf")
 local prompt = require("prompt")
 local move = require("move")
 local insert = require("insert")
-local utils = require("utils")
 
 function Vi(_)
 	-- reset states

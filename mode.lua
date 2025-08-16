@@ -1,5 +1,3 @@
-local M = {}
-
 local micro = import("micro")
 
 local config = import("micro/config")
@@ -79,6 +77,12 @@ local function show()
 	end
 	bell.info(mode_line .. " [" .. combuf.get() .. "]")
 end
+
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 M.command = command
 M.insert = insert

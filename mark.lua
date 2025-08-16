@@ -1,5 +1,4 @@
 -- Marking Commands
-local M = {}
 
 local micro = import("micro")
 local buffer = import("micro/buffer")
@@ -12,10 +11,10 @@ if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
+local utils = require("utils")
 local bell = require("bell")
 local mode = require("mode")
 local move = require("move")
-local utils = require("utils")
 
 local marks = {}
 
@@ -88,9 +87,11 @@ local function back_to_line()
 	bell.planned("'' (mark.back_to_line)")
 end
 
---
--- exports
---
+-------------
+-- Exports --
+-------------
+
+local M = {}
 
 -- Set Mark / Move to Mark
 M.set = set
