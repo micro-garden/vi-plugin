@@ -5,16 +5,15 @@ local buffer = import("micro/buffer")
 local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local utils = require("utils")
-local bell = require("bell")
-local mode = require("mode")
-local move = require("move")
+local utils = require("vi/utils")
+local bell = require("vi/bell")
+local mode = require("vi/mode")
+local move = require("vi/move")
 
 local saved = false
 local saved_num = 1

@@ -2,13 +2,12 @@ local micro = import("micro")
 local time = import("time")
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local utils = require("utils")
+local utils = require("vi/utils")
 
 local FATAL_HEAD = "** vi fatal error **\n"
 local NOT_PLANNED_HEAD = "Not planned to implement"

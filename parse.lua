@@ -1,15 +1,14 @@
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local bell = require("bell")
-local combuf = require("combuf")
-local mode = require("mode")
-local command = require("command")
-local prompt = require("prompt")
+local bell = require("vi/bell")
+local combuf = require("vi/combuf")
+local mode = require("vi/mode")
+local command = require("vi/command")
+local prompt = require("vi/prompt")
 
 -- internal constants
 local TEXT_EVENT_INSERT = 1

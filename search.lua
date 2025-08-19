@@ -4,13 +4,12 @@ local micro = import("micro")
 local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local mode = require("mode")
+local mode = require("vi/mode")
 
 local backward_mode = false
 

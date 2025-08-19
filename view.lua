@@ -1,13 +1,12 @@
 -- View Commands
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local bell = require("bell")
+local bell = require("vi/bell")
 
 --
 -- Scroll by View Height / Scroll by Line

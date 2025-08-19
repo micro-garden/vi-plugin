@@ -3,14 +3,13 @@
 local micro = import("micro")
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local bell = require("bell")
-local mode = require("mode")
+local bell = require("vi/bell")
+local mode = require("vi/mode")
 
 -- Ctrl-g : Show info such as current cursor position.
 local function show_info()

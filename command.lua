@@ -2,25 +2,24 @@ local micro = import("micro")
 local buffer = import("micro/buffer")
 
 local config = import("micro/config")
-local plug_name = "vi"
-local plug_path = config.ConfigDir .. "/plug/" .. plug_name .. "/?.lua"
+local plug_path = config.ConfigDir .. "/plug/?.lua"
 if not package.path:find(plug_path, 1, true) then
 	package.path = package.path .. ";" .. plug_path
 end
 
-local utils = require("utils")
-local bell = require("bell")
-local mode = require("mode")
-local prompt = require("prompt")
-local move = require("move")
-local mark = require("mark")
-local view = require("view")
-local search = require("search")
-local find = require("find")
-local insert = require("insert")
-local operator = require("operator")
-local edit = require("edit")
-local misc = require("misc")
+local utils = require("vi/utils")
+local bell = require("vi/bell")
+local mode = require("vi/mode")
+local prompt = require("vi/prompt")
+local move = require("vi/move")
+local mark = require("vi/mark")
+local view = require("vi/view")
+local search = require("vi/search")
+local find = require("vi/find")
+local insert = require("vi/insert")
+local operator = require("vi/operator")
+local edit = require("vi/edit")
+local misc = require("vi/misc")
 
 local command_cache = nil
 
