@@ -41,10 +41,12 @@ Command categories:
   Move cursor to start of current line. (`move.to_start`)
 * `$` (**Done**)  
   Move cursor to end of current line. (`move.to_end`)
-* `^` (Planned)  
+* `^` (**Done**)  
   Move cursor to first non-blank character of current line. (`move.to_non_blank`)
-* `<num>|` (Planned)  
-  Move cursor to column `<num>` of current line. (`move.to_column`)
+* `<num>|` (**Done**)  
+  Move cursor to column `<num>` of current line. (`move.to_column`)  
+  (Note: Proper vi's column number is visual-based, but this plugins' is
+  rune-based.)
 
 ### Move by Word / Move by Loose Word
 

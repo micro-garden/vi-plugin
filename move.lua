@@ -124,12 +124,33 @@ end
 
 -- ^ : Move cursor to first non-blank character of current line.
 local function to_non_blank()
-	bell.planned("^ (move.to_non_blank)")
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	local x = utf8.RuneCount(spaces)
+	local length = utf8.RuneCount(line)
+	if x >= length then
+		x = math.max(x - 1, 0)
+	end
+	cursor.X = x
+	update_virtual_cursor()
 end
 
 -- <num>| : Move cursor to column <num> of current line.
+-- XXX Column is rune-based, not visual-based.
 local function to_column(num)
-	bell.planned("<num>| (move.to_column)")
+	if num < 1 then
+		bell.fatal("to_column: 1 > num = " .. num)
+	end
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	local max_x = math.max(length - 1, 0)
+	cursor.X = math.max(math.min(num - 1, max_x), 0)
+	update_virtual_cursor()
 end
 
 --

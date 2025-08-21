@@ -77,6 +77,7 @@ function onBeforeTextEvent(buf, ev)
 	if letter_command then
 		if letter_command == "m" then
 			op = letter_command
+			mv = ""
 		elseif letter_command == "'" or letter_command == "`" then
 			mv = letter_command
 		elseif letter_command:match("[fFtT;,]") then
