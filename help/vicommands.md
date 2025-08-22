@@ -56,11 +56,11 @@ Command categories:
   Move cursor backward by word. (`move.backward_by_word`)
 * `e` (**Done**)  
   Move cursor to end of word. (`move.to_end_of_word`)
-* `W` (Planned)  
+* `W` (**Done**)  
   Move cursor forward by loose word. (`move.by_loose_word`)
-* `B` (Planned)  
+* `B` (**Done**)  
   Move cursor backward by loose word. (`move.backward_by_loose_word`)
-* `E` (Planned)  
+* `E` (**Done**)  
   Move cursor to end of loose word. (`move.to_end_of_loose_word`)
 
 ### Move by Line
