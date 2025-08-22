@@ -369,12 +369,7 @@ local function run_operator(num, op, replay)
 	end
 
 	-- Copy (Yank)
-	if op == "yw" then
-		operator.copy_word(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
-		undo_mode = true
-		return true
-	elseif op == "yy" or op == "Y" then
+	if op == "yy" or op == "Y" then
 		operator.copy_line(num)
 		cache_command(false, num, op, true, 1, "", nil, nil)
 		undo_mode = true
@@ -569,6 +564,15 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 		matched = true
 	elseif op == "c" and mv == "w" then
 		operator.change_word(num, replay)
+		matched = true
+	elseif op == "y" and mv == "W" then
+		operator.copy_loose_word(num)
+		matched = true
+	elseif op == "d" and mv == "W" then
+		operator.delete_loose_word(num)
+		matched = true
+	elseif op == "c" and mv == "W" then
+		operator.change_loose_word(num, replay)
 		matched = true
 	elseif op == "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)

@@ -260,7 +260,7 @@ local function by_word_for_change(num)
 		end
 		local str = utils.utf8_sub(line, cursor.X + 1)
 
-		local word, word_spaces, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+		local word, word_spaces, symbols = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)")
 		local forward
 		if #word > 0 then
 			forward = utf8.RuneCount(word)
@@ -273,7 +273,6 @@ local function by_word_for_change(num)
 		local end_of_line = cursor.X >= length
 		cursor.X = cursor.X + forward
 
-		--if cursor.X > length - 1 then
 		if end_of_line then
 			while cursor.Y < last_line_index do
 				cursor.Y = cursor.Y + 1
@@ -416,7 +415,7 @@ local function to_end_of_word(num)
 	end
 
 	local str = utils.utf8_sub(line, cursor.X + 1)
-	local word, _, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+	local word, _, symbols = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)")
 	if #word == 1 or #symbols == 1 then
 		one_word()
 		line = buf:Line(cursor.Y)
@@ -429,7 +428,7 @@ local function to_end_of_word(num)
 		end
 		str = utils.utf8_sub(line, cursor.X + 1)
 
-		word, _, symbols, _ = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)(%s*)")
+		word, _, symbols = str:match("^([%w_\128-\255]*)(%s*)([^%w_\128-\255%s]*)")
 		local forward
 		if #word > 0 then
 			forward = utf8.RuneCount(word) - 1
@@ -493,6 +492,63 @@ local function by_loose_word(num)
 		cursor.X = cursor.X + forward
 
 		if cursor.X > length - 1 then
+			while cursor.Y < last_line_index do
+				cursor.Y = cursor.Y + 1
+
+				line = buf:Line(cursor.Y)
+				length = utf8.RuneCount(line)
+				spaces = line:match("^(%s*)")
+				cursor.X = utf8.RuneCount(spaces)
+
+				if length > cursor.X then
+					break
+				end
+			end
+			cursor.X = math.min(cursor.X, length - 1)
+		end
+	end
+
+	update_virtual_cursor()
+end
+
+-- internal use
+-- (none) : Move cursor forward by loose word to be used by cW command.
+local function by_loose_word_for_change(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+		bell.ring("no more words ahead")
+		return
+	end
+
+	for _ = 1, num do
+		if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+			break
+		end
+		local str = utils.utf8_sub(line, cursor.X + 1)
+
+		local word, spaces = str:match("^([^%s]*)(%s*)")
+		local forward
+		if #word > 0 then
+			forward = utf8.RuneCount(word)
+		else
+			forward = utf8.RuneCount(spaces)
+		end
+
+		local end_of_line = cursor.X >= length
+		cursor.X = cursor.X + forward
+
+		if end_of_line then
 			while cursor.Y < last_line_index do
 				cursor.Y = cursor.Y + 1
 
@@ -661,7 +717,7 @@ local function to_end_of_loose_word(num)
 				cursor.X = utf8.RuneCount(spaces)
 
 				str = utils.utf8_sub(line, cursor.X + 1)
-				word, _ = str:match("^([^%s]*)(%s*)")
+				word = str:match("^([^%s]*)")
 				if #word == 1 then
 					one_loose_word()
 				end
@@ -881,6 +937,7 @@ M.by_word_for_change = by_word_for_change
 M.backward_by_word = backward_by_word
 M.to_end_of_word = to_end_of_word
 M.by_loose_word = by_loose_word
+M.by_loose_word_for_change = by_loose_word_for_change
 M.backward_by_loose_word = backward_by_loose_word
 M.to_end_of_loose_word = to_end_of_loose_word
 

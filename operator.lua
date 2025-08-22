@@ -106,6 +106,22 @@ local function copy_word(num)
 	copy_region(start_loc, end_loc)
 end
 
+-- yW : Copy loose word.
+local function copy_loose_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+	move.by_loose_word(num)
+	local end_loc = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = start_loc.X
+	cursor.Y = start_loc.Y
+	copy_region(start_loc, end_loc)
+end
+
 -- y$ : Copy to end of current line.
 local function copy_to_end()
 	mode.show()
@@ -435,6 +451,22 @@ local function delete_word(num)
 	delete_region(loc_start, loc_end)
 end
 
+-- dW : Delete loose word.
+local function delete_loose_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local loc_start = buffer.Loc(cursor.X, cursor.Y)
+	move.by_loose_word(num)
+	local loc_end = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = loc_start.X
+	cursor.Y = loc_start.Y
+	delete_region(loc_start, loc_end)
+end
+
 -- d$ D - Delete to end of current line.
 local function delete_to_end()
 	mode.show()
@@ -523,6 +555,22 @@ local function change_word(num, replay)
 	change_region(loc_start, loc_end, replay)
 end
 
+-- cW : Change loose word.
+local function change_loose_word(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
+	local cursor = micro.CurPane().Buf:GetActiveCursor()
+	local loc_start = buffer.Loc(cursor.X, cursor.Y)
+	move.by_loose_word_for_change(num)
+	local loc_end = buffer.Loc(cursor.X, cursor.Y)
+	cursor.X = loc_start.X
+	cursor.Y = loc_start.Y
+	change_region(loc_start, loc_end, replay)
+end
+
 -- C : Change to end of current line.
 local function change_to_end(replay)
 	delete_to_end()
@@ -604,6 +652,7 @@ M.insert_killed_chars = insert_killed_chars
 
 -- Copy (Yank)
 M.copy_word = copy_word
+M.copy_loose_word = copy_loose_word
 M.copy_line = copy_line
 M.copy_line_into_reg = copy_line_into_reg
 M.copy_region = copy_region
@@ -619,6 +668,7 @@ M.paste_from_rag = paste_from_reg
 M.delete = delete
 M.delete_before = delete_before
 M.delete_word = delete_word
+M.delete_loose_word = delete_loose_word
 M.delete_line = delete_line
 M.delete_region = delete_region
 M.delete_line_region = delete_line_region
@@ -626,6 +676,7 @@ M.delete_to_end = delete_to_end
 
 -- Change / Substitute
 M.change_word = change_word
+M.change_loose_word = change_loose_word
 M.change_line = change_line
 M.change_region = change_region
 M.change_line_region = change_line_region
