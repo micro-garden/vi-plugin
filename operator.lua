@@ -42,6 +42,11 @@ end
 
 -- yy Y : Copy current line.
 local function copy_line(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -87,6 +92,11 @@ end
 
 -- yw : Copy word.
 local function copy_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 	move.by_word(num)
@@ -115,6 +125,11 @@ end
 
 -- "<reg>yy : Copy current line into register <reg>.
 local function copy_line_into_reg(reg, num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned('"<reg>yy (operator.copy_line_into_reg)')
 end
 
@@ -124,6 +139,11 @@ end
 
 -- p : Paste after cursor.
 local function paste(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	if not kill_buffer then
@@ -185,6 +205,11 @@ end
 
 -- P : Paste before cursor.
 local function paste_before(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	if not kill_buffer then
@@ -234,6 +259,11 @@ end
 
 -- "<reg>p : Paste from register <reg>.
 local function paste_from_reg(reg, num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned('"<reg>p (operator.paste_from_reg)')
 end
 
@@ -243,6 +273,11 @@ end
 
 -- x : Delete character under cursor.
 local function delete(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -276,6 +311,11 @@ end
 
 -- X : Delete character before cursor.
 local function delete_before(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -310,6 +350,11 @@ end
 
 -- dd : Delete current line.
 local function delete_line(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -376,6 +421,11 @@ end
 
 -- dw : Delete word.
 local function delete_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_word(num)
@@ -417,6 +467,11 @@ end
 
 -- cc : Change current line.
 local function change_line(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	delete_line(num)
 	insert.open_here(1, replay)
 end
@@ -454,6 +509,11 @@ end
 
 -- cw : Change word.
 local function change_word(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_word_for_change(num)
@@ -471,6 +531,11 @@ end
 
 -- s : Substitute one character under cursor.
 local function subst(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	insert.replace_mode()
 
 	local pane = micro.CurPane()
@@ -518,6 +583,11 @@ end
 
 -- S : Substtute current line (equals cc).
 local function subst_line(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	change_line(num, replay)
 end
 

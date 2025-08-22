@@ -52,6 +52,11 @@ end
 local run
 
 local function repeat_command(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	if not command_cache then
@@ -65,6 +70,11 @@ local function repeat_command(num)
 end
 
 local function undo(num, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if utils.xor(undo_mode, replay) then
 		for _ = 1, num do
 			micro.CurPane():Undo()
@@ -81,6 +91,11 @@ local function undo(num, replay)
 end
 
 local function run_move(no_num, num, mv)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	-- Move by Character / Move by Line
 	if mv == "h" then
 		move.left(num)
@@ -191,6 +206,11 @@ local function run_move(no_num, num, mv)
 end
 
 local function run_mark(op, mv, letter)
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	-- Set Mark / Move to Mark
 	if op == "m" and letter then
 		mark.set(letter)
@@ -231,6 +251,11 @@ local function run_view(op, mv)
 end
 
 local function run_search(mv, num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if mv == "/\n" then -- not works
 		search.repeat_forward()
 		return true
@@ -255,6 +280,15 @@ local function run_search(mv, num)
 end
 
 local function run_find(mv, num, letter)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. letter)
+		return
+	end
+
 	if mv == "f" and letter then
 		find.forward(num, letter)
 		return true
@@ -279,6 +313,11 @@ local function run_find(mv, num, letter)
 end
 
 local function run_insert(num, op, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	-- Enter Insert Mode
 	if op == "i" then
 		insert.before(num, replay)
@@ -324,6 +363,11 @@ local function run_insert(num, op, replay)
 end
 
 local function run_operator(num, op, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	-- Copy (Yank)
 	if op == "yw" then
 		operator.copy_word(num)
@@ -405,6 +449,15 @@ local function run_operator(num, op, replay)
 end
 
 local function run_edit(num, op, letter)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	if op == "r" then
 		edit.replace(letter)
 		cache_command(false, num, op, true, 1, "", nil, nil)
@@ -431,6 +484,11 @@ local function run_edit(num, op, letter)
 end
 
 local function run_misc(num, op, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if op == "." then
 		repeat_command(num)
 		return true
@@ -450,6 +508,15 @@ local function run_misc(num, op, replay)
 end
 
 local function get_region(num, no_subnum, subnum, mv, letter, save)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local saved_x, saved_y
 	if save ~= nil and save then
@@ -460,8 +527,8 @@ local function get_region(num, no_subnum, subnum, mv, letter, save)
 
 	for _ = 1, num do
 		if not run_move(no_subnum, subnum, mv) and not run_mark("", mv, letter) then
-			bell.program_error("invalid mv = " .. mv)
-			break
+			bell.program_error("invalid mv == " .. mv)
+			return nil, nil
 		end
 	end
 
@@ -474,6 +541,15 @@ local function get_region(num, no_subnum, subnum, mv, letter, save)
 end
 
 local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	local matched = false
 
 	if op == "y" and mv == "$" then
@@ -530,6 +606,15 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 end
 
 local function run_compound_edit(num, op, no_subnum, subnum, mv, letter)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	local matched = false
 
 	if op == ">" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
@@ -561,6 +646,15 @@ end
 
 -- Note: Declared as local far above.
 function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if letter and #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	if op == ":" then
 		mode.prompt()
 		prompt.show()

@@ -30,6 +30,11 @@ end
 -- internal use
 -- (none) : Search next match forward.
 local function match_forward(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	local pane = micro.CurPane()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
@@ -54,6 +59,11 @@ end
 -- internal use
 -- (none) : Search next match backward.
 local function match_backward(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	local pane = micro.CurPane()
 	for _ = 1, num do
 		pane:FindPrevious()
@@ -70,6 +80,11 @@ end
 
 -- n : Search next match.
 local function next_match(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if backward_mode then
 		match_backward(num)
 	else
@@ -79,6 +94,11 @@ end
 
 -- N : Search previous match.
 local function prev_match(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if backward_mode then
 		match_forward(num)
 	else
@@ -88,12 +108,22 @@ end
 
 -- / Enter : Repeat last search forward.
 local function repeat_forward(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	backward_mode = false
 	match_forward(num)
 end
 
 -- ? Enter : Repeat last search backward.
 local function repeat_backward(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	backward_mode = true
 	match_backward(num)
 end

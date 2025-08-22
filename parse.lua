@@ -34,7 +34,7 @@ function onBeforeTextEvent(buf, ev)
 
 	-- assert
 	if ev.EventType ~= TEXT_EVENT_INSERT then
-		bell.program_error("invalid ev.EventType = " .. ev.EventType)
+		bell.program_error("invalid ev.EventType == " .. ev.EventType)
 		return true
 	end
 

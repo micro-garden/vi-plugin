@@ -22,6 +22,11 @@ end
 
 -- J : Join current line with next line.
 local function join(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -73,6 +78,11 @@ end
 -- internal use
 --
 local function indent_lines_internal(num, right)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local pane = micro.CurPane()
@@ -111,17 +121,32 @@ end
 
 -- >> : Indent current line.
 local function indent(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	indent_lines_internal(num, true)
 end
 
 -- << : Outdent current line.
 local function outdent(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	indent_lines_internal(num, false)
 end
 
 -- internal use
 --
 local function indent_region_internal(start_loc, end_loc, num, right)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	if not utils.is_locs_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc -- swap
 	end
@@ -132,11 +157,21 @@ end
 
 -- > <mv> : Indent region from current cursor to destination of motion <mv>.
 local function indent_region(start_loc, end_loc, num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	indent_region_internal(start_loc, end_loc, num, true)
 end
 
 --  < <mv> : Outdent region from current cursor to destination of motion <mv>.
 local function outdent_region(start_loc, end_loc, num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	indent_region_internal(start_loc, end_loc, num, false)
 end
 

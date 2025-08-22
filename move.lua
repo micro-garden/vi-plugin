@@ -29,6 +29,11 @@ end
 
 -- h : Move cursor left by character.
 local function left(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -43,6 +48,11 @@ end
 
 -- j : Move cursor down by line.
 local function down(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -63,6 +73,11 @@ end
 
 -- k : Move cursor up by line.
 local function up(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -81,6 +96,11 @@ end
 
 -- l : Move cursor right by character.
 local function right(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -141,7 +161,8 @@ end
 -- XXX Column is rune-based, not visual-based.
 local function to_column(num)
 	if num < 1 then
-		bell.program_error("1 > num = " .. num)
+		bell.program_error("1 > num == " .. num)
+		return
 	end
 
 	local buf = micro.CurPane().Buf
@@ -159,6 +180,11 @@ end
 
 -- w : Move cursor forward by word.
 local function by_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -211,6 +237,11 @@ end
 -- internal use
 -- (g) : Move cursor forward by word to be used by cw command.
 local function by_word_for_change(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -265,6 +296,11 @@ end
 
 -- b : Move cursor backward by word.
 local function backward_by_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -363,6 +399,11 @@ end
 
 -- e : Move cursor to end of word.
 local function to_end_of_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -418,16 +459,31 @@ end
 
 -- W : Move cursor forward by loose word.
 local function by_loose_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("W (move.by_loose_word)")
 end
 
 -- B : Move cursor backward by loose word.
 local function backward_by_loose_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("B (move.backward_by_loose_word)")
 end
 
 -- E : Move cursor to end of loose word.
 local function to_end_of_loose_word(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("E (move.to_end_of_loose_word)")
 end
 
@@ -437,6 +493,11 @@ end
 
 -- Enter, + :  Move cursor to first non-blank character of next line.
 local function to_non_blank_of_next_line(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -460,6 +521,11 @@ end
 
 -- - : Move cursor to first non-blank character of previous line.
 local function to_non_blank_of_prev_line(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("- (move.to_non_blank_of_prev_line)")
 end
 
@@ -476,6 +542,11 @@ end
 
 -- <num>G : Move cursor to line <num>.
 local function to_line(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	mode.show()
 
 	local buf = micro.CurPane().Buf
@@ -496,31 +567,61 @@ end
 
 -- ) : Move cursor forward by sentence.
 local function by_sentence(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned(") (move.by_sentence)")
 end
 
 -- ( : Move cursor backward by sentence.
 local function backward_by_sentence(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("( (move.backward_by_sentence)")
 end
 
 -- } : Move cursor forward by paragraph.
 local function by_paragraph(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("} (move.by_paragraph)")
 end
 
 -- { : Move cursor backward by paragraph.
 local function backward_by_paragraph(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("{ (move.backward_by_paragraph)")
 end
 
 -- ]] : Move cursor forward by section.
 local function by_section(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("]] (move.by_section)")
 end
 
 -- [[ : Move cursor backward by section.
 local function backward_by_section(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("[[ (move.backward_by_section)")
 end
 
@@ -545,11 +646,21 @@ end
 
 -- <num>H : Move cursor below <num> lines from top of view.
 local function to_below_top_of_view(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("<num>H (to_below_top_of_view)")
 end
 
 -- <num>L : Move cursor above <num> lines from bottom of view.
 local function to_above_bottom_of_view(num)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+
 	bell.planned("<num>L (to_bottom_of_view)")
 end
 

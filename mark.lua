@@ -23,6 +23,11 @@ local marks = {}
 
 -- m<letter> : Mark current cursor position labelled by <letter>.
 local function set(letter)
+	if #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	mode.show()
 
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
@@ -33,6 +38,11 @@ end
 
 -- `<letter> : Move cursor to marked position labelled by <letter>.
 local function move_to(letter)
+	if #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	mode.show()
 
 	local loc = marks[letter]
@@ -55,6 +65,11 @@ end
 
 -- '<letter> : Move cursor to marked line labelled by <letter>.
 local function move_to_line(letter)
+	if #letter ~= 1 then
+		bell.program_error("1 ~= #letter == " .. #letter)
+		return
+	end
+
 	mode.show()
 
 	local loc = marks[letter]
