@@ -96,7 +96,7 @@ local function extend(loc, num, replay)
 	elseif insert_mode == LINES_MODE then
 		buf:Insert(loc, table.concat(lines, "\n") .. "\n")
 	else
-		bell.fatal("insert.extend: invalid insert mode = " .. insert_mode)
+		bell.program_error("invalid insert_mode = " .. insert_mode)
 		return
 	end
 

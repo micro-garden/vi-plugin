@@ -9,14 +9,23 @@ end
 
 local utils = require("vi/utils")
 
-local FATAL_HEAD = "** vi fatal error **\n"
+local PROGRAM_ERROR_HEAD = "** vi program error **\n"
 local NOT_PLANNED_HEAD = "Not planned to implement"
 local PLANNED_HEAD = "Not implemented yet, but planned"
 local BELL_HEAD = " * RING! * "
 local BELL_DURATION = time.ParseDuration("1s")
 
-local function fatal(message)
-	micro.TermMessage(FATAL_HEAD .. message)
+local function where(level)
+	level = (level or 3)
+	local dbg = debug and debug.getinfo(level, "nSl")
+	if not dbg then
+		return ""
+	end
+	return string.format("[%s:%d in %s]\n", dbg.source or "?", dbg.currentline or -1, dbg.name or "?")
+end
+
+local function program_error(message)
+	micro.TermMessage(PROGRAM_ERROR_HEAD .. where(3) .. message)
 end
 
 local function not_planned(message)
@@ -61,7 +70,7 @@ end
 
 local M = {}
 
-M.fatal = fatal
+M.program_error = program_error
 M.not_planned = not_planned
 M.planned = planned
 M.error = general_error

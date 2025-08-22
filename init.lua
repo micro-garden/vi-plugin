@@ -76,7 +76,7 @@ function ViEnter(_)
 		prompt.enter()
 		return true
 	else
-		bell.fatal("ViEnter: invalid mode = " .. mode.code())
+		bell.program_error("invalid mode = " .. mode.code())
 		return false
 	end
 end

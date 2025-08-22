@@ -460,7 +460,7 @@ local function get_region(num, no_subnum, subnum, mv, letter, save)
 
 	for _ = 1, num do
 		if not run_move(no_subnum, subnum, mv) and not run_mark("", mv, letter) then
-			bell.fatal("unknown motion: " .. mv)
+			bell.program_error("invalid mv = " .. mv)
 			break
 		end
 	end

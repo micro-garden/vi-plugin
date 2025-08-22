@@ -71,7 +71,7 @@ local function show()
 	elseif mode == MODE_INSERT then
 		mode_line = "vi insert mode"
 	else
-		bell.fatal("mode.show: invalid mode = " .. mode)
+		bell.program_error("invalid mode = " .. mode)
 		return
 	end
 	bell.info(mode_line .. " [" .. combuf.get() .. "]")

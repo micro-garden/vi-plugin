@@ -141,7 +141,7 @@ end
 -- XXX Column is rune-based, not visual-based.
 local function to_column(num)
 	if num < 1 then
-		bell.fatal("to_column: 1 > num = " .. num)
+		bell.program_error("1 > num = " .. num)
 	end
 
 	local buf = micro.CurPane().Buf
