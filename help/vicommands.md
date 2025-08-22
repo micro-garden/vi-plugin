@@ -67,7 +67,7 @@ Command categories:
 
 * `Enter`, `+` (**Done**)  
   Move cursor to first non-blank character of next line. (`move.to_non_blank_of_next_line`)
-* `-` (Planned)  
+* `-` (**Done**)  
   Move cursor to first non-blank character of previous line. (`move.to_non_blank_of_prev_line`)
 * `G` (**Done**)  
   Move cursor to last line. (`move.to_last_line`)

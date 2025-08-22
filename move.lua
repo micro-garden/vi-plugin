@@ -772,7 +772,25 @@ local function to_non_blank_of_prev_line(num)
 		return
 	end
 
-	bell.planned("- (move.to_non_blank_of_prev_line)")
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	--local last_line_index = utils.last_line_index(buf)
+
+	local dest_y = cursor.Y - num
+	if dest_y < 0 then
+		bell.ring("cannot move up to line " .. dest_y + 1 .. " < " .. 1)
+		return
+	end
+	cursor.Y = dest_y
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+	update_virtual_cursor()
+
+	micro.CurPane():Relocate()
 end
 
 -- G : Move cursor to last line.
