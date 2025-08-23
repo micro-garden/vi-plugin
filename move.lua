@@ -841,9 +841,14 @@ local function by_sentence(num)
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-
 	local line = buf:Line(cursor.Y)
 	local length = utf8.RuneCount(line)
+
+	if cursor.X >= length - 1 and cursor.Y >= last_line_index then
+		bell.ring("no more sentences ahead")
+		return
+	end
+
 	line = utils.utf8_sub(line, cursor.X + 1)
 	for _ = 1, num do
 		local found = false
@@ -937,7 +942,74 @@ local function backward_by_sentence(num)
 		return
 	end
 
-	bell.planned("( (move.backward_by_sentence)")
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+
+	local line = buf:Line(cursor.Y)
+	for _ = 1, num do
+		local found = false
+
+		if buf:Line(cursor.Y):match("[^%s]") and cursor.X < 1 then
+			if cursor.Y > 0 then
+				cursor.Y = cursor.Y - 1
+				line = buf:Line(cursor.Y)
+				local length = utf8.RuneCount(line)
+				cursor.X = math.max(length - 1, 0)
+				found = true
+			end
+		else
+			while line:match("^%s*$") do
+				if cursor.Y > 0 then
+					cursor.Y = cursor.Y - 1
+					line = buf:Line(cursor.Y)
+					local length = utf8.RuneCount(line)
+					cursor.X = math.max(length - 1, 0)
+					found = true
+				else
+					break
+				end
+			end
+		end
+
+		if not found then
+			while true do
+				if line:match(".-[%.?!][\"')%]]*%s+") then
+					break
+				end
+				if line:match(".-[%.?!][\"')%]]*$") then
+					break
+				end
+
+				if cursor.X < 1 and cursor.Y > 0 then
+					cursor.Y = cursor.Y - 1
+					line = buf:Line(cursor.Y)
+					local length = utf8.RuneCount(line)
+					cursor.X = math.max(length - 1, 0)
+				else
+					cursor.X = 0
+					break
+				end
+			end
+		end
+
+		cursor.X = math.max(cursor.X - 1, 0)
+		line = utils.utf8_sub(line, 1, cursor.X + 1)
+		while line:match("[%.?!%s]$") do
+			cursor.X = math.max(cursor.X - 1, 0)
+			line = utils.utf8_sub(line, 1, cursor.X + 1)
+		end
+		local sentence = line:reverse():match("^(.-[^%s])%s+[\"')%]]*[%.?!]")
+		if sentence and #sentence > 0 then
+			cursor.X = cursor.X - utf8.RuneCount(sentence:reverse()) + 1
+		else
+			cursor.X = 0
+		end
+		line = utils.utf8_sub(line, 1, cursor.X + 1)
+	end
+
+	update_virtual_cursor()
 end
 
 -- } : Move cursor forward by paragraph.

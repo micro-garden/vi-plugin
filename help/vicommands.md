@@ -76,9 +76,9 @@ Command categories:
 
 ### Move by Block
 
-* `)` (Planned)  
+* `)` (**Done**)  
   Move cursor forward by sentence. (`move.by_sentence`)
-* `(` (Planned)  
+* `(` (**Done**)  
   Move cursor backward by sentence. (`move.backward_by_sentence`)
 * `}` (Planned)  
   Move cursor forward by paragraph. (`move.by_paragraph`)
