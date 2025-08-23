@@ -1019,7 +1019,31 @@ local function by_paragraph(num)
 		return
 	end
 
-	bell.planned("} (move.by_paragraph)")
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+
+	if cursor.Y >= last_line_index then
+		local line = buf:Line(cursor.Y)
+		local length = utf8.RuneCount(line)
+		if cursor.X >= length - 1 then
+			bell.ring("no more paragraphs ahead")
+			return
+		end
+		cursor.X = math.max(length - 1, 0)
+	else
+		for _ = 1, num do
+			while cursor.Y < last_line_index and buf:Line(cursor.Y):match("^%s*$") do
+				cursor.Y = cursor.Y + 1
+			end
+			while cursor.Y < last_line_index and buf:Line(cursor.Y):match("[^%s]") do
+				cursor.Y = cursor.Y + 1
+			end
+		end
+		cursor.X = 0
+	end
+
+	update_virtual_cursor()
 end
 
 -- { : Move cursor backward by paragraph.
@@ -1029,7 +1053,20 @@ local function backward_by_paragraph(num)
 		return
 	end
 
-	bell.planned("{ (move.backward_by_paragraph)")
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+
+	for _ = 1, num do
+		while cursor.Y > 0 and buf:Line(cursor.Y):match("^%s*$") do
+			cursor.Y = cursor.Y - 1
+		end
+		while cursor.Y > 0 and buf:Line(cursor.Y):match("[^%s]") do
+			cursor.Y = cursor.Y - 1
+		end
+	end
+	cursor.X = 0
+
+	update_virtual_cursor()
 end
 
 -- ]] : Move cursor forward by section.
