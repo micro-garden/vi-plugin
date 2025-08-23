@@ -1076,7 +1076,33 @@ local function by_section(num)
 		return
 	end
 
-	bell.planned("]] (move.by_section)")
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	if cursor.Y >= last_line_index then
+		bell.ring("no more sections ahead")
+		return
+	end
+
+	for _ = 1, num do
+		if cursor.Y >= last_line_index then
+			local line = buf:Line(cursor.Y)
+			local length = utf8.RuneCount(line)
+			cursor.X = math.max(length - 1, 0)
+			break
+		else
+			while cursor.Y < last_line_index do
+				cursor.Y = cursor.Y + 1
+				local line = buf:Line(cursor.Y)
+				cursor.X = 0
+				if line:match("^{") then
+					break
+				end
+			end
+		end
+	end
+
+	update_virtual_cursor()
 end
 
 -- [[ : Move cursor backward by section.
@@ -1086,7 +1112,30 @@ local function backward_by_section(num)
 		return
 	end
 
-	bell.planned("[[ (move.backward_by_section)")
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	if cursor.Y < 1 then
+		bell.ring("no more sections behind")
+		return
+	end
+
+	for _ = 1, num do
+		if cursor.Y < 1 then
+			cursor.X = 0
+			break
+		else
+			while cursor.Y > 0 do
+				cursor.Y = cursor.Y - 1
+				local line = buf:Line(cursor.Y)
+				cursor.X = 0
+				if line:match("^{") then
+					break
+				end
+			end
+		end
+	end
+
+	update_virtual_cursor()
 end
 
 --

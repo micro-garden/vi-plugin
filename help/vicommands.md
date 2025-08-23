@@ -85,10 +85,12 @@ Command categories:
 * `{` (**Done**)  
   Move cursor backward by paragraph. (`move.backward_by_paragraph`)  
   (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
-* `]]` (Planned)  
+* `]]` (**Done**)  
   Move cursor forward by section. (`move.by_section`)
-* `[[` (Planned)  
+  (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
+* `[[` (**Done**)  
   Move cursor backward by section. (`move.backward_by_section`)
+  (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
 
 ### Move in View
 
