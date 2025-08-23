@@ -836,7 +836,98 @@ local function by_sentence(num)
 		return
 	end
 
-	bell.planned(") (move.by_sentence)")
+	mode.show()
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	line = utils.utf8_sub(line, cursor.X + 1)
+	for _ = 1, num do
+		local found = false
+
+		while line:match("^%s*$") do
+			if cursor.Y < last_line_index then
+				cursor.Y = cursor.Y + 1
+				line = buf:Line(cursor.Y)
+				length = utf8.RuneCount(line)
+				cursor.X = 0
+				found = true
+			else
+				break
+			end
+		end
+
+		if not found then
+			while true do
+				if line:match(".-[%.?!][\"')%]]*\t%s*") then
+					break
+				end
+				if line:match(".-[%.?!][\"')%]]*%s%s+") then
+					break
+				end
+				if line:match(".-[%.?!][\"')%]]*$") then
+					break
+				end
+
+				if cursor.Y < last_line_index then
+					cursor.Y = cursor.Y + 1
+					line = buf:Line(cursor.Y)
+					length = utf8.RuneCount(line)
+					cursor.X = 0
+				else
+					cursor.X = length - 1
+					break
+				end
+
+				if line:match("^%s*$") then
+					break
+				end
+			end
+		end
+
+		if not found then
+			local sentence, spaces = line:match("(.-[%.?!][\"')%]]*)(\t%s*)")
+			if not sentence then
+				sentence, spaces = line:match("(.-[%.?!][\"')%]]*)(%s%s+)")
+			end
+			if sentence then
+				cursor.X = cursor.X + utf8.RuneCount(sentence .. spaces)
+				line = line:sub(1 + #sentence + #spaces)
+				found = true
+				if cursor.X >= length then
+					if cursor.Y < last_line_index then
+						cursor.Y = cursor.Y + 1
+						line = buf:Line(cursor.Y)
+						length = utf8.RuneCount(line) -- luacheck: ignore
+						cursor.X = 0
+					else
+						cursor.X = length - 1
+					end
+					break
+				end
+			end
+		end
+
+		if not found then
+			local sentence = line:match("(.-[%.?!][\"')%]]*)$")
+			if sentence then
+				if cursor.Y < last_line_index then
+					cursor.Y = cursor.Y + 1
+					line = buf:Line(cursor.Y)
+					length = utf8.RuneCount(line)
+					cursor.X = 0
+				else
+					cursor.X = length - 1
+				end
+				found = true -- luacheck: ignore
+			end
+		end
+	end
+
+	update_virtual_cursor()
 end
 
 -- ( : Move cursor backward by sentence.
