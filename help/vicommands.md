@@ -94,15 +94,15 @@ Command categories:
 
 ### Move in View
 
-* `H` (Planned)  
+* `H` (**Done**)  
   Move cursor to top of view. (`move.to_top_of_view`)
-* `M` (Planned)  
+* `M` (**Done**)  
   Move cursor to middle of view. (`move.to_middle_of_view`)
-* `L` (Planned)  
+* `L` (**Done**)  
   Move cursor to bottom of view. (`move.to_bottom_of_view`)
-* `<num>H` (Planned)  
+* `<num>H` (**Done**)  
   Move cursor below `<num>` lines from top of view. (`move.to_below_top_of_view`)
-* `<num>L` (Planned)  
+* `<num>L` (**Done**)  
   Move cursor above `<num>` lines from bottom of view. (`move.to_above_bottom_of_view`)
 
 ## Marking Commands

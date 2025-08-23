@@ -1019,6 +1019,8 @@ local function by_paragraph(num)
 		return
 	end
 
+	mode.show()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
@@ -1053,6 +1055,8 @@ local function backward_by_paragraph(num)
 		return
 	end
 
+	mode.show()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 
@@ -1075,6 +1079,8 @@ local function by_section(num)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	mode.show()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -1112,6 +1118,8 @@ local function backward_by_section(num)
 		return
 	end
 
+	mode.show()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	if cursor.Y < 1 then
@@ -1144,17 +1152,52 @@ end
 
 -- H : Move cursor to top of view.
 local function to_top_of_view()
-	bell.planned("H (move.to_top_of_view)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	cursor.Y = v.StartLine.Line
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 end
 
 -- M : Move cursor to middle of view.
 local function to_middle_of_view()
-	bell.planned("M (move.to_middle_of_view)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local bf = pane:BufView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local offset = math.floor(height / 2)
+	cursor.Y = v.StartLine.Line + offset
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 end
 
 -- L : Move cursor to bottom of view.
 local function to_bottom_of_view()
-	bell.planned("L (move.to_bottom_of_view)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local bf = pane:BufView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local last_line_index = utils.last_line_index(buf)
+	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local offset = height - 1
+	cursor.Y = v.StartLine.Line + offset
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 end
 
 -- <num>H : Move cursor below <num> lines from top of view.
@@ -1164,7 +1207,25 @@ local function to_below_top_of_view(num)
 		return
 	end
 
-	bell.planned("<num>H (to_below_top_of_view)")
+	local pane = micro.CurPane()
+	local bf = pane:BufView()
+	local buf = pane.Buf
+	local last_line_index = utils.last_line_index(buf)
+	local v = pane:GetView()
+	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	if num > height then
+		bell.ring("offset out of range: " .. num .. " > " .. height)
+		return
+	end
+
+	mode.show()
+
+	local cursor = buf:GetActiveCursor()
+	local offset = num - 1
+	cursor.Y = v.StartLine.Line + offset
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 end
 
 -- <num>L : Move cursor above <num> lines from bottom of view.
@@ -1174,7 +1235,25 @@ local function to_above_bottom_of_view(num)
 		return
 	end
 
-	bell.planned("<num>L (to_bottom_of_view)")
+	local pane = micro.CurPane()
+	local bf = pane:BufView()
+	local buf = pane.Buf
+	local last_line_index = utils.last_line_index(buf)
+	local v = pane:GetView()
+	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	if num > height then
+		bell.ring("offset out of range: " .. num .. " > " .. height)
+		return
+	end
+
+	mode.show()
+
+	local cursor = buf:GetActiveCursor()
+	local offset = height - num
+	cursor.Y = math.min(v.StartLine.Line + offset, last_line_index)
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
 end
 
 -------------
