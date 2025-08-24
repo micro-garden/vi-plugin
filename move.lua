@@ -12,6 +12,7 @@ end
 local utils = require("vi/utils")
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local context = require("vi/context")
 
 local virtual_cursor_x = 0
 
@@ -797,6 +798,8 @@ end
 local function to_last_line()
 	mode.show()
 
+	context.memorize()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	cursor.Y = utils.last_line_index(buf)
@@ -820,6 +823,9 @@ local function to_line(num)
 		bell.ring("line number too large: " .. num .. " > " .. last_line_index + 1)
 		return
 	end
+
+	context.memorize()
+
 	cursor.Y = num - 1
 	cursor.X = 0
 	update_virtual_cursor()
@@ -848,6 +854,8 @@ local function by_sentence(num)
 		bell.ring("no more sentences ahead")
 		return
 	end
+
+	context.memorize()
 
 	line = utils.utf8_sub(line, cursor.X + 1)
 	for _ = 1, num do
@@ -944,6 +952,8 @@ local function backward_by_sentence(num)
 
 	mode.show()
 
+	context.memorize()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 
@@ -1032,8 +1042,13 @@ local function by_paragraph(num)
 			bell.ring("no more paragraphs ahead")
 			return
 		end
+
+		context.memorize()
+
 		cursor.X = math.max(length - 1, 0)
 	else
+		context.memorize()
+
 		for _ = 1, num do
 			while cursor.Y < last_line_index and buf:Line(cursor.Y):match("^%s*$") do
 				cursor.Y = cursor.Y + 1
@@ -1056,6 +1071,8 @@ local function backward_by_paragraph(num)
 	end
 
 	mode.show()
+
+	context.memorize()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -1089,6 +1106,8 @@ local function by_section(num)
 		bell.ring("no more sections ahead")
 		return
 	end
+
+	context.memorize()
 
 	for _ = 1, num do
 		if cursor.Y >= last_line_index then
@@ -1127,6 +1146,8 @@ local function backward_by_section(num)
 		return
 	end
 
+	context.memorize()
+
 	for _ = 1, num do
 		if cursor.Y < 1 then
 			cursor.X = 0
@@ -1154,6 +1175,8 @@ end
 local function to_top_of_view()
 	mode.show()
 
+	context.pre_memorize()
+
 	local pane = micro.CurPane()
 	local v = pane:GetView()
 	local buf = pane.Buf
@@ -1162,11 +1185,17 @@ local function to_top_of_view()
 	local line = buf:Line(cursor.Y)
 	local spaces = line:match("^(%s*)")
 	cursor.X = utf8.RuneCount(spaces)
+
+	update_virtual_cursor()
+
+	context.memorize()
 end
 
 -- M : Move cursor to middle of view.
 local function to_middle_of_view()
 	mode.show()
+
+	context.pre_memorize()
 
 	local pane = micro.CurPane()
 	local v = pane:GetView()
@@ -1180,11 +1209,17 @@ local function to_middle_of_view()
 	local line = buf:Line(cursor.Y)
 	local spaces = line:match("^(%s*)")
 	cursor.X = utf8.RuneCount(spaces)
+
+	update_virtual_cursor()
+
+	context.memorize()
 end
 
 -- L : Move cursor to bottom of view.
 local function to_bottom_of_view()
 	mode.show()
+
+	context.pre_memorize()
 
 	local pane = micro.CurPane()
 	local v = pane:GetView()
@@ -1198,6 +1233,10 @@ local function to_bottom_of_view()
 	local line = buf:Line(cursor.Y)
 	local spaces = line:match("^(%s*)")
 	cursor.X = utf8.RuneCount(spaces)
+
+	update_virtual_cursor()
+
+	context.memorize()
 end
 
 -- <num>H : Move cursor below <num> lines from top of view.
@@ -1220,12 +1259,18 @@ local function to_below_top_of_view(num)
 
 	mode.show()
 
+	context.pre_memorize()
+
 	local cursor = buf:GetActiveCursor()
 	local offset = num - 1
 	cursor.Y = v.StartLine.Line + offset
 	local line = buf:Line(cursor.Y)
 	local spaces = line:match("^(%s*)")
 	cursor.X = utf8.RuneCount(spaces)
+
+	update_virtual_cursor()
+
+	context.memorize()
 end
 
 -- <num>L : Move cursor above <num> lines from bottom of view.
@@ -1248,12 +1293,18 @@ local function to_above_bottom_of_view(num)
 
 	mode.show()
 
+	context.pre_memorize()
+
 	local cursor = buf:GetActiveCursor()
 	local offset = height - num
 	cursor.Y = math.min(v.StartLine.Line + offset, last_line_index)
 	local line = buf:Line(cursor.Y)
 	local spaces = line:match("^(%s*)")
 	cursor.X = utf8.RuneCount(spaces)
+
+	update_virtual_cursor()
+
+	context.memorize()
 end
 
 -------------

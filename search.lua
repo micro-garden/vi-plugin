@@ -10,11 +10,14 @@ if not package.path:find(plug_path, 1, true) then
 end
 
 local mode = require("vi/mode")
+local context = require("vi/context")
 
 local backward_mode = false
 
 -- /<pattern> Enter - Search <pattern> forward.
 local function forward()
+	context.memorize()
+
 	mode.search()
 	backward_mode = false
 	micro.CurPane():Find()
@@ -22,6 +25,8 @@ end
 
 -- ?<pattern> Enter : Search <pattern> backward.
 local function backward()
+	context.memorize()
+
 	mode.search()
 	backward_mode = true
 	micro.CurPane():Find()
@@ -34,6 +39,8 @@ local function match_forward(num)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	context.memorize()
 
 	local pane = micro.CurPane()
 	local buf = pane.Buf
@@ -63,6 +70,8 @@ local function match_backward(num)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	context.memorize()
 
 	local pane = micro.CurPane()
 	for _ = 1, num do

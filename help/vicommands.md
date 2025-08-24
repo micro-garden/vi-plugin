@@ -118,9 +118,9 @@ Command categories:
 
 ### Move by Context
 
-* `Backquote Backquote` (Planned)  
+* `Backquote Backquote` (**Done**)  
   Move cursor to previous position in context. (`mark.back`)
-* `''` (Planned)  
+* `''` (**Done**)  
   Move cursor to previous line in context. (`mark.back_to_line`)
 
 ## View Commands

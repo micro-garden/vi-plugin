@@ -15,9 +15,11 @@ local bell = require("vi/bell")
 local mode = require("vi/mode")
 local combuf = require("vi/combuf")
 local prompt = require("vi/prompt")
+local context = require("vi/context")
 local move = require("vi/move")
 local insert = require("vi/insert")
 
+local memorized = false
 function Vi(_)
 	-- reset states
 	combuf.clear()
@@ -54,6 +56,12 @@ function Vi(_)
 	--
 	move.update_virtual_cursor()
 	mode.show()
+
+	--
+	if not memorized then
+		context.memorize()
+		memorized = true
+	end
 
 	--
 	insert.resume(orig_loc)

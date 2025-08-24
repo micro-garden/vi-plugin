@@ -13,6 +13,7 @@ end
 local utils = require("vi/utils")
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local context = require("vi/context")
 local move = require("vi/move")
 
 local marks = {}
@@ -51,6 +52,8 @@ local function move_to(letter)
 		return
 	end
 
+	context.memorize()
+
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index()
@@ -78,6 +81,8 @@ local function move_to_line(letter)
 		return
 	end
 
+	context.pre_memorize()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index()
 	cursor.Y = math.min(loc.Y, last_line_index)
@@ -85,6 +90,8 @@ local function move_to_line(letter)
 	cursor.X = 0
 
 	move.update_virtual_cursor()
+
+	context.memorize()
 end
 
 --
@@ -93,12 +100,24 @@ end
 
 -- `` : Move cursor to previous position in context.
 local function back()
-	bell.planned("`` (mark.back)")
+	mode.show()
+
+	if not context.return_by_chars() then
+		return
+	end
+
+	move.update_virtual_cursor()
 end
 
 -- '' :  Move cursor to previous line in context.
 local function back_to_line()
-	bell.planned("'' (mark.back_to_line)")
+	mode.show()
+
+	if not context.return_by_lines() then
+		return
+	end
+
+	move.update_virtual_cursor()
 end
 
 -------------

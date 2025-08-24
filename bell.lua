@@ -17,15 +17,15 @@ local BELL_DURATION = time.ParseDuration("1s")
 
 local function where(level)
 	level = (level or 3)
-	local dbg = debug and debug.getinfo(level, "nSl")
-	if not dbg then
+	local info = debug and debug.getinfo(level, "nSl")
+	if not info then
 		return ""
 	end
-	return string.format("[%s:%d in %s]\n", dbg.source or "?", dbg.currentline or -1, dbg.name or "?")
+	return string.format("[%s:%d in %s]", info.source or "?", info.currentline or -1, info.name or "?")
 end
 
 local function program_error(message)
-	micro.TermMessage(PROGRAM_ERROR_HEAD .. where(3) .. message)
+	micro.TermMessage(PROGRAM_ERROR_HEAD .. where(3) .. "\n" .. message)
 end
 
 local function not_planned(message)
