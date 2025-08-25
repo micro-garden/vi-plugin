@@ -1199,11 +1199,11 @@ local function to_middle_of_view()
 
 	local pane = micro.CurPane()
 	local v = pane:GetView()
-	local bf = pane:BufView()
+	local bv = pane:BufView()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local height = math.min(bv.Height, last_line_index - v.StartLine.Line + 1)
 	local offset = math.floor(height / 2)
 	cursor.Y = v.StartLine.Line + offset
 	local line = buf:Line(cursor.Y)
@@ -1223,11 +1223,11 @@ local function to_bottom_of_view()
 
 	local pane = micro.CurPane()
 	local v = pane:GetView()
-	local bf = pane:BufView()
+	local bv = pane:BufView()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
 	local last_line_index = utils.last_line_index(buf)
-	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local height = math.min(bv.Height, last_line_index - v.StartLine.Line + 1)
 	local offset = height - 1
 	cursor.Y = v.StartLine.Line + offset
 	local line = buf:Line(cursor.Y)
@@ -1247,11 +1247,11 @@ local function to_below_top_of_view(num)
 	end
 
 	local pane = micro.CurPane()
-	local bf = pane:BufView()
+	local bv = pane:BufView()
 	local buf = pane.Buf
 	local last_line_index = utils.last_line_index(buf)
 	local v = pane:GetView()
-	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local height = math.min(bv.Height, last_line_index - v.StartLine.Line + 1)
 	if num > height then
 		bell.ring("offset out of range: " .. num .. " > " .. height)
 		return
@@ -1281,11 +1281,11 @@ local function to_above_bottom_of_view(num)
 	end
 
 	local pane = micro.CurPane()
-	local bf = pane:BufView()
+	local bv = pane:BufView()
 	local buf = pane.Buf
 	local last_line_index = utils.last_line_index(buf)
 	local v = pane:GetView()
-	local height = math.min(bf.Height, last_line_index - v.StartLine.Line + 1)
+	local height = math.min(bv.Height, last_line_index - v.StartLine.Line + 1)
 	if num > height then
 		bell.ring("offset out of range: " .. num .. " > " .. height)
 		return

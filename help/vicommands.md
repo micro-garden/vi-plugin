@@ -142,11 +142,11 @@ Command categories:
 
 ### Reposition
 
-* `z Enter` (Planned)  
+* `z Enter` (**Done**)  
   Reposition cursor line to top of view. (`view.to_top`)
-* `z.` (Planned)  
+* `z.` (**Done**)  
   Reposition cursor line middle of view. (`view.to_middle`)
-* `z-` (Planned)  
+* `z-` (**Done**)  
   Reposition cursor line bottom of view. (`view.to_bottom`)
 
 ### Redraw

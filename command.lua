@@ -667,9 +667,9 @@ function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 		return true
 	elseif run_compound_operator(num, op, no_subnum, subnum, mv, letter, replay) then
 		return true
-	elseif run_move(no_num, num, mv) then
+	elseif run_view(op, mv) then -- view run_must preceeds run_move
 		return true
-	elseif run_view(op, mv) then
+	elseif run_move(no_num, num, mv) then
 		return true
 	elseif run_mark(op, mv, letter) then
 		return true

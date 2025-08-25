@@ -1,4 +1,6 @@
 -- View Commands
+local micro = import("micro")
+local utf8 = import("unicode/utf8")
 
 local config = import("micro/config")
 local plug_path = config.ConfigDir .. "/plug/?.lua"
@@ -7,6 +9,8 @@ if not package.path:find(plug_path, 1, true) then
 end
 
 local bell = require("vi/bell")
+local mode = require("vi/mode")
+local move = require("vi/move")
 
 --
 -- Scroll by View Height / Scroll by Line
@@ -48,17 +52,56 @@ end
 
 -- z Enter : Reposition cursor line to top of view.
 local function to_top()
-	bell.planned("z Enter (view.to_top)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	v.StartLine.Line = cursor.Y
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+
+	move.update_virtual_cursor()
 end
 
 -- z. : Reposition cursor line middle of view.
 local function to_middle()
-	bell.planned("z. (view.to_middle)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local bv = pane:BufView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	local offset = math.floor(bv.Height / 2)
+	v.StartLine.Line = math.max(cursor.Y - offset, 0)
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+
+	move.update_virtual_cursor()
 end
 
 -- z- : Reposition cursor line bottom of view.
 local function to_bottom()
-	bell.planned("z- (view.to_bottom)")
+	mode.show()
+
+	local pane = micro.CurPane()
+	local v = pane:GetView()
+	local bv = pane:BufView()
+	local buf = pane.Buf
+	local cursor = buf:GetActiveCursor()
+	v.StartLine.Line = math.max(cursor.Y - bv.Height + 1, 0)
+
+	local line = buf:Line(cursor.Y)
+	local spaces = line:match("^(%s*)")
+	cursor.X = utf8.RuneCount(spaces)
+
+	move.update_virtual_cursor()
 end
 
 --
