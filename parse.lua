@@ -70,12 +70,12 @@ function onBeforeTextEvent(buf, ev)
 	local comb = combuf.get()
 
 	local num_str, op, subnum_str, mv, _ = comb:match(
-		"^(%d*)([:mziaIARoOdyYxXDsScCpPJ><%.uUZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nNfFtT;,g]*)(.-)$"
+		"^(%d*)([:mziaIARoOdyYxXDsScCpPrJ><%.uUZ]*)(%d*)([hjkl0%$%^|wbeWBE\n%+%-G%)%(}{%]%[HML'`/?nNfFtT;,g]*)(.-)$"
 	)
 
-	local letter_command, letter = comb:match("([m'`fFtT;,])(.)$")
+	local letter_command, letter = comb:match("([m'`fFtT;,r])(.)$")
 	if letter_command then
-		if letter_command == "m" then
+		if letter_command == "m" or letter_command == "r" then
 			op = letter_command
 			mv = ""
 		elseif letter_command == "'" or letter_command == "`" then

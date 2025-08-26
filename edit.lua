@@ -16,8 +16,49 @@ local mode = require("vi/mode")
 local move = require("vi/move")
 
 -- r : Replace single character under cursor.
-local function replace(letter)
-	bell.planned("r (edit.replace)")
+local function replace(num, letter)
+	if num < 1 then
+		bell.program_error("1 > num == " .. num)
+		return
+	end
+	if utf8.RuneCount(letter) ~= 1 then
+		bell.program_error("1 ~= utif8.len(letter) == " .. #letter)
+		return
+	end
+
+	local buf = micro.CurPane().Buf
+	local cursor = buf:GetActiveCursor()
+	local line = buf:Line(cursor.Y)
+	local length = utf8.RuneCount(line)
+	if cursor.X + num > length then
+		bell.ring("line end exceeded")
+		return
+	end
+
+	mode.show()
+
+	local start_loc = buffer.Loc(cursor.X, cursor.Y)
+	local end_loc = buffer.Loc(cursor.X + num, cursor.Y)
+	buf:Remove(start_loc, end_loc)
+	local chars = {}
+	if letter == "\n" then
+		table.insert(chars, letter)
+	else
+		for _ = 1, num do
+			table.insert(chars, letter)
+		end
+	end
+	mode.insert()
+	buf:Insert(start_loc, table.concat(chars))
+	mode.command()
+
+	if letter == "\n" then
+		cursor.Y = end_loc.Y
+		cursor.X = 0
+	else
+		cursor.X = end_loc.X - 1
+	end
+	move.update_virtual_cursor()
 end
 
 -- J : Join current line with next line.

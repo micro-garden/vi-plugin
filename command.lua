@@ -321,27 +321,27 @@ local function run_insert(num, op, replay)
 	-- Enter Insert Mode
 	if op == "i" then
 		insert.before(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "a" then
 		insert.after(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "I" then
 		insert.before_non_blank(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "A" then
 		insert.after_end(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "R" then
 		insert.overwrite(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -349,12 +349,12 @@ local function run_insert(num, op, replay)
 	-- Open Line
 	if op == "o" then
 		insert.open_below(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "O" then
 		insert.open_above(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -371,12 +371,12 @@ local function run_operator(num, op, replay)
 	-- Copy (Yank)
 	if op == "yy" or op == "Y" then
 		operator.copy_line(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "yy" and false then -- TODO reg
 		operator.copy_line_into_reg(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -384,12 +384,12 @@ local function run_operator(num, op, replay)
 	-- Paste (Put)
 	if op == "p" then
 		operator.paste(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "P" then
 		operator.paste_before(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -397,22 +397,22 @@ local function run_operator(num, op, replay)
 	-- Delete
 	if op == "x" then
 		operator.delete(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "X" then
 		operator.delete_before(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "dd" then
 		operator.delete_line(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "D" then
 		operator.delete_to_end()
-		cache_command(false, 1, op, true, 1, "", nil, nil)
+		cache_command(false, 1, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -420,22 +420,22 @@ local function run_operator(num, op, replay)
 	-- Change / Substitute
 	if op == "cc" then
 		operator.change_line(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "C" then
 		operator.change_to_end(replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "s" then
 		operator.subst(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "S" then
 		operator.subst_line(num, replay)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end
@@ -453,24 +453,24 @@ local function run_edit(num, op, letter)
 		return
 	end
 
-	if op == "r" then
-		edit.replace(letter)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+	if op == "r" and letter then
+		edit.replace(num, letter)
+		cache_command(false, num, op, true, 1, "", letter)
 		undo_mode = true
 		return true
 	elseif op == "J" then
 		edit.join(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == ">>" then
 		edit.indent(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	elseif op == "<<" then
 		edit.outdent(num)
-		cache_command(false, num, op, true, 1, "", nil, nil)
+		cache_command(false, num, op, true, 1, "", nil)
 		undo_mode = true
 		return true
 	end

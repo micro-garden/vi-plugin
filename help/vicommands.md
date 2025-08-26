@@ -262,7 +262,7 @@ Command categories:
 
 ## Editing Commands
 
-* `r` (Planned)  
+* `r` (**Done**)  
   Replace single character under cursor. (`edit.replace`)
 * `J` (**Done**)  
   Join current line with next line. (`edit.join`)
