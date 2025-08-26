@@ -171,9 +171,9 @@ Command categories:
 
 ## Character Finding Commands
 
-* `f<letter>` (Planned)  
+* `f<letter>` (**Done**)  
   Find character `<letter>` forward in current line. (`find.forward`)
-* `F<letter>` (Planned)  
+* `F<letter>` (**Done**)  
   Find character `<letter>` backward in current line. (`find.backward`)
 * `t<letter>` (Planned)  
   Find before character `<letter>` forward in current line. (`find.before_forward`)

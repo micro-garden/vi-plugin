@@ -55,6 +55,17 @@ local function last_line_index(buf)
 	return index
 end
 
+local function utf8_index(line, x)
+	local str = line
+	local index = 0
+	for _ = 1, x do
+		local _, size = utf8.DecodeRuneInString(str)
+		str = str:sub(1 + size)
+		index = index + size
+	end
+	return index + 1
+end
+
 local function utf8_sub(line, from, to)
 	if not to then
 		to = utf8.RuneCount(line)
@@ -99,6 +110,7 @@ M.xor = xor
 M.after = after
 M.next_tick = next_tick
 M.last_line_index = last_line_index
+M.utf8_index = utf8_index
 M.utf8_sub = utf8_sub
 M.is_locs_ordered = is_locs_ordered
 
