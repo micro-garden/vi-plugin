@@ -175,13 +175,13 @@ Command categories:
   Find character `<letter>` forward in current line. (`find.forward`)
 * `F<letter>` (**Done**)  
   Find character `<letter>` backward in current line. (`find.backward`)
-* `t<letter>` (Planned)  
+* `t<letter>` (**Done**)  
   Find before character `<letter>` forward in current line. (`find.before_forward`)
-* `T<letter>` (Planned)  
+* `T<letter>` (**Done**)  
   Find before character `<letter>` backward in current line. (`find.before_backward`)
-* `;` (Planned)  
+* `;` (**Done**)  
   Find next match. (`find.next_match`)
-* `,` (Planned)  
+* `,` (**Done**)  
   Find previous match. (`find.prev_match`)
 
 ## Insertion Commands
