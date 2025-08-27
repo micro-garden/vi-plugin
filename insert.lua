@@ -333,7 +333,11 @@ local function open_below(num, replay)
 
 		local line = buf:Line(cursor.Y)
 		cursor.X = utf8.RuneCount(line)
-		buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n")
+		if cursor.Y >= buf:LinesNum() - 1 and #line > 0 then
+			buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n\n")
+		else
+			buf:Insert(buffer.Loc(cursor.X, cursor.Y), "\n")
+		end
 
 		utils.next_tick(function()
 			cursor.Y = math.max(cursor.Y - 1, 0)
