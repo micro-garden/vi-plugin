@@ -70,6 +70,10 @@ local function show()
 		mode_line = "vi command mode"
 	elseif mode == MODE_INSERT then
 		mode_line = "vi insert mode"
+	elseif mode == MODE_SEARCH then
+		mode_line = "vi search mode"
+	elseif mode == MODE_PROMPT then
+		mode_line = "vi prompt mode"
 	else
 		bell.program_error("invalid mode == " .. mode)
 		return

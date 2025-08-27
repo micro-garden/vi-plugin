@@ -8,6 +8,7 @@ end
 
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local move = require("vi/move")
 
 local PROMPT = ":"
 
@@ -35,9 +36,13 @@ local function enter()
 	-- Move
 	--
 
-	if pb:match("%d+") then
-		-- Move cursor to line <num>.
-		bell.planned()
+	if pb:match("^%d+$") then
+		-- Move cursor to line <num>
+		local num = tonumber(pb:match("^(%d+)$"))
+		if num < 1 then
+			num = 1
+		end
+		move.to_line(num)
 		matched = true
 	end
 
@@ -47,7 +52,8 @@ local function enter()
 
 	if pb == "wq" then
 		-- Save current file and quit.
-		bell.planned()
+		pane:Save()
+		pane:Quit()
 		matched = true
 	elseif pb == "w" then
 		-- Save current file.
@@ -79,11 +85,11 @@ local function enter()
 		matched = true
 	elseif pb == "n" then
 		-- Switch to next buffer (tab).
-		bell.planned()
+		pane:NextTab()
 		matched = true
 	elseif pb == "prev" then
 		-- Switch to previous buffer (tab).
-		bell.planned()
+		pane:PreviousTab()
 		matched = true
 	end
 

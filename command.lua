@@ -250,7 +250,7 @@ local function run_view(op, mv)
 	return false
 end
 
-local function run_search(mv, num)
+local function run_search(num, mv)
 	if num < 1 then
 		bell.program_error("1 > num == " .. num)
 		return
@@ -279,7 +279,7 @@ local function run_search(mv, num)
 	return false
 end
 
-local function run_find(mv, num, letter)
+local function run_find(num, mv, letter)
 	if num < 1 then
 		bell.program_error("1 > num == " .. num)
 		return
@@ -521,9 +521,20 @@ local function get_region(num, no_subnum, subnum, mv, letter, save)
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 
 	for _ = 1, num do
-		if not run_move(no_subnum, subnum, mv) and not run_mark("", mv, letter) then
+		if
+			not run_move(no_subnum, subnum, mv)
+			and not run_mark("", mv, letter)
+			and not run_search(subnum, mv)
+			and not run_find(subnum, mv, letter)
+		then
 			bell.program_error("invalid mv == " .. mv)
 			return nil, nil
+		end
+	end
+
+	if mv:match("[ft;,]") then
+		if cursor.X > start_loc.X then
+			cursor.X = cursor.X + 1
 		end
 	end
 
@@ -574,15 +585,15 @@ local function run_compound_operator(num, op, no_subnum, subnum, mv, letter, rep
 	elseif op == "c" and mv == "W" then
 		operator.change_loose_word(num, replay)
 		matched = true
-	elseif op == "y" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "y" and (mv:match("[hl0wbnN;,]+") or ((mv == "`" or mv:match("[fFtT]")) and letter)) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		operator.copy_region(start_loc, end_loc)
 		matched = true
-	elseif op == "d" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "d" and (mv:match("[hl0wbnN;,]+") or ((mv == "`" or mv:match("[fFtT]")) and letter)) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		operator.delete_region(start_loc, end_loc)
 		matched = true
-	elseif op == "c" and (mv:match("[hl0wbnN]+") or mv == "`" and letter) then
+	elseif op == "c" and (mv:match("[hl0wbnN;,]+") or ((mv == "`" or mv:match("[fFtT]")) and letter)) then
 		local start_loc, end_loc = get_region(num, no_subnum, subnum, mv, letter)
 		operator.change_region(start_loc, end_loc, replay)
 		matched = true
@@ -673,9 +684,9 @@ function run(no_num, num, op, no_subnum, subnum, mv, letter, replay)
 		return true
 	elseif run_mark(op, mv, letter) then
 		return true
-	elseif run_search(mv, num) then
+	elseif run_search(num, mv) then
 		return true
-	elseif run_find(mv, num, letter) then
+	elseif run_find(num, mv, letter) then
 		return true
 	elseif run_insert(num, op, replay) then
 		return true

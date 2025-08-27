@@ -291,30 +291,30 @@ Command categories:
 
 ### Move
 
-* `:<num> Enter` (Planned)  
+* `:<num> Enter`  
   Move cursor to line `<num>`. (`prompt.move_to_line`)
 
 ### File
 
-* `:wq Enter` (Planned)  
+* `:wq Enter`  
   Save current file and quit. (`prompt.save_and_quit`)
-* `:w Enter` (**Done**)  
+* `:w Enter`  
   Save current file. (`prompt.save`)
 * `:w! Enter` (Out of Scope)  
   Force save current file.(`prompt.force_save`)
-* `:q Enter` (**Done**)  
+* `:q Enter`  
   Quit editor. (`prompt.quit`)
-* `:q! Enter` (**Done**)  
+* `:q! Enter`  
   Force quit editor. (`prompt.force_quit`)
-* `:e Enter` (**Done**)  
+* `:e Enter`  
   Open file. (`prompt.open`)
 * `:e! Enter` (Planned)  
   Force open file. (`prompt.force_open`)
 * `:r Enter` (Out of Scope)  
   Read file and insert to current buffer. (`prompt.read`)
-* `:n Enter` (Planned)  
+* `:n Enter`  
   Switch to next buffer (tab). (`prompt.next`)
-* `:prev Enter` (Planned)  
+* `:prev Enter`  
   Switch to previous buffer (tab). (`prompt.prev`) (extension)
 
 ### Utility
@@ -324,7 +324,7 @@ Command categories:
 
 ### From Vim
 
-* `:wa Enter` (**Done**)  
+* `:wa Enter`  
   Save all files. (`prompt.save_all`)
 * `:qa Enter` (*Partially*)  
   Close all files and quit editor. (`prompt.quit_all`)
