@@ -1,4 +1,5 @@
 local micro = import("micro")
+local shell = import("micro/shell")
 
 local config = import("micro/config")
 local plug_path = config.ConfigDir .. "/plug/?.lua"
@@ -99,7 +100,7 @@ local function enter()
 
 	if pb == "sh" then
 		-- Execute shell.
-		bell.planned()
+		shell.RunInteractiveShell("sh -c $SHELL", false, false)
 		matched = true
 	end
 

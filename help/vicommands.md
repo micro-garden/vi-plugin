@@ -319,8 +319,9 @@ Command categories:
 
 ### Utility
 
-* `:sh Enter` (Planned)  
-  Execute shell. (`prompt.shell`)
+* `:sh Enter` (*Partially*)  
+  Execute shell. (`prompt.shell`)  
+  (Note: Only Unix-like OSes are supported.)
 
 ### From Vim
 
