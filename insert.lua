@@ -13,6 +13,7 @@ end
 local utils = require("vi/utils")
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local snapshot = require("vi/snapshot")
 local move = require("vi/move")
 
 local saved = false
@@ -195,6 +196,8 @@ local function before(num, replay)
 		return
 	end
 
+	snapshot.update()
+
 	chars_mode()
 
 	if replay then
@@ -215,6 +218,8 @@ local function after(num, replay)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	snapshot.update()
 
 	chars_mode()
 
@@ -242,6 +247,8 @@ local function before_non_blank(num, replay)
 		return
 	end
 
+	snapshot.update()
+
 	chars_mode()
 
 	local buf = micro.CurPane().Buf
@@ -267,6 +274,8 @@ local function after_end(num, replay)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	snapshot.update()
 
 	chars_mode()
 
@@ -374,6 +383,8 @@ local function open_here(num, replay)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	snapshot.update()
 
 	lines_mode()
 

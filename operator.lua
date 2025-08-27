@@ -13,6 +13,7 @@ end
 local utils = require("vi/utils")
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local snapshot = require("vi/snapshot")
 local move = require("vi/move")
 local insert = require("vi/insert")
 
@@ -167,6 +168,10 @@ local function paste(num)
 		return
 	end
 
+	if not kill_lines then
+		snapshot.update()
+	end
+
 	local text
 	if kill_lines then
 		text = "\n" .. table.concat(kill_buffer, "\n")
@@ -227,6 +232,10 @@ local function paste_before(num)
 	end
 
 	mode.show()
+
+	if not kill_lines then
+		snapshot.update()
+	end
 
 	if not kill_buffer then
 		bell.vi_info("nothing to paste yet")
@@ -296,6 +305,8 @@ local function delete(num)
 
 	mode.show()
 
+	snapshot.update()
+
 	local pane = micro.CurPane()
 	local buf = pane.Buf
 	local cursor = buf:GetActiveCursor()
@@ -333,6 +344,8 @@ local function delete_before(num)
 	end
 
 	mode.show()
+
+	snapshot.update()
 
 	local pane = micro.CurPane()
 	local buf = pane.Buf
@@ -404,6 +417,8 @@ end
 local function delete_region(start_loc, end_loc)
 	mode.show()
 
+	snapshot.update()
+
 	if not utils.is_locs_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc -- swap
 	end
@@ -442,6 +457,8 @@ local function delete_word(num)
 		return
 	end
 
+	snapshot.update()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_word(num)
@@ -458,6 +475,8 @@ local function delete_loose_word(num)
 		return
 	end
 
+	snapshot.update()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_loose_word(num)
@@ -470,6 +489,8 @@ end
 -- d$ D - Delete to end of current line.
 local function delete_to_end()
 	mode.show()
+
+	snapshot.update()
 
 	local buf = micro.CurPane().Buf
 	local cursor = buf:GetActiveCursor()
@@ -504,6 +525,8 @@ local function change_line(num, replay)
 		return
 	end
 
+	snapshot.update()
+
 	delete_line(num)
 	insert.open_here(1, replay)
 end
@@ -513,6 +536,8 @@ local function change_region(start_loc, end_loc, replay)
 	if not utils.is_locs_ordered(start_loc, end_loc) then
 		start_loc, end_loc = end_loc, start_loc -- swap
 	end
+
+	snapshot.update()
 
 	local buf = micro.CurPane().Buf
 	local line = buf:Line(end_loc.Y)
@@ -546,6 +571,8 @@ local function change_word(num, replay)
 		return
 	end
 
+	snapshot.update()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_word_for_change(num)
@@ -562,6 +589,8 @@ local function change_loose_word(num, replay)
 		return
 	end
 
+	snapshot.update()
+
 	local cursor = micro.CurPane().Buf:GetActiveCursor()
 	local loc_start = buffer.Loc(cursor.X, cursor.Y)
 	move.by_loose_word_for_change(num)
@@ -573,6 +602,8 @@ end
 
 -- C : Change to end of current line.
 local function change_to_end(replay)
+	snapshot.update()
+
 	delete_to_end()
 	insert.after(1, replay)
 end
@@ -583,6 +614,8 @@ local function subst(num, replay)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	snapshot.update()
 
 	insert.replace_mode()
 
@@ -635,6 +668,8 @@ local function subst_line(num, replay)
 		bell.program_error("1 > num == " .. num)
 		return
 	end
+
+	snapshot.update()
 
 	change_line(num, replay)
 end

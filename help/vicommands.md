@@ -2,7 +2,6 @@
 
 Implementation status:
 
-* (**Done**): Already implemented.
 * (***Buggy***): Already implemented, but has some bugs.
 * (*Partially*): Partially implemented.
 * (Planned): Not implemented yet, but planned.
@@ -26,101 +25,101 @@ Command categories:
 
 ### Move by Character / Move by Line
 
-* `h` (**Done**)  
+* `h`  
   Move cursor left by character. (`move.left`)
-* `j` (**Done**)  
+* `j`  
   Move cursor down by line. (`move.down`)
-* `k` (**Done**)  
+* `k`  
   Move cursor up by line. (`move.up`)
-* `l` (**Done**)  
+* `l`  
   Move cursor right by character. (`move.right`)
 
 ### Move in Line
 
-* `0` (**Done**)  
+* `0`  
   Move cursor to start of current line. (`move.to_start`)
-* `$` (**Done**)  
+* `$`  
   Move cursor to end of current line. (`move.to_end`)
-* `^` (**Done**)  
+* `^`  
   Move cursor to first non-blank character of current line. (`move.to_non_blank`)
-* `<num>|` (**Done**)  
+* `<num>|`  
   Move cursor to column `<num>` of current line. (`move.to_column`)  
   (Note: Proper vi's column number is visual-based, but this plugins' is
   rune-based.)
 
 ### Move by Word / Move by Loose Word
 
-* `w` (**Done**)  
+* `w`  
   Move cursor forward by word. (`move.by_word`)
-* `b` (**Done**)  
+* `b`  
   Move cursor backward by word. (`move.backward_by_word`)
-* `e` (**Done**)  
+* `e`  
   Move cursor to end of word. (`move.to_end_of_word`)
-* `W` (**Done**)  
+* `W`  
   Move cursor forward by loose word. (`move.by_loose_word`)
-* `B` (**Done**)  
+* `B`  
   Move cursor backward by loose word. (`move.backward_by_loose_word`)
-* `E` (**Done**)  
+* `E`  
   Move cursor to end of loose word. (`move.to_end_of_loose_word`)
 
 ### Move by Line
 
-* `Enter`, `+` (**Done**)  
+* `Enter`, `+`  
   Move cursor to first non-blank character of next line. (`move.to_non_blank_of_next_line`)
-* `-` (**Done**)  
+* `-`  
   Move cursor to first non-blank character of previous line. (`move.to_non_blank_of_prev_line`)
-* `G` (**Done**)  
+* `G`  
   Move cursor to last line. (`move.to_last_line`)
-* `<num>G` (**Done**)  
+* `<num>G`  
   Move cursor to line `<num>`. (`move.to_line`)
 
 ### Move by Block
 
-* `)` (**Done**)  
+* `)`  
   Move cursor forward by sentence. (`move.by_sentence`)
-* `(` (**Done**)  
+* `(`  
   Move cursor backward by sentence. (`move.backward_by_sentence`)
-* `}` (**Done**)  
+* `}`  
   Move cursor forward by paragraph. (`move.by_paragraph`)
-* `{` (**Done**)  
+* `{`  
   Move cursor backward by paragraph. (`move.backward_by_paragraph`)  
   (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
-* `]]` (**Done**)  
+* `]]`  
   Move cursor forward by section. (`move.by_section`)
   (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
-* `[[` (**Done**)  
+* `[[`  
   Move cursor backward by section. (`move.backward_by_section`)
   (Note: Proper vi respects nroff/troff directives, but this plugin doesn't.)
 
 ### Move in View
 
-* `H` (**Done**)  
+* `H`  
   Move cursor to top of view. (`move.to_top_of_view`)
-* `M` (**Done**)  
+* `M`  
   Move cursor to middle of view. (`move.to_middle_of_view`)
-* `L` (**Done**)  
+* `L`  
   Move cursor to bottom of view. (`move.to_bottom_of_view`)
-* `<num>H` (**Done**)  
+* `<num>H`  
   Move cursor below `<num>` lines from top of view. (`move.to_below_top_of_view`)
-* `<num>L` (**Done**)  
+* `<num>L`  
   Move cursor above `<num>` lines from bottom of view. (`move.to_above_bottom_of_view`)
 
 ## Marking Commands
 
 ### Set Mark / Move to Mark
 
-* `m<letter>` (**Done**)  
+* `m<letter>`  
   Mark current cursor position labelled by `<letter>`. (`mark.set`)
-* `Backquote <letter>` (**Done**)  
+* `Backquote <letter>`  
   Move cursor to marked position labelled by `<letter>`. (`mark.move_to`)
-* `'<letter>` (**Done**)  
+* `'<letter>`  
   Move cursor to marked line labelled by `<letter>`. (`mark.move_to_line`)
 
 ### Move by Context
 
-* `Backquote Backquote` (**Done**)  
+* `Backquote Backquote`  
   Move cursor to previous position in context. (`mark.back`)
-* `''` (**Done**)  
+* `''`  
   Move cursor to previous line in context. (`mark.back_to_line`)
 
 ## View Commands
@@ -142,11 +141,11 @@ Command categories:
 
 ### Reposition
 
-* `z Enter` (**Done**)  
+* `z Enter`  
   Reposition cursor line to top of view. (`view.to_top`)
-* `z.` (**Done**)  
+* `z.`  
   Reposition cursor line middle of view. (`view.to_middle`)
-* `z-` (**Done**)  
+* `z-`  
   Reposition cursor line bottom of view. (`view.to_bottom`)
 
 ### Redraw
@@ -171,30 +170,30 @@ Command categories:
 
 ## Character Finding Commands
 
-* `f<letter>` (**Done**)  
+* `f<letter>`  
   Find character `<letter>` forward in current line. (`find.forward`)
-* `F<letter>` (**Done**)  
+* `F<letter>`  
   Find character `<letter>` backward in current line. (`find.backward`)
-* `t<letter>` (**Done**)  
+* `t<letter>`  
   Find before character `<letter>` forward in current line. (`find.before_forward`)
-* `T<letter>` (**Done**)  
+* `T<letter>`  
   Find before character `<letter>` backward in current line. (`find.before_backward`)
-* `;` (**Done**)  
+* `;`  
   Find next match. (`find.next_match`)
-* `,` (**Done**)  
+* `,`  
   Find previous match. (`find.prev_match`)
 
 ## Insertion Commands
 
 ### Enter Insert Mode
 
-* `i` (**Done**)  
+* `i`  
   Switch to insert mode before cursor. (`insert.before`)
-* `a` (**Done**)  
+* `a`  
   Switch to insert mode after cursor. (`insert.after`)
-* `I` (**Done**)  
+* `I`  
   Switch to insert mode before first non-blank character of current line. (`insert.before_non_blank`)
-* `A` (**Done**)  
+* `A`  
   Switch to insert mode after end of current line. (`insert.after_end`)
 * `R` (Out of Scope)  
   Switch to replace (overwrite) mode. (`insert.overwrite`)
@@ -210,82 +209,82 @@ Command categories:
 
 ### Copy (Yank)
 
-* `yy`, `Y` (**Done**)  
+* `yy`, `Y`  
   Copy current line. (`operator.copy_line`)
-* `y<mv>` (**Done**)  
+* `y<mv>`  
   Copy region from current cursor to destination of motion `<mv>`. (`operator.copy_region`, `operator.copy_line_region`)
-* `yw` (**Done**)  
+* `yw`  
   Copy word. (`operator.copy_word`)
-* `y$` (**Done**)  
+* `y$`  
   Copy to end of current line. (`operator.copy_to_end`)
 * `"<reg>yy` (Planned)  
   Copy current line into register `<reg>`. (`operator.copy_line_into_reg`)
 
 ### Paste (Put)
 
-* `p` (**Done**)  
+* `p`  
   Paste after cursor. (`operator.paste`)
-* `P` (**Done**)  
+* `P`  
   Paste before cursor. (`operator.paste_before`)
 * `"<reg>p` (Planned)  
   Paste from register `<reg>`. (`operator.paste_from_reg`)
 
 ### Delete
 
-* `x` (**Done**)  
+* `x`  
   Delete character under cursor. (`operator.delete`)
-* `X` (**Done**)  
+* `X`  
   Delete character before cursor. (`operator.delete_before`)
-* `dd` (**Done**)  
+* `dd`  
   Delete current line. (`operator.delete_line`)
-* `d<mv>` (**Done**)  
+* `d<mv>`  
   Delete region from current cursor to destination of motion `<mv>`. (`operator.delete_region`, `operator.delete_line_region`)
-* `dw` (**Done**)  
+* `dw`  
   Delete word. (`operator.delete_word`)
-* `d$`, `D` (**Done**)  
+* `d$`, `D`  
   Delete to end of current line. (`operator.delete_to_end`)
 
 ### Change / Substitute
 
-* `cc` (**Done**)  
+* `cc`  
   Change current line. (`operator.change_line`)
-* `c<mv>` (**Done**)  
+* `c<mv>`  
   Change region from current cursor to destination of motion `<mv>`. (`operator.change_region`, `operator.change_line_region`)
 * `cw` (***Buggy***)  
   Change word. (`operator.change_word`)
-* `C` (**Done**)  
+* `C`  
   Change to end of current line. (`operator.change_to_end`)
 * `s` (***Buggy***)  
   Substitute one character under cursor. (`operator.subst`)
-* `S` (**Done**)  
+* `S`  
   Substtute current line (equals `cc`). (`operator.subst_line`)
 
 ## Editing Commands
 
-* `r` (**Done**)  
+* `r`  
   Replace single character under cursor. (`edit.replace`)
-* `J` (**Done**)  
+* `J`  
   Join current line with next line. (`edit.join`)
-* `>>` (**Done**)  
+* `>>`  
   Indent current line. (`edit.indent`)
-* `<<` (**Done**)  
+* `<<`  
   Outdent current line. (`edit.outdent`)
-* `> <mv>` (**Done**)  
+* `> <mv>`  
   Indent region from current cursor to destination of motion `<mv>`. (`edit.indent_region`)
-* `< <mv>` (**Done**)  
+* `< <mv>`  
   Outdent region from current cursor to destination of motion `<mv>`. (`edit.outdent_region`)
 
 ## Miscellaneous Commands
 
 * `Ctrl-g` (Out of Scope)  
   Show info such as current cursor position. (`misc.show_info`)
-* `.` (**Done**)  
+* `.`  
   Repeat last edit. (`misc.repeat`)
 * `u` (Stalled)  
   Undo. (`misc.undo`)
-* `U` (Planned)  
+* `U` (*Partially*)  
   Restore current line to previous state. (`misc.restore`)
-* `ZZ` (**Done**)  
+* `ZZ`  
   Save and quit. (`misc.save_and_quit`)
 
 ## Prompt Commands 

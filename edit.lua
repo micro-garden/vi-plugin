@@ -13,6 +13,7 @@ end
 local utils = require("vi/utils")
 local bell = require("vi/bell")
 local mode = require("vi/mode")
+local snapshot = require("vi/snapshot")
 local move = require("vi/move")
 
 -- r : Replace single character under cursor.
@@ -36,6 +37,8 @@ local function replace(num, letter)
 	end
 
 	mode.show()
+
+	snapshot.update()
 
 	local start_loc = buffer.Loc(cursor.X, cursor.Y)
 	local end_loc = buffer.Loc(cursor.X + num, cursor.Y)
@@ -69,6 +72,8 @@ local function join(num)
 	end
 
 	mode.show()
+
+	snapshot.update()
 
 	local pane = micro.CurPane()
 	local buf = pane.Buf
@@ -125,6 +130,8 @@ local function indent_lines_internal(num, right)
 	end
 
 	mode.show()
+
+	snapshot.update()
 
 	local pane = micro.CurPane()
 	local buf = pane.Buf
