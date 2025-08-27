@@ -542,7 +542,7 @@ local function change_region(start_loc, end_loc, replay)
 	local buf = micro.CurPane().Buf
 	local line = buf:Line(end_loc.Y)
 	local length = utf8.RuneCount(line)
-	local end_of_line = end_loc.Y >= length
+	local end_of_line = end_loc.X >= length
 
 	delete_region(start_loc, end_loc)
 

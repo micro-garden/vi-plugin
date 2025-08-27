@@ -250,11 +250,11 @@ Command categories:
   Change current line. (`operator.change_line`)
 * `c<mv>`  
   Change region from current cursor to destination of motion `<mv>`. (`operator.change_region`, `operator.change_line_region`)
-* `cw` (***Buggy***)  
+* `cw`  
   Change word. (`operator.change_word`)
 * `C`  
   Change to end of current line. (`operator.change_to_end`)
-* `s` (***Buggy***)  
+* `s`  
   Substitute one character under cursor. (`operator.subst`)
 * `S`  
   Substtute current line (equals `cc`). (`operator.subst_line`)
