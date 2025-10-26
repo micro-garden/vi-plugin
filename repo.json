@@ -3,110 +3,110 @@
 	"Description": "Provides a simple vi-style modal editing mode.",
 	"Author": "Aki Kareha",
 	"Tags": ["vi"],
-	"Website": "https://github.com/akikareha/micro-vi-plugin",
+	"Website": "https://github.com/micro-garden/vi-plugin",
 	"License": "MIT",
 	"Versions": [
 		{
 			"Version": "0.0.14",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.14.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.14.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.13",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.13.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.13.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.12",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.12.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.12.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.11",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.11.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.11.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.10",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.10.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.10.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.9",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.9.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.9.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.8",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.8.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.8.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.7",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.7.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.7.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.6",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.6.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.6.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.5",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.5.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.5.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.4",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.4.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.4.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.3",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.3.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.3.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.2",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.2.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.2.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.1",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.1.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.1.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
 		},
 		{
 			"Version": "0.0.0",
-			"Url": "https://github.com/akikareha/micro-vi-plugin/archive/v0.0.0.zip",
+			"Url": "https://github.com/micro-garden/vi-plugin/archive/v0.0.0.zip",
 			"Require": {
 				"micro": ">=2.0.0"
 			}
